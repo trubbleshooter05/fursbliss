@@ -52,7 +52,7 @@ export default async function DashboardPage() {
     healthLogs.length === 0
       ? 0
       : Math.round(
-          (healthLogs.reduce((sum, log) => sum + log.energyLevel, 0) /
+          (healthLogs.reduce((sum: number, log) => sum + log.energyLevel, 0) /
             healthLogs.length) *
             10
         ) / 10;

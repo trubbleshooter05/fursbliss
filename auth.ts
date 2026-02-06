@@ -41,7 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         if (!user.emailVerified) {
-          throw new Error("EMAIL_NOT_VERIFIED");
+          return { id: "unverified", email: "unverified", name: "unverified" };
         }
 
         return {
@@ -57,6 +57,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     jwt: async ({ token, user }) => {
       if (user) {
+        if (user.id === "unverified") {
+          token.error = "EMAIL_NOT_VERIFIED";
+          return token;
+        }
         token.id = user.id;
         token.subscriptionStatus = user.subscriptionStatus ?? "free";
         token.role = user.role ?? "user";
@@ -75,6 +79,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     session: async ({ session, token }) => {
       if (session.user) {
+        session.user.error = token.error as string | undefined;
         session.user.id = token.id as string;
         session.user.subscriptionStatus = token.subscriptionStatus as string;
         session.user.role = token.role as string;

@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String?
+  password           String
+  emailVerified      DateTime?
+  subscriptionStatus String   @default("free") // "free" or "premium"
+  stripeCustomerId   String?
+  role               String   @default("user") // "user" or "admin"
+  referralCode       String?  @unique
+  referredById       String?
+  referredBy         User?    @relation("UserReferrals", fields: [referredById], references: [id])
+  referredUsers      User[]   @relation("UserReferrals")
+  createdAt          DateTime @default(now())
+  pets               Pet[]
+  notifications      Notification[]
+  referrals          Referral[]
+}
+
+model Pet {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  breed      String
+  age        Int
+  weight     Float
+  symptoms   Json        // array of symptoms
+  photoUrl   String?
+  createdAt  DateTime    @default(now())
+  healthLogs HealthLog[]
+  recommendations Recommendation[]
+  weightLogs WeightLog[]
+  medications Medication[]
+  doseSchedules DoseSchedule[]
+  photoLogs  PhotoLog[]
+}
+
+model HealthLog {
+  id           String   @id @default(cuid())
+  petId        String
+  pet          Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  date         DateTime @default(now())
+  energyLevel  Int      // 1-10 scale
+  appetite     String?
+  mood         String?
+  notes        String?
+  weight       Float?
+  photoUrl     String?
+  improvements Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Recommendation {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  prompt    String
+  response  String
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model WeightLog {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  weight    Float
+  createdAt DateTime @default(now())
+}
+
+model Medication {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  name      String
+  dosage    String
+  frequency String
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model DoseSchedule {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  supplementName String
+  dosage    String
+  frequency String
+  times     Json
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model PhotoLog {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  healthLogId String?
+  imageUrl  String
+  caption   String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Referral {
+  id            String   @id @default(cuid())
+  code          String
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitedEmail  String?
+  redeemedById  String?
+  redeemedAt    DateTime?
+  createdAt     DateTime @default(now())
+}

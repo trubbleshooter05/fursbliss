@@ -2,12 +2,29 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createPasswordResetToken } from "@/lib/auth-tokens";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().email(),
 });
 
 export async function POST(request: Request) {
+  const limiter = rateLimit(request, "auth-forgot-password", {
+    limit: 5,
+    windowMs: 60_000,
+  });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { message: "Too many requests. Try again shortly." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(getRetryAfterSeconds(limiter.resetAt)),
+        },
+      }
+    );
+  }
+
   try {
     const body = await request.json();
     const parsed = schema.safeParse(body);

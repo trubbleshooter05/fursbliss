@@ -3,6 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createVerificationToken, generateReferralCode } from "@/lib/auth-tokens";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -12,6 +13,22 @@ const registerSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limiter = rateLimit(request, "auth-register", {
+    limit: 5,
+    windowMs: 60_000,
+  });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { message: "Too many registration attempts. Try again shortly." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(getRetryAfterSeconds(limiter.resetAt)),
+        },
+      }
+    );
+  }
+
   try {
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);

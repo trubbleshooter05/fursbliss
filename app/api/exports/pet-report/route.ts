@@ -2,11 +2,28 @@ import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const limiter = rateLimit(request, `export-pet-report:${session.user.id}`, {
+    limit: 5,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { message: "Too many export requests. Try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(getRetryAfterSeconds(limiter.resetAt)),
+        },
+      }
+    );
   }
 
   const { searchParams } = new URL(request.url);

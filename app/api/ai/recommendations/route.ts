@@ -3,6 +3,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const requestSchema = z.object({
   petId: z.string().min(1),
@@ -18,6 +19,22 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const limiter = rateLimit(request, `ai-recommendations:${session.user.id}`, {
+    limit: 10,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { message: "Too many AI requests. Try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(getRetryAfterSeconds(limiter.resetAt)),
+        },
+      }
+    );
   }
 
   try {

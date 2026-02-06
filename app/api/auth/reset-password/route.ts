@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const schema = z.object({
   token: z.string().min(10),
@@ -9,6 +10,22 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limiter = rateLimit(request, "auth-reset-password", {
+    limit: 5,
+    windowMs: 60_000,
+  });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { message: "Too many requests. Try again shortly." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(getRetryAfterSeconds(limiter.resetAt)),
+        },
+      }
+    );
+  }
+
   try {
     const body = await request.json();
     const parsed = schema.safeParse(body);

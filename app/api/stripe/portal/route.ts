@@ -2,11 +2,28 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_APP_URL));
+  }
+
+  const limiter = rateLimit(request, `stripe-portal:${session.user.id}`, {
+    limit: 10,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { message: "Too many requests. Try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(getRetryAfterSeconds(limiter.resetAt)),
+        },
+      }
+    );
   }
 
   const user = await prisma.user.findUnique({

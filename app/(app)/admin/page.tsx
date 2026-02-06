@@ -22,7 +22,17 @@ export default async function AdminPage() {
   }
 
   const [users, pets, logs] = await Promise.all([
-    prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
+    prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        email: true,
+        subscriptionStatus: true,
+        role: true,
+        createdAt: true,
+      },
+    }),
     prisma.pet.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
     prisma.healthLog.findMany({
       orderBy: { date: "desc" },

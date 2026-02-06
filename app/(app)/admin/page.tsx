@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -12,15 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type AdminUser = Prisma.UserGetPayload<{
-  select: {
-    id: true;
-    email: true;
-    subscriptionStatus: true;
-    role: true;
-    createdAt: true;
-  };
-}>;
+type AdminUser = Awaited<ReturnType<typeof prisma.user.findMany>>[number];
 
 export default async function AdminPage() {
   const session = await auth();
@@ -32,7 +23,7 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  const users: AdminUser[] = await prisma.user.findMany({
+  const users = (await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
     select: {
@@ -42,7 +33,7 @@ export default async function AdminPage() {
       role: true,
       createdAt: true,
     },
-  });
+  })) as AdminUser[];
 
   const pets = await prisma.pet.findMany({
     orderBy: { createdAt: "desc" },
@@ -77,7 +68,7 @@ export default async function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {users.map((user: AdminUser) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>{user.subscriptionStatus}</TableCell>

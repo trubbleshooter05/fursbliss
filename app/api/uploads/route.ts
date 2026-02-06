@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -10,6 +11,22 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const limiter = rateLimit(request, `uploads:${session.user.id}`, {
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { message: "Too many uploads. Try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(getRetryAfterSeconds(limiter.resetAt)),
+        },
+      }
+    );
   }
 
   const formData = await request.formData();

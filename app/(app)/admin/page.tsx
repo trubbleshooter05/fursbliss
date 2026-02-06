@@ -21,25 +21,28 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  const [users, pets, logs] = await Promise.all([
-    prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 20,
-      select: {
-        id: true,
-        email: true,
-        subscriptionStatus: true,
-        role: true,
-        createdAt: true,
-      },
-    }),
-    prisma.pet.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
-    prisma.healthLog.findMany({
-      orderBy: { date: "desc" },
-      take: 20,
-      include: { pet: true },
-    }),
-  ]);
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: {
+      id: true,
+      email: true,
+      subscriptionStatus: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+
+  const pets = await prisma.pet.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  const logs = await prisma.healthLog.findMany({
+    orderBy: { date: "desc" },
+    take: 20,
+    include: { pet: true },
+  });
 
   return (
     <div className="space-y-8">

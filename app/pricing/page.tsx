@@ -90,7 +90,11 @@ export default function PricingPage() {
                   ))}
                 </ul>
                 <Button className="w-full" asChild>
-                  <Link href={plan.href}>{plan.cta}</Link>
+                  {plan.href.startsWith("/api/") ? (
+                    <a href={plan.href}>{plan.cta}</a>
+                  ) : (
+                    <Link href={plan.href}>{plan.cta}</Link>
+                  )}
                 </Button>
               </CardContent>
             </Card>

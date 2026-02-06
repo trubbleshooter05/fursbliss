@@ -64,7 +64,9 @@ export async function GET(request: Request) {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
   });
 
-  return new NextResponse(pdfBuffer, {
+  const pdfBytes = new Uint8Array(pdfBuffer);
+
+  return new NextResponse(pdfBytes, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=${pet.name}-report.pdf`,

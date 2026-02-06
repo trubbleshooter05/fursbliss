@@ -47,7 +47,9 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
     notFound();
   }
 
-  const symptoms = Array.isArray(pet.symptoms) ? pet.symptoms : [];
+  const symptoms = Array.isArray(pet.symptoms)
+    ? pet.symptoms.filter((symptom): symptom is string => typeof symptom === "string")
+    : [];
   const energyData = pet.healthLogs
     .slice()
     .reverse()

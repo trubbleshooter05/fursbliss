@@ -11,10 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type AdminUser = Awaited<ReturnType<typeof prisma.user.findMany>>[number];
-type AdminPet = Awaited<ReturnType<typeof prisma.pet.findMany>>[number];
-type AdminLog = Awaited<ReturnType<typeof prisma.healthLog.findMany>>[number];
-
 export default async function AdminPage() {
   const session = await auth();
   if (!session?.user) {
@@ -25,7 +21,7 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  const users = (await prisma.user.findMany({
+  const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
     select: {
@@ -35,18 +31,18 @@ export default async function AdminPage() {
       role: true,
       createdAt: true,
     },
-  })) as AdminUser[];
+  });
 
-  const pets = (await prisma.pet.findMany({
+  const pets = await prisma.pet.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
-  })) as AdminPet[];
+  });
 
-  const logs = (await prisma.healthLog.findMany({
+  const logs = await prisma.healthLog.findMany({
     orderBy: { date: "desc" },
     take: 20,
     include: { pet: true },
-  })) as AdminLog[];
+  });
 
   return (
     <div className="space-y-8">
@@ -70,7 +66,7 @@ export default async function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user: AdminUser) => (
+              {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>{user.subscriptionStatus}</TableCell>
@@ -98,7 +94,7 @@ export default async function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pets.map((pet: AdminPet) => (
+              {pets.map((pet) => (
                 <TableRow key={pet.id}>
                   <TableCell className="font-medium">{pet.name}</TableCell>
                   <TableCell>{pet.breed}</TableCell>
@@ -126,7 +122,7 @@ export default async function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logs.map((log: AdminLog) => (
+              {logs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell className="font-medium">{log.pet.name}</TableCell>
                   <TableCell>{log.date.toDateString()}</TableCell>

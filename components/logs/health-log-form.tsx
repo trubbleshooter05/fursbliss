@@ -38,7 +38,8 @@ const logSchema = z.object({
   improvements: z.boolean().default(false),
 });
 
-type LogFormValues = z.infer<typeof logSchema>;
+type LogFormInput = z.input<typeof logSchema>;
+type LogFormValues = z.output<typeof logSchema>;
 
 type HealthLogFormProps = {
   pets: { id: string; name: string }[];
@@ -48,7 +49,7 @@ type HealthLogFormProps = {
 export function HealthLogForm({ pets, defaultPetId }: HealthLogFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const form = useForm<LogFormValues>({
+  const form = useForm<LogFormInput, unknown, LogFormValues>({
     resolver: zodResolver(logSchema),
     defaultValues: {
       petId: defaultPetId ?? "",
@@ -63,7 +64,7 @@ export function HealthLogForm({ pets, defaultPetId }: HealthLogFormProps) {
     },
   });
 
-  const energyLevel = form.watch("energyLevel");
+  const energyLevel = Number(form.watch("energyLevel") ?? 0);
 
   const onSubmit = async (values: LogFormValues) => {
     const response = await fetch("/api/logs", {
@@ -143,8 +144,8 @@ export function HealthLogForm({ pets, defaultPetId }: HealthLogFormProps) {
                   type="range"
                   min={1}
                   max={10}
-                  value={field.value}
-                  onChange={(event) => field.onChange(event.target.value)}
+                  value={Number(field.value ?? 0)}
+                  onChange={(event) => field.onChange(Number(event.target.value))}
                   className="w-full accent-emerald-500"
                 />
               </FormControl>
@@ -161,7 +162,26 @@ export function HealthLogForm({ pets, defaultPetId }: HealthLogFormProps) {
               <FormItem>
                 <FormLabel>Weight (lbs)</FormLabel>
                 <FormControl>
-                  <Input type="number" min={0} step="0.1" {...field} />
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.1"
+                    name={field.name}
+                    ref={field.ref}
+                    onBlur={field.onBlur}
+                    value={
+                      typeof field.value === "number"
+                        ? field.value
+                        : field.value
+                          ? Number(field.value)
+                          : ""
+                    }
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value === "" ? undefined : Number(event.target.value)
+                      )
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

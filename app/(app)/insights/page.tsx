@@ -48,7 +48,9 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     <InsightsPanel
       pets={pets.map((pet) => ({
         ...pet,
-        symptoms: Array.isArray(pet.symptoms) ? pet.symptoms : [],
+        symptoms: Array.isArray(pet.symptoms)
+          ? pet.symptoms.filter((symptom): symptom is string => typeof symptom === "string")
+          : [],
       }))}
       recommendations={recommendations.map((rec) => ({
         id: rec.id,

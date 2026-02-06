@@ -14,7 +14,9 @@ export default async function TrendsPage() {
   }, {});
 
   const symptomCounts = pets.reduce<Record<string, number>>((acc, pet) => {
-    const symptoms = Array.isArray(pet.symptoms) ? pet.symptoms : [];
+    const symptoms = Array.isArray(pet.symptoms)
+      ? pet.symptoms.filter((symptom): symptom is string => typeof symptom === "string")
+      : [];
     symptoms.forEach((symptom) => {
       acc[symptom] = (acc[symptom] ?? 0) + 1;
     });

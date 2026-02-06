@@ -42,7 +42,8 @@ const petSchema = z.object({
     .or(z.literal("")),
 });
 
-type PetFormValues = z.infer<typeof petSchema>;
+type PetFormInput = z.input<typeof petSchema>;
+type PetFormValues = z.output<typeof petSchema>;
 
 type PetFormProps = {
   mode: "create" | "edit";
@@ -53,7 +54,7 @@ type PetFormProps = {
 export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const form = useForm<PetFormValues>({
+  const form = useForm<PetFormInput, unknown, PetFormValues>({
     resolver: zodResolver(petSchema),
     defaultValues: {
       name: defaultValues?.name ?? "",
@@ -133,7 +134,25 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
               <FormItem>
                 <FormLabel>Age (years)</FormLabel>
                 <FormControl>
-                  <Input type="number" min={0} {...field} />
+                  <Input
+                    type="number"
+                    min={0}
+                    name={field.name}
+                    ref={field.ref}
+                    onBlur={field.onBlur}
+                    value={
+                      typeof field.value === "number"
+                        ? field.value
+                        : field.value
+                          ? Number(field.value)
+                          : ""
+                    }
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value === "" ? undefined : Number(event.target.value)
+                      )
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -146,7 +165,26 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
               <FormItem>
                 <FormLabel>Weight (lbs)</FormLabel>
                 <FormControl>
-                  <Input type="number" min={0} step="0.1" {...field} />
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.1"
+                    name={field.name}
+                    ref={field.ref}
+                    onBlur={field.onBlur}
+                    value={
+                      typeof field.value === "number"
+                        ? field.value
+                        : field.value
+                          ? Number(field.value)
+                          : ""
+                    }
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value === "" ? undefined : Number(event.target.value)
+                      )
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

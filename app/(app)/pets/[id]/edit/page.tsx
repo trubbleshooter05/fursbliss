@@ -46,7 +46,9 @@ export default async function EditPetPage({ params }: EditPetPageProps) {
               age: pet.age,
               weight: pet.weight,
               photoUrl: pet.photoUrl ?? "",
-              symptoms: Array.isArray(pet.symptoms) ? pet.symptoms : [],
+              symptoms: Array.isArray(pet.symptoms)
+                ? pet.symptoms.filter((symptom): symptom is string => typeof symptom === "string")
+                : [],
             }}
           />
         </CardContent>

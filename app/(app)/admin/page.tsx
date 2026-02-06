@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/table";
 
 type AdminUser = Awaited<ReturnType<typeof prisma.user.findMany>>[number];
+type AdminPet = Awaited<ReturnType<typeof prisma.pet.findMany>>[number];
+type AdminLog = Awaited<ReturnType<typeof prisma.healthLog.findMany>>[number];
 
 export default async function AdminPage() {
   const session = await auth();
@@ -35,16 +37,16 @@ export default async function AdminPage() {
     },
   })) as AdminUser[];
 
-  const pets = await prisma.pet.findMany({
+  const pets = (await prisma.pet.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
-  });
+  })) as AdminPet[];
 
-  const logs = await prisma.healthLog.findMany({
+  const logs = (await prisma.healthLog.findMany({
     orderBy: { date: "desc" },
     take: 20,
     include: { pet: true },
-  });
+  })) as AdminLog[];
 
   return (
     <div className="space-y-8">
@@ -96,7 +98,7 @@ export default async function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pets.map((pet) => (
+              {pets.map((pet: AdminPet) => (
                 <TableRow key={pet.id}>
                   <TableCell className="font-medium">{pet.name}</TableCell>
                   <TableCell>{pet.breed}</TableCell>
@@ -124,7 +126,7 @@ export default async function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logs.map((log) => (
+              {logs.map((log: AdminLog) => (
                 <TableRow key={log.id}>
                   <TableCell className="font-medium">{log.pet.name}</TableCell>
                   <TableCell>{log.date.toDateString()}</TableCell>

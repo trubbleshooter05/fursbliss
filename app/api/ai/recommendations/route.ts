@@ -62,11 +62,12 @@ export async function POST(request: Request) {
     )}. Focus on supplements like omega-3s, probiotics, joint support (glucosamine/chondroitin), antioxidants. Provide specific dosage recommendations when possible. Add an evidence ranking (low/medium/high) per supplement. Keep response under 300 words.`;
 
     const completion = await client.chat.completions.create({
-      model: "gpt-4-turbo",
+      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
       ],
+      max_tokens: 400,
     });
 
     const responseText = completion.choices[0]?.message?.content?.trim();

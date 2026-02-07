@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   }
 
   const limiter = rateLimit(request, `export-pet-report:${session.user.id}`, {
-    limit: 5,
+    limit: 30,
     windowMs: 60 * 60 * 1000,
   });
   if (!limiter.success) {

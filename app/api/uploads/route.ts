@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import crypto from "crypto";
+import { put } from "@vercel/blob";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -36,15 +35,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "No file provided" }, { status: 400 });
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
   const extension = file.type.split("/")[1] ?? "jpg";
   const fileName = `${crypto.randomUUID()}.${extension}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  const filePath = path.join(uploadDir, fileName);
+  const blob = await put(`pets/${fileName}`, file, {
+    access: "public",
+    contentType: file.type || "image/jpeg",
+  });
 
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(filePath, buffer);
-
-  return NextResponse.json({ url: `/uploads/${fileName}` });
+  return NextResponse.json({ url: blob.url });
 }

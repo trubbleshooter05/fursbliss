@@ -79,15 +79,17 @@ export function AppShell({ children, user, pets = [] }: AppShellProps) {
               </Button>
             )}
           </nav>
-          <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4 text-sm text-emerald-700">
-            <p className="font-semibold">Premium ready</p>
-            <p className="mt-2 text-xs text-emerald-700/80">
-              Upgrade to unlock unlimited logs, AI insights, and exports.
-            </p>
-            <Button size="sm" className="mt-3 w-full" asChild>
-              <Link href="/pricing">Upgrade</Link>
-            </Button>
-          </div>
+          {user.subscriptionStatus !== "premium" && (
+            <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4 text-sm text-emerald-700">
+              <p className="font-semibold">Premium ready</p>
+              <p className="mt-2 text-xs text-emerald-700/80">
+                Upgrade to unlock unlimited logs, AI insights, and exports.
+              </p>
+              <Button size="sm" className="mt-3 w-full" asChild>
+                <Link href="/pricing">Upgrade</Link>
+              </Button>
+            </div>
+          )}
         </aside>
         <div className="flex min-h-screen flex-1 flex-col">
           <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200/70 bg-white/70 px-6 backdrop-blur">

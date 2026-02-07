@@ -56,9 +56,11 @@ export async function POST(request: Request) {
       email: user.email,
     });
   } catch (error) {
-    console.error("Seed demo error", error);
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Seed demo error", message);
     return NextResponse.json(
-      { message: "Unable to seed demo account." },
+      { message: "Unable to seed demo account.", error: message },
       { status: 500 }
     );
   }

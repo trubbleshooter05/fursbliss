@@ -83,7 +83,7 @@ export function AppShell({ children, user, pets = [] }: AppShellProps) {
             <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4 text-sm text-emerald-700">
               <p className="font-semibold">Premium ready</p>
               <p className="mt-2 text-xs text-emerald-700/80">
-                Upgrade to unlock unlimited logs, AI insights, and exports.
+                Upgrade for unlimited pets, AI insights, and vet-ready reports.
               </p>
               <Button size="sm" className="mt-3 w-full" asChild>
                 <Link href="/pricing">Upgrade</Link>

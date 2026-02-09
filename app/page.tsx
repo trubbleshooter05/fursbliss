@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import {
   LineChart,
   ShieldCheck,
@@ -16,25 +18,25 @@ const features = [
     icon: Stethoscope,
     title: "Daily health tracking",
     description:
-      "Capture energy, appetite, mood, and symptoms in a single streamlined workflow.",
+      "Log energy, appetite, mobility, and mood in a 30-second check-in.",
   },
   {
     icon: Sparkles,
     title: "AI supplement guidance",
     description:
-      "Get GPT-4 powered supplement suggestions based on age, breed, and symptoms.",
+      "Evidence-rated recommendations personalized to breed, age, and symptoms.",
   },
   {
     icon: LineChart,
-    title: "Trend analytics",
+    title: "Breed risk timelines",
     description:
-      "Visualize energy and weight trends to spot early changes and improvements.",
+      "See what health risks are common for your breed and when to watch for them.",
   },
   {
     icon: ShieldCheck,
-    title: "Secure, private data",
+    title: "Vet-ready reports",
     description:
-      "Your pet's data is protected with modern authentication and encrypted storage.",
+      "Share health trends, supplements, and AI insights with your vet in one click.",
   },
 ];
 
@@ -42,12 +44,12 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    description: "Perfect for getting started with core health tracking.",
+    description: "Daily tracking for one pet and the essentials.",
     features: [
-      "Up to 2 pets",
-      "Weekly health logs",
-      "Basic AI suggestions",
-      "Email support",
+      "1 pet profile",
+      "Unlimited daily health logs",
+      "3 AI recommendations per month",
+      "Weight + gut health tracking",
     ],
     cta: "Get Started Free",
     href: "/signup",
@@ -56,12 +58,12 @@ const plans = [
   {
     name: "Premium",
     price: "$9",
-    description: "Unlock unlimited tracking and advanced insights.",
+    description: "Unlimited pets, unlimited AI, advanced longevity tools.",
     features: [
-      "Unlimited pets + logs",
-      "Advanced AI recommendations",
-      "Export health data",
-      "Priority support",
+      "Unlimited pets + AI",
+      "Interaction checker",
+      "Vet-shareable reports",
+      "Photo progress + reminders",
     ],
     cta: "Upgrade to Premium",
     href: "/pricing",
@@ -69,7 +71,12 @@ const plans = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
+  if (session?.user) {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-emerald-50/40 to-slate-50 text-foreground">
       <SiteHeader />
@@ -77,15 +84,14 @@ export default function Home() {
         <section className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div className="space-y-6">
             <Badge className="w-fit bg-emerald-500/10 text-emerald-600">
-              AI-Powered Pet Wellness
+              Longevity intelligence for senior dogs
             </Badge>
             <h1 className="text-4xl font-semibold leading-tight text-slate-900 md:text-5xl">
-              Track your pet&apos;s health, extend their life.
+              The longevity command center for your dog.
             </h1>
             <p className="text-lg text-muted-foreground">
-              FursBliss helps modern pet parents log daily health signals,
-              visualize trends, and unlock AI-driven supplement guidance to
-              support longevity.
+              Track daily health signals, get AI-powered supplement guidance,
+              and prepare for the first FDA-approved dog longevity drug.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Button size="lg" asChild>
@@ -96,7 +102,7 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <Card className="border-none bg-white/90 shadow-2xl shadow-emerald-500/20">
+            <Card className="border-none bg-white/90 shadow-2xl shadow-emerald-500/20">
             <CardHeader>
               <CardTitle className="text-xl text-slate-900">
                 FursBliss Health Snapshot
@@ -111,7 +117,7 @@ export default function Home() {
                   8.6 / 10
                 </p>
               </div>
-              <div className="grid gap-3 text-sm text-muted-foreground">
+                <div className="grid gap-3 text-sm text-muted-foreground">
                 <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                   <span>Energy level</span>
                   <span className="font-medium text-slate-900">High</span>
@@ -129,17 +135,17 @@ export default function Home() {
           </Card>
         </section>
 
-        <section className="space-y-10">
+        <section className="space-y-10" id="features">
           <div className="space-y-3">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-emerald-600">
               Core Features
             </p>
             <h2 className="text-3xl font-semibold text-slate-900">
-              Everything you need to run a pet wellness program
+              Built for pet parents who want more healthy years
             </h2>
             <p className="text-muted-foreground">
-              Give your pets the proactive care they deserve with daily tracking
-              and evidence-backed recommendations.
+              Daily tracking plus longevity-focused insights to help you act
+              before small changes become big problems.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2">
@@ -164,26 +170,54 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="grid gap-8 rounded-3xl border border-emerald-100 bg-emerald-50/60 px-8 py-12 shadow-lg shadow-emerald-500/10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-4">
+            <Badge className="w-fit bg-emerald-500/10 text-emerald-600">
+              Longevity drug readiness
+            </Badge>
+            <h2 className="text-3xl font-semibold text-slate-900">
+              The first FDA dog longevity drug is coming.
+            </h2>
+            <p className="text-muted-foreground">
+              LOY-002 has passed 2 of 3 FDA milestones for conditional approval.
+              FursBliss helps you track eligibility, readiness, and updates.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-emerald-200 bg-white p-5 text-sm text-muted-foreground">
+              <p className="font-medium text-slate-900">LOY-002 eligibility</p>
+              <p className="mt-2">
+                Dog age 10+ and weight 14+ lbs. We&apos;ll notify you when
+                availability changes.
+              </p>
+            </div>
+            <Button size="lg" asChild>
+              <Link href="/longevity-drugs">Check eligibility</Link>
+            </Button>
+          </div>
+        </section>
+
         <section className="grid gap-8 rounded-3xl border border-emerald-100 bg-white/90 px-8 py-12 shadow-xl shadow-emerald-500/15 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-4">
             <Badge className="w-fit bg-emerald-500/10 text-emerald-600">
-              Trusted by modern pet parents
+              Senior dog owners trust FursBliss
             </Badge>
             <h2 className="text-3xl font-semibold text-slate-900">
-              Built for veterinarians, perfected for families.
+              Built for pet parents who want more healthy years.
             </h2>
             <p className="text-muted-foreground">
-              Track medication schedules, store photos, and get instant AI
-              recommendations in a single place. See improvements week over week
-              and share reports with your vet in seconds.
+              Track daily signals, store photos, and get AI recommendations in
+              one place. See improvements week over week and share reports with
+              your vet in seconds.
             </p>
           </div>
           <div className="space-y-4">
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-sm text-muted-foreground">
               <p className="font-medium text-slate-900">AI Insight</p>
               <p className="mt-2">
-                Based on today&apos;s symptoms, omega-3 and joint support can
-                help reduce inflammation. Suggested dose: 1000mg daily.
+                Based on Max&apos;s Golden Retriever profile and declining
+                mobility, glucosamine HCl at 500mg shows high evidence for joint
+                support in dogs over 10.
               </p>
             </div>
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-sm text-muted-foreground">
@@ -205,8 +239,8 @@ export default function Home() {
               Simple plans built for every pet family
             </h2>
             <p className="text-muted-foreground">
-              Upgrade anytime to unlock unlimited tracking and advanced AI
-              guidance.
+              Upgrade anytime to unlock unlimited AI, reports, and longevity
+              tools.
             </p>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
@@ -234,7 +268,7 @@ export default function Home() {
                     </span>
                     {plan.price !== "$0" && (
                       <span className="text-sm text-muted-foreground">
-                        / month
+                        / month or $79 yearly
                       </span>
                     )}
                   </div>

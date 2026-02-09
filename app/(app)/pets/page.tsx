@@ -76,9 +76,9 @@ export default async function PetsPage() {
                   <Link href={`/pets/${pet.id}`}>View Details</Link>
                 </Button>
                 <Button variant="ghost" className="w-full" asChild>
-                  <Link href={`/api/exports/pet-report?petId=${pet.id}`}>
+                  <a href={`/api/exports/pet-report?petId=${pet.id}`}>
                     Download report (PDF)
-                  </Link>
+                  </a>
                 </Button>
               </CardContent>
             </Card>

@@ -81,6 +81,23 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
           <Button variant="outline" asChild>
             <Link href={`/insights?petId=${pet.id}`}>Get AI Recommendations</Link>
           </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/pets/${pet.id}/breed-risks`}>Breed Risks</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/pets/${pet.id}/interaction-check`}>
+              Interaction Check
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/pets/${pet.id}/gut-health`}>Gut Health</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/pets/${pet.id}/photos`}>Photos</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/pets/${pet.id}/vet-share`}>Vet Share</Link>
+          </Button>
           <Button variant="secondary" asChild>
             <Link href={`/pets/${pet.id}/edit`}>Edit</Link>
           </Button>

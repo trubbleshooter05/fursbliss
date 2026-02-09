@@ -3,6 +3,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isSubscriptionActive } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const requestSchema = z.object({
@@ -19,6 +20,15 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
+  });
+
+  if (!user) {
+    return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
   const limiter = rateLimit(request, `ai-recommendations:${session.user.id}`, {
@@ -38,6 +48,26 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (!isSubscriptionActive(user)) {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+
+      const monthlyCount = await prisma.recommendation.count({
+        where: {
+          pet: { userId: session.user.id },
+          createdAt: { gte: monthStart },
+        },
+      });
+
+      if (monthlyCount >= 3) {
+        return NextResponse.json(
+          { message: "Free tier includes 3 AI recommendations per month." },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json();
     const parsed = requestSchema.safeParse(body);
 

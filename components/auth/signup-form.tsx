@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +29,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
   const form = useForm<FormValues>({
@@ -40,6 +41,13 @@ export function SignupForm() {
       referralCode: "",
     },
   });
+
+  useEffect(() => {
+    const referral = searchParams.get("ref");
+    if (referral) {
+      form.setValue("referralCode", referral);
+    }
+  }, [searchParams, form]);
 
   const onSubmit = async (values: FormValues) => {
     const response = await fetch("/api/auth/register", {
@@ -62,9 +70,8 @@ export function SignupForm() {
       setVerificationUrl(data.verificationUrl);
       toast({
         title: "Verify your email",
-        description: "Use the verification link to activate your account.",
+        description: "Use the verification link below to activate your account.",
       });
-      router.push("/login");
       return;
     }
 

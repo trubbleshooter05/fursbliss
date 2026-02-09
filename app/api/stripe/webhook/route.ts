@@ -25,10 +25,17 @@ export async function POST(request: Request) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const customerId = session.customer as string | null;
+      const subscriptionId = session.subscription as string | null;
+      const plan = session.metadata?.plan;
       if (customerId) {
         await prisma.user.updateMany({
           where: { stripeCustomerId: customerId },
-          data: { subscriptionStatus: "premium" },
+          data: {
+            subscriptionStatus: "premium",
+            subscriptionId: subscriptionId ?? undefined,
+            subscriptionPlan: plan === "yearly" ? "yearly" : "monthly",
+            subscriptionEndsAt: null,
+          },
         });
       }
       break;
@@ -38,10 +45,17 @@ export async function POST(request: Request) {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId = subscription.customer as string;
       const isActive = ["active", "trialing"].includes(subscription.status);
+      const interval = subscription.items.data[0]?.price?.recurring?.interval;
+      const plan = interval === "year" ? "yearly" : "monthly";
 
       await prisma.user.updateMany({
         where: { stripeCustomerId: customerId },
-        data: { subscriptionStatus: isActive ? "premium" : "free" },
+        data: {
+          subscriptionStatus: isActive ? "premium" : "free",
+          subscriptionId: subscription.id,
+          subscriptionPlan: plan,
+          subscriptionEndsAt: null,
+        },
       });
       break;
     }

@@ -2,12 +2,29 @@ import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isSubscriptionActive } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
+  });
+
+  if (!user) {
+    return NextResponse.json({ message: "User not found" }, { status: 404 });
+  }
+
+  if (!isSubscriptionActive(user)) {
+    return NextResponse.json(
+      { message: "Vet reports are a premium feature." },
+      { status: 403 }
+    );
   }
 
   const limiter = rateLimit(request, `export-pet-report:${session.user.id}`, {

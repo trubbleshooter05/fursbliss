@@ -9,12 +9,12 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    description: "Essential tracking for up to two pets.",
+    description: "Daily tracking for one pet and the essentials.",
     features: [
-      "Basic health tracking",
-      "Limited weekly logs",
-      "Basic AI suggestions",
-      "Email support",
+      "1 pet profile",
+      "Unlimited daily health logs",
+      "3 AI recommendations per month",
+      "Weight + gut health tracking",
     ],
     cta: "Get Started",
     href: "/signup",
@@ -23,15 +23,18 @@ const plans = [
   {
     name: "Premium",
     price: "$9",
-    description: "Advanced AI insights and unlimited tracking.",
+    description: "Unlimited pets, unlimited AI, advanced longevity tools.",
     features: [
       "Unlimited pets + logs",
-      "Advanced AI recommendations",
-      "Exportable reports",
-      "Priority support",
+      "Unlimited AI recommendations",
+      "Supplement interaction checker",
+      "Vet-ready PDF reports",
+      "Photo progress + reminders",
     ],
-    cta: "Subscribe",
-    href: "/api/stripe/checkout",
+    cta: "Subscribe monthly",
+    href: "/api/stripe/checkout?plan=monthly",
+    yearlyCta: "Subscribe yearly",
+    yearlyHref: "/api/stripe/checkout?plan=yearly",
     highlight: true,
   },
 ];
@@ -76,6 +79,11 @@ export default function PricingPage() {
                     </span>
                   )}
                 </p>
+                {plan.price !== "$0" && (
+                  <p className="text-sm text-muted-foreground">
+                    $79 yearly (save 27%)
+                  </p>
+                )}
                 <p className="text-sm text-muted-foreground">
                   {plan.description}
                 </p>
@@ -89,13 +97,20 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Button className="w-full" asChild>
-                  {plan.href.startsWith("/api/") ? (
-                    <a href={plan.href}>{plan.cta}</a>
-                  ) : (
-                    <Link href={plan.href}>{plan.cta}</Link>
+                <div className="grid gap-3">
+                  <Button className="w-full" asChild>
+                    {plan.href.startsWith("/api/") ? (
+                      <a href={plan.href}>{plan.cta}</a>
+                    ) : (
+                      <Link href={plan.href}>{plan.cta}</Link>
+                    )}
+                  </Button>
+                  {"yearlyHref" in plan && plan.yearlyHref && (
+                    <Button className="w-full" variant="outline" asChild>
+                      <a href={plan.yearlyHref}>{plan.yearlyCta}</a>
+                    </Button>
                   )}
-                </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

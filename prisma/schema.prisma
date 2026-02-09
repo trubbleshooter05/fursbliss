@@ -13,53 +13,73 @@ model User {
   id                 String   @id @default(cuid())
   email              String   @unique
   name               String?
+  image              String?
   password           String
   emailVerified      DateTime?
   subscriptionStatus String   @default("free") // "free" or "premium"
+  subscriptionId     String?  @unique
+  subscriptionPlan   String?
+  subscriptionEndsAt DateTime?
   stripeCustomerId   String?
   role               String   @default("user") // "user" or "admin"
   referralCode       String?  @unique
   referredById       String?
   referredBy         User?    @relation("UserReferrals", fields: [referredById], references: [id])
   referredUsers      User[]   @relation("UserReferrals")
+  emailPreferences   Json?
   createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
   pets               Pet[]
   notifications      Notification[]
   referrals          Referral[]
 }
 
 model Pet {
-  id         String      @id @default(cuid())
-  userId     String
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name       String
-  breed      String
-  age        Int
-  weight     Float
-  symptoms   Json        // array of symptoms
-  photoUrl   String?
-  createdAt  DateTime    @default(now())
-  healthLogs HealthLog[]
-  recommendations Recommendation[]
-  weightLogs WeightLog[]
-  medications Medication[]
-  doseSchedules DoseSchedule[]
-  photoLogs  PhotoLog[]
+  id                String      @id @default(cuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  species           String      @default("dog")
+  breed             String
+  age               Int
+  dateOfBirth       DateTime?
+  weight            Float
+  sex               String?
+  symptoms          Json        // array of symptoms
+  photoUrl          String?
+  isActive          Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @default(now()) @updatedAt
+  healthLogs        HealthLog[]
+  recommendations   Recommendation[]
+  weightLogs        WeightLog[]
+  medications       Medication[]
+  doseSchedules     DoseSchedule[]
+  photoLogs         PhotoLog[]
+  supplements       PetSupplement[]
+  gutHealthLogs     GutHealthLog[]
+  aiInsights        AIInsight[]
+  longevityDrugProfile LongevityDrugProfile?
+  vetShareLinks     VetShareLink[]
 }
 
 model HealthLog {
-  id           String   @id @default(cuid())
-  petId        String
-  pet          Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  date         DateTime @default(now())
-  energyLevel  Int      // 1-10 scale
-  appetite     String?
-  mood         String?
-  notes        String?
-  weight       Float?
-  photoUrl     String?
-  improvements Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  petId          String
+  pet            Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  date           DateTime @default(now())
+  energyLevel    Int      // 1-10 scale
+  appetite       String?
+  mood           String?
+  mobilityLevel  Int?
+  moodLevel      Int?
+  appetiteLevel  Int?
+  symptoms       String?
+  notes          String?
+  weight         Float?
+  photoUrl       String?
+  improvements   Boolean  @default(false)
+  createdAt      DateTime @default(now())
 }
 
 model Recommendation {
@@ -86,43 +106,57 @@ model Medication {
   petId     String
   pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
   name      String
+  prescribedBy String?
   dosage    String
   frequency String
+  startDate DateTime?
+  endDate   DateTime?
+  reason    String?
   notes     String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 }
 
 model DoseSchedule {
-  id        String   @id @default(cuid())
-  petId     String
-  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  petId         String
+  pet           Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  supplementId  String?
+  supplement    PetSupplement? @relation(fields: [supplementId], references: [id], onDelete: Cascade)
   supplementName String
-  dosage    String
-  frequency String
-  times     Json
-  notes     String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
+  dosage        String
+  frequency     String
+  times         Json
+  scheduledTime String?
+  daysOfWeek    String?
+  notes         String?
+  active        Boolean  @default(true)
+  lastCompletedAt DateTime?
+  createdAt     DateTime @default(now())
+  doseCompletions DoseCompletion[]
 }
 
 model PhotoLog {
-  id        String   @id @default(cuid())
-  petId     String
-  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  petId      String
+  pet        Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
   healthLogId String?
-  imageUrl  String
-  caption   String?
-  createdAt DateTime @default(now())
+  imageUrl   String
+  category   String?
+  caption    String?
+  aiAnalysis String?
+  createdAt  DateTime @default(now())
 }
 
 model Notification {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String?
   title     String
   body      String
   read      Boolean  @default(false)
+  actionUrl String?
   createdAt DateTime @default(now())
 }
 
@@ -151,4 +185,139 @@ model Referral {
   redeemedById  String?
   redeemedAt    DateTime?
   createdAt     DateTime @default(now())
+}
+
+model PetSupplement {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  name      String
+  brand     String?
+  dosage    String
+  frequency String
+  startDate DateTime?
+  endDate   DateTime?
+  isActive  Boolean  @default(true)
+  category  String
+  notes     String?
+  createdAt DateTime @default(now())
+  doseSchedules DoseSchedule[]
+}
+
+model DoseCompletion {
+  id          String   @id @default(cuid())
+  scheduleId  String
+  schedule    DoseSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+  skipped     Boolean  @default(false)
+  notes       String?
+}
+
+model GutHealthLog {
+  id             String   @id @default(cuid())
+  petId          String
+  pet            Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  date           DateTime @default(now())
+  stoolQuality   Int
+  stoolNotes     String?
+  gasLevel       Int?
+  vomiting       Boolean  @default(false)
+  appetiteChange String?
+  createdAt      DateTime @default(now())
+}
+
+model AIInsight {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  type      String
+  content   String
+  prompt    String
+  model     String   @default("gpt-4")
+  cached    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model LongevityDrugProfile {
+  id                  String   @id @default(cuid())
+  petId               String   @unique
+  pet                 Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  loy002Eligible      Boolean  @default(false)
+  loy002Interest      Boolean  @default(false)
+  loy002Notes         String?
+  onRapamycin         Boolean  @default(false)
+  rapamycinDosage     String?
+  rapamycinStartDate  DateTime?
+  rapamycinPrescriber String?
+  rapamycinFrequency  String?
+  currentDrugs        String?
+  bloodworkUploaded   Boolean  @default(false)
+  lastBloodworkDate   DateTime?
+  doseLogs            RapamycinDoseLog[]
+}
+
+model RapamycinDoseLog {
+  id            String   @id @default(cuid())
+  drugProfileId String
+  drugProfile   LongevityDrugProfile @relation(fields: [drugProfileId], references: [id], onDelete: Cascade)
+  date          DateTime @default(now())
+  given         Boolean  @default(true)
+  sideEffects   String?
+  notes         String?
+}
+
+model BreedProfile {
+  id                 String   @id @default(cuid())
+  breed              String   @unique
+  species            String   @default("dog")
+  averageLifespan    Float
+  seniorAgeStart     Int
+  commonHealthIssues String
+  riskTimeline       String
+  supplementRecs     String
+  longevityTips      String
+  sizeCategory       String
+  averageWeight      String
+  seoSlug            String   @unique
+  seoTitle           String
+  seoDescription     String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
+}
+
+model FDADrugStatus {
+  id                String   @id @default(cuid())
+  drugName          String   @unique
+  company           String
+  currentStatus     String
+  statusDetail      String
+  lastUpdated       DateTime
+  targetSpecies     String
+  estimatedApproval String?
+  sourceUrl         String?
+  milestones        String
+  updatedAt         DateTime @default(now()) @updatedAt
+}
+
+model BreedAggregate {
+  id               String   @id @default(cuid())
+  breed            String   @unique
+  totalPets        Int      @default(0)
+  avgAge           Float?
+  topSupplements   String?
+  topSymptoms      String?
+  avgEnergyLevel   Float?
+  avgMobilityLevel Float?
+  lastCalculated   DateTime @default(now())
+}
+
+model VetShareLink {
+  id         String   @id @default(cuid())
+  petId      String
+  pet        Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  token      String   @unique @default(cuid())
+  expiresAt  DateTime
+  viewCount  Int      @default(0)
+  vetComment String?
+  createdAt  DateTime @default(now())
 }

@@ -27,6 +27,9 @@ const symptomsOptions = [
   "Dry coat",
   "Weight changes",
   "Allergies",
+  "Thyroid medicine for low thyroid",
+  "Bad breath",
+  "Restlessness",
 ];
 
 const petSchema = z.object({

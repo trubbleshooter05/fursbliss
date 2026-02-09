@@ -21,14 +21,17 @@ export function SiteHeader() {
           FursBliss
         </Link>
         <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
+          <Link href="/#features" className="transition-colors hover:text-foreground">
+            Features
+          </Link>
           <Link href="/pricing" className="transition-colors hover:text-foreground">
             Pricing
           </Link>
-          <Link href="/insights" className="transition-colors hover:text-foreground">
-            Insights
+          <Link href="/breeds" className="transition-colors hover:text-foreground">
+            Breeds
           </Link>
-          <Link href="/account" className="transition-colors hover:text-foreground">
-            Account
+          <Link href="/trends" className="transition-colors hover:text-foreground">
+            Trends
           </Link>
         </nav>
         <div className="flex items-center gap-3">
@@ -45,18 +48,23 @@ export function SiteHeader() {
                 </SheetHeader>
                 <div className="mt-6 flex flex-col gap-4 text-sm">
                   <SheetClose asChild>
+                    <Link href="/#features" className="text-muted-foreground">
+                      Features
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
                     <Link href="/pricing" className="text-muted-foreground">
                       Pricing
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link href="/insights" className="text-muted-foreground">
-                      Insights
+                    <Link href="/breeds" className="text-muted-foreground">
+                      Breeds
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link href="/account" className="text-muted-foreground">
-                      Account
+                    <Link href="/trends" className="text-muted-foreground">
+                      Trends
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>

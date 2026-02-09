@@ -36,26 +36,53 @@ export function LoginForm() {
   });
 
   const onSubmit = async (values: FormValues) => {
-    const response = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
+    try {
+      const response = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
 
-    if (response?.error) {
-      const message =
-        response.error === "EMAIL_NOT_VERIFIED"
-          ? "Please verify your email before signing in."
-          : "Check your email and password, then try again.";
+      if (!response) {
+        toast({
+          title: "Unable to sign in",
+          description: "No response from the server. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (response.error) {
+        const message =
+          response.error === "EMAIL_NOT_VERIFIED"
+            ? "Please verify your email before signing in."
+            : "Check your email and password, then try again.";
+        toast({
+          title: "Unable to sign in",
+          description: message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!response.ok) {
+        toast({
+          title: "Unable to sign in",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch (error) {
       toast({
         title: "Unable to sign in",
-        description: message,
+        description:
+          error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
-      return;
     }
-
-    router.push("/dashboard");
   };
 
   return (

@@ -50,7 +50,13 @@ export async function GET(request: Request) {
     });
   }
 
-  const priceId = process.env.STRIPE_PRICE_ID;
+  const { searchParams } = new URL(request.url);
+  const plan = searchParams.get("plan") === "yearly" ? "yearly" : "monthly";
+  const priceId =
+    plan === "yearly"
+      ? process.env.STRIPE_PRICE_YEARLY
+      : process.env.STRIPE_PRICE_MONTHLY ?? process.env.STRIPE_PRICE_ID;
+
   if (!priceId) {
     return NextResponse.json({ message: "Stripe price not configured" }, { status: 500 });
   }
@@ -59,6 +65,7 @@ export async function GET(request: Request) {
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
+    metadata: { plan },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?success=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
   });

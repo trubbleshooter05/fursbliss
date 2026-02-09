@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { generateReferralCode } from "@/lib/auth-tokens";
+import { normalizeEmailPreferences } from "@/lib/email-preferences";
+import { EmailPreferencesForm } from "@/components/account/email-preferences-form";
 
 export default async function AccountPage() {
   const session = await auth();
@@ -23,6 +25,7 @@ export default async function AccountPage() {
   }
 
   const isPremium = user.subscriptionStatus === "premium";
+  const emailPreferences = normalizeEmailPreferences(user.emailPreferences);
   const referralCode =
     user.referralCode ??
     (
@@ -68,6 +71,9 @@ export default async function AccountPage() {
               <p className="mt-2 text-xs">
                 Invite a friend for one free premium month each.
               </p>
+              <p className="mt-2 text-xs">
+                Share link: {`${process.env.NEXT_PUBLIC_APP_URL}/invite/${referralCode}`}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -87,7 +93,7 @@ export default async function AccountPage() {
             </div>
             {isPremium ? (
               <Button asChild>
-                <Link href="/api/stripe/portal">Manage Subscription</Link>
+                <a href="/api/stripe/portal">Manage Subscription</a>
               </Button>
             ) : (
               <Button asChild>
@@ -96,15 +102,24 @@ export default async function AccountPage() {
             )}
             <div className="space-y-2">
               <Button variant="outline" asChild>
-                <Link href="/api/exports/logs">Export logs CSV</Link>
+                <a href="/api/exports/logs">Export logs CSV</a>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/pets">Download pet report (PDF)</Link>
+                <Link href="/pets">Download pet report (PDF) from My Pets</Link>
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Email preferences</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EmailPreferencesForm initialPreferences={emailPreferences} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

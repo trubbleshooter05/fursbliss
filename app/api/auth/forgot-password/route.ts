@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createPasswordResetToken } from "@/lib/auth-tokens";
+import { sendPasswordResetEmail } from "@/lib/email";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const schema = z.object({
@@ -43,8 +44,12 @@ export async function POST(request: Request) {
 
     const token = await createPasswordResetToken(user.email);
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+    const emailResult = await sendPasswordResetEmail(user.email, resetUrl);
 
-    return NextResponse.json({ success: true, resetUrl });
+    return NextResponse.json({
+      success: true,
+      resetUrl: emailResult.queued ? null : resetUrl,
+    });
   } catch (error) {
     console.error("Forgot password error", error);
     return NextResponse.json(

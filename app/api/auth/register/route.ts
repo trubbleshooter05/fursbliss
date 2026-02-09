@@ -3,6 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createVerificationToken, generateReferralCode } from "@/lib/auth-tokens";
+import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
@@ -60,6 +61,9 @@ export async function POST(request: Request) {
         })
       : null;
 
+    const rewardDurationMs = 30 * 24 * 60 * 60 * 1000;
+    const referralRewardEndsAt = new Date(Date.now() + rewardDurationMs);
+
     const user = await prisma.user.create({
       data: {
         email: parsed.data.email,
@@ -67,6 +71,13 @@ export async function POST(request: Request) {
         password: hashedPassword,
         referralCode: generateReferralCode(),
         referredById: resolvedReferralOwner?.id,
+        ...(resolvedReferralOwner
+          ? {
+              subscriptionStatus: "premium",
+              subscriptionPlan: "referral",
+              subscriptionEndsAt: referralRewardEndsAt,
+            }
+          : {}),
       },
     });
 
@@ -80,16 +91,49 @@ export async function POST(request: Request) {
           redeemedAt: new Date(),
         },
       });
+
+      const referrer = await prisma.user.findUnique({
+        where: { id: resolvedReferralOwner.id },
+        select: {
+          subscriptionStatus: true,
+          subscriptionPlan: true,
+          subscriptionEndsAt: true,
+        },
+      });
+
+      const isPaidPlan =
+        referrer?.subscriptionStatus === "premium" &&
+        referrer.subscriptionPlan &&
+        referrer.subscriptionPlan !== "referral";
+
+      if (!isPaidPlan) {
+        const baseDate =
+          referrer?.subscriptionEndsAt &&
+          referrer.subscriptionEndsAt.getTime() > Date.now()
+            ? referrer.subscriptionEndsAt
+            : new Date();
+        const nextEndsAt = new Date(baseDate.getTime() + rewardDurationMs);
+
+        await prisma.user.update({
+          where: { id: resolvedReferralOwner.id },
+          data: {
+            subscriptionStatus: "premium",
+            subscriptionPlan: "referral",
+            subscriptionEndsAt: nextEndsAt,
+          },
+        });
+      }
     }
 
     const verificationToken = await createVerificationToken(user.email);
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
+    const emailResult = await sendVerificationEmail(user.email, verifyUrl);
 
     return NextResponse.json({
       id: user.id,
       email: user.email,
       name: user.name,
-      verificationUrl: verifyUrl,
+      verificationUrl: emailResult.queued ? null : verifyUrl,
     });
   } catch (error) {
     console.error("Registration error", error);

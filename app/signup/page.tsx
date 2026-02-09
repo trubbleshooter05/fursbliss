@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { SignupForm } from "@/components/auth/signup-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteHeader } from "@/components/site/site-header";
+
+export const dynamic = "force-dynamic";
 
 export default function SignupPage() {
   return (
@@ -25,7 +28,9 @@ export default function SignupPage() {
             <CardTitle className="text-2xl text-slate-900">Sign Up</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <SignupForm />
+            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading form...</div>}>
+              <SignupForm />
+            </Suspense>
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link

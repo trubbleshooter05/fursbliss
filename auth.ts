@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveSubscriptionStatus } from "@/lib/subscription";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -40,15 +41,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        if (!user.emailVerified) {
-          return { id: "unverified", email: "unverified", name: "unverified" };
-        }
-
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          subscriptionStatus: user.subscriptionStatus,
+          subscriptionStatus: getEffectiveSubscriptionStatus({
+            subscriptionStatus: user.subscriptionStatus,
+            subscriptionPlan: user.subscriptionPlan,
+            subscriptionEndsAt: user.subscriptionEndsAt,
+          }),
           role: user.role,
         };
       },
@@ -57,22 +58,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     jwt: async ({ token, user }) => {
       if (user) {
-        if (user.id === "unverified") {
-          token.error = "EMAIL_NOT_VERIFIED";
-          return token;
-        }
         token.id = user.id;
+        token.sub = user.id;
         token.subscriptionStatus = user.subscriptionStatus ?? "free";
         token.role = user.role ?? "user";
         return token;
       }
 
-      if (token.id) {
+      const userId = (token.sub as string | undefined) ?? (token.id as string | undefined);
+      if (userId) {
         const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { subscriptionStatus: true, role: true },
+          where: { id: userId },
+          select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true, role: true },
         });
-        token.subscriptionStatus = dbUser?.subscriptionStatus ?? "free";
+        token.subscriptionStatus = getEffectiveSubscriptionStatus({
+          subscriptionStatus: dbUser?.subscriptionStatus,
+          subscriptionPlan: dbUser?.subscriptionPlan,
+          subscriptionEndsAt: dbUser?.subscriptionEndsAt,
+        });
         token.role = dbUser?.role ?? "user";
       }
       return token;
@@ -80,7 +83,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session: async ({ session, token }) => {
       if (session.user) {
         session.user.error = token.error as string | undefined;
-        session.user.id = token.id as string;
+        session.user.id = (token.sub as string | undefined) ?? (token.id as string);
         session.user.subscriptionStatus = token.subscriptionStatus as string;
         session.user.role = token.role as string;
       }

@@ -22,8 +22,10 @@ export function DoseScheduleForm({ petId }: DoseScheduleFormProps) {
   const [open, setOpen] = useState(false);
   const [supplementName, setSupplementName] = useState("");
   const [dosage, setDosage] = useState("");
-  const [frequency, setFrequency] = useState("");
+  const [frequency, setFrequency] = useState("daily");
   const [times, setTimes] = useState("Morning, Evening");
+  const [daysOfWeek, setDaysOfWeek] = useState("1,3,5");
+  const [notes, setNotes] = useState("");
 
   const handleSave = async () => {
     const response = await fetch(`/api/pets/${petId}/doses`, {
@@ -34,6 +36,11 @@ export function DoseScheduleForm({ petId }: DoseScheduleFormProps) {
         dosage,
         frequency,
         times: times.split(",").map((time) => time.trim()),
+        daysOfWeek: daysOfWeek
+          .split(",")
+          .map((day) => Number(day.trim()))
+          .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6),
+        notes,
       }),
     });
 
@@ -50,8 +57,10 @@ export function DoseScheduleForm({ petId }: DoseScheduleFormProps) {
     setOpen(false);
     setSupplementName("");
     setDosage("");
-    setFrequency("");
+    setFrequency("daily");
     setTimes("Morning, Evening");
+    setDaysOfWeek("1,3,5");
+    setNotes("");
     window.location.reload();
   };
 
@@ -76,7 +85,7 @@ export function DoseScheduleForm({ petId }: DoseScheduleFormProps) {
             onChange={(e) => setDosage(e.target.value)}
           />
           <Input
-            placeholder="Frequency (e.g. daily)"
+            placeholder="Frequency (e.g. daily, weekly)"
             value={frequency}
             onChange={(e) => setFrequency(e.target.value)}
           />
@@ -84,6 +93,16 @@ export function DoseScheduleForm({ petId }: DoseScheduleFormProps) {
             placeholder="Times (comma separated)"
             value={times}
             onChange={(e) => setTimes(e.target.value)}
+          />
+          <Input
+            placeholder="Weekdays for weekly doses (0-6 comma separated, Sun=0)"
+            value={daysOfWeek}
+            onChange={(e) => setDaysOfWeek(e.target.value)}
+          />
+          <Input
+            placeholder="Optional notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
           />
         </div>
         <DialogFooter>

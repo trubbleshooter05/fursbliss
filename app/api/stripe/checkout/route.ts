@@ -34,16 +34,27 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_APP_URL));
   }
 
-  const customerId =
-    user.stripeCustomerId ??
-    (
+  let customerId = user.stripeCustomerId ?? null;
+
+  if (customerId) {
+    try {
+      const existing = await stripe.customers.retrieve(customerId);
+      if (existing && typeof existing !== "string" && existing.deleted) {
+        customerId = null;
+      }
+    } catch (error) {
+      customerId = null;
+    }
+  }
+
+  if (!customerId) {
+    customerId = (
       await stripe.customers.create({
         email: user.email,
         name: user.name ?? undefined,
       })
     ).id;
 
-  if (!user.stripeCustomerId) {
     await prisma.user.update({
       where: { id: user.id },
       data: { stripeCustomerId: customerId },

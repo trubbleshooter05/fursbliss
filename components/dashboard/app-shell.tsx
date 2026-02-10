@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  FlaskConical,
   LayoutDashboard,
   Menu,
   PawPrint,
@@ -33,6 +34,7 @@ type AppShellProps = {
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/pets", label: "My Pets", icon: PawPrint },
+  { href: "/dashboard/longevity-drugs", label: "Longevity Hub", icon: FlaskConical },
   { href: "/logs/new", label: "Log Health", icon: PlusCircle },
   { href: "/insights", label: "Insights", icon: Sparkles },
   { href: "/account", label: "Account", icon: User },

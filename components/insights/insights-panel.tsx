@@ -126,6 +126,9 @@ export function InsightsPanel({
           <p className="text-muted-foreground">
             Personalized supplement guidance powered by GPT-4.
           </p>
+          <p className="text-xs text-muted-foreground">
+            AI suggestions are educational and should be reviewed with your veterinarian.
+          </p>
         </div>
         {subscriptionStatus !== "premium" && (
           <Badge variant="secondary">Premium feature</Badge>

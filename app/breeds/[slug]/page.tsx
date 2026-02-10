@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -8,6 +9,30 @@ import { breedPages } from "@/lib/breed-pages";
 type PageProps = {
   params: { slug: string };
 };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const profile = await prisma.breedProfile.findUnique({
+    where: { seoSlug: params.slug },
+    select: { seoTitle: true, seoDescription: true },
+  });
+  if (profile) {
+    return {
+      title: `${profile.seoTitle} | FursBliss`,
+      description: profile.seoDescription,
+    };
+  }
+  const fallback = breedPages.find((page) => page.slug === params.slug);
+  if (!fallback) {
+    return {
+      title: "Breed Guide | FursBliss",
+      description: "Breed-specific longevity and supplement guidance.",
+    };
+  }
+  return {
+    title: `${fallback.title} | FursBliss`,
+    description: fallback.description,
+  };
+}
 
 export default async function BreedDetailPage({ params }: PageProps) {
   const profile = await prisma.breedProfile.findUnique({
@@ -36,6 +61,10 @@ export default async function BreedDetailPage({ params }: PageProps) {
               ))}
             </CardContent>
           </Card>
+          <p className="text-xs text-muted-foreground">
+            Informational guidance only. Always consult your veterinarian for diagnosis
+            and treatment decisions.
+          </p>
         </main>
         <SiteFooter />
       </div>
@@ -87,6 +116,10 @@ export default async function BreedDetailPage({ params }: PageProps) {
             </CardContent>
           </Card>
         </div>
+        <p className="text-xs text-muted-foreground">
+          FursBliss AI and breed content supports owner education and is not a
+          substitute for professional veterinary care.
+        </p>
       </main>
       <SiteFooter />
     </div>

@@ -98,6 +98,11 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
           <Button variant="outline" asChild>
             <Link href={`/pets/${pet.id}/vet-share`}>Vet Share</Link>
           </Button>
+          <Button variant="outline" asChild>
+            <a href={`/api/exports/pet-report?petId=${pet.id}`} target="_blank" rel="noreferrer">
+              Export Vet Report
+            </a>
+          </Button>
           <Button variant="secondary" asChild>
             <Link href={`/pets/${pet.id}/edit`}>Edit</Link>
           </Button>
@@ -243,6 +248,14 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
                       <p>
                         {dose.dosage} • {dose.frequency}
                       </p>
+                      {dose.daysOfWeek && (
+                        <p className="text-xs text-slate-500">
+                          Days: {formatDaysOfWeek(dose.daysOfWeek)}
+                        </p>
+                      )}
+                      {dose.notes && (
+                        <p className="text-xs text-slate-500">Notes: {dose.notes}</p>
+                      )}
                     </div>
                   ))
                 )}
@@ -277,4 +290,15 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
       </Card>
     </div>
   );
+}
+
+function formatDaysOfWeek(value: string) {
+  const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return value
+    .split(",")
+    .map((part) => Number(part.trim()))
+    .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+    .map((day) => labels[day] ?? "")
+    .filter(Boolean)
+    .join(", ");
 }

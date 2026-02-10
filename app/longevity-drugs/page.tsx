@@ -1,11 +1,18 @@
+import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
+import { EligibilityChecker } from "@/components/longevity/eligibility-checker";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Dog Longevity Drug Hub (LOY-002) | FursBliss",
+  description:
+    "Track LOY-002 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
+};
 
 export default async function LongevityDrugsPage() {
   const statuses = await prisma.fDADrugStatus.findMany({
@@ -32,34 +39,38 @@ export default async function LongevityDrugsPage() {
         <section className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>LOY-002 eligibility</CardTitle>
+              <CardTitle>Is my dog eligible?</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
-                LOY-002 is being studied for senior dogs 10+ years old and 14+ lbs.
+                LOY-002 targets senior dogs aged 10+ years and 14+ lbs. Run a quick
+                check below.
               </p>
-              <p>
-                We will notify you when availability changes and when your pet is
-                eligible.
+              <EligibilityChecker />
+              <p className="text-xs">
+                Drug availability and final label details may change with FDA review.
               </p>
-              <Button asChild className="mt-2">
-                <a href="/signup">Track my dog</a>
-              </Button>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Rapamycin awareness</CardTitle>
+              <CardTitle>What LOY-002 does (plain English)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
-                Rapamycin is available off-label with a veterinarian prescription.
+                LOY-002 is designed as a caloric-restriction mimetic to support
+                healthy aging pathways in senior dogs.
               </p>
               <p>
-                Use FursBliss to log dosing, side effects, and outcomes over time.
+                It is intended to be prescribed by a veterinarian, likely as a daily
+                oral therapy if approved.
               </p>
-              <Button variant="outline" asChild className="mt-2">
-                <a href="/login">Open rapamycin tracking</a>
+              <p>
+                Estimated market expectations have been discussed in the ~$40-90/mo
+                range depending on dog size, but this is not final pricing guidance.
+              </p>
+              <Button variant="outline" asChild>
+                <a href="/signup">Notify me when status changes</a>
               </Button>
             </CardContent>
           </Card>
@@ -75,7 +86,18 @@ export default async function LongevityDrugsPage() {
                 </CardContent>
               </Card>
             ) : (
-              statuses.map((status) => (
+              statuses.map((status) => {
+                const milestones = safeParseMilestones(status.milestones);
+                const approvedCount = milestones.filter((m) =>
+                  /(accepted|approved)/i.test(m.event)
+                ).length;
+                const totalCount = Math.max(milestones.length, 3);
+                const progress = Math.min(
+                  100,
+                  Math.round((approvedCount / totalCount) * 100)
+                );
+
+                return (
                 <Card key={status.id}>
                   <CardHeader className="space-y-2">
                     <CardTitle>{status.drugName}</CardTitle>
@@ -89,6 +111,26 @@ export default async function LongevityDrugsPage() {
                       {status.currentStatus}
                     </p>
                     <p>{status.statusDetail}</p>
+                    <div className="space-y-2">
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                        <div
+                          className="h-full bg-emerald-500"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs">
+                        {approvedCount}/{totalCount} milestones completed
+                      </p>
+                    </div>
+                    {milestones.length > 0 && (
+                      <ul className="space-y-1 text-xs">
+                        {milestones.map((milestone) => (
+                          <li key={`${status.id}-${milestone.date}-${milestone.event}`}>
+                            • {milestone.date}: {milestone.event}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <p>
                       <span className="font-medium text-slate-900">Updated: </span>
                       {status.lastUpdated.toDateString()}
@@ -101,14 +143,80 @@ export default async function LongevityDrugsPage() {
                         {status.estimatedApproval}
                       </p>
                     )}
+                    {status.sourceUrl && (
+                      <p>
+                        <a
+                          href={status.sourceUrl}
+                          className="font-medium text-emerald-700 hover:underline"
+                        >
+                          Source link
+                        </a>
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
-              ))
+              )})
             )}
           </div>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Rapamycin awareness</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Rapamycin is currently available off-label through veterinarians and
+                is being studied in canine longevity research.
+              </p>
+              <p>
+                FursBliss helps owners track dosing, side effects, and outcomes over
+                time with a dedicated module.
+              </p>
+              <Button variant="outline" asChild>
+                <a href="/login">Open rapamycin tracking</a>
+              </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Important disclaimer</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                FursBliss does not provide veterinary diagnosis or treatment. Always
+                consult a licensed veterinarian for medication and supplement
+                decisions.
+              </p>
+              <p>
+                Drug status details are compiled from public announcements and may
+                change.
+              </p>
+            </CardContent>
+          </Card>
         </section>
       </main>
       <SiteFooter />
     </div>
   );
+}
+
+function safeParseMilestones(
+  value: string
+): Array<{ date: string; event: string }> {
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .map((item) => ({
+        date: typeof item?.date === "string" ? item.date : "Unknown",
+        event: typeof item?.event === "string" ? item.event : "Unknown",
+      }))
+      .slice(0, 6);
+  } catch {
+    return [];
+  }
 }

@@ -54,6 +54,10 @@ export async function GET(request: Request) {
     include: {
       healthLogs: { orderBy: { date: "desc" }, take: 20 },
       recommendations: { orderBy: { createdAt: "desc" }, take: 5 },
+      medications: { where: { active: true }, orderBy: { createdAt: "desc" } },
+      doseSchedules: { where: { active: true }, orderBy: { createdAt: "desc" } },
+      weightLogs: { orderBy: { date: "desc" }, take: 12 },
+      photoLogs: { orderBy: { createdAt: "desc" }, take: 4 },
     },
   });
 
@@ -65,32 +69,122 @@ export async function GET(request: Request) {
   const chunks: Uint8Array[] = [];
   doc.on("data", (chunk) => chunks.push(chunk));
 
-  doc.fontSize(20).text(`FursBliss Report: ${pet.name}`, { underline: true });
+  doc.fontSize(20).text(`FursBliss Vet Report: ${pet.name}`, { underline: true });
   doc.moveDown();
-  doc.fontSize(12).text(`Breed: ${pet.breed}`);
+  doc.fontSize(12).text(`Generated: ${new Date().toDateString()}`);
+  doc.text(`Breed: ${pet.breed}`);
   doc.text(`Age: ${pet.age}`);
   doc.text(`Weight: ${pet.weight} lbs`);
-  doc.text(`Symptoms: ${(pet.symptoms as string[]).join(", ")}`);
+  doc.text(
+    `Symptoms: ${
+      Array.isArray(pet.symptoms)
+        ? pet.symptoms
+            .filter((item): item is string => typeof item === "string")
+            .join(", ") || "None reported"
+        : "None reported"
+    }`
+  );
+  doc.moveDown();
+  doc
+    .fontSize(10)
+    .fillColor("#475569")
+    .text(
+      "Clinical disclaimer: This report summarizes owner-tracked observations and AI-assisted suggestions. It does not replace veterinary diagnosis."
+    )
+    .fillColor("black");
   doc.moveDown();
 
   doc.fontSize(14).text("Recent Health Logs");
   doc.moveDown(0.5);
-  pet.healthLogs.forEach((log) => {
-    doc
-      .fontSize(11)
-      .text(
-        `${log.date.toDateString()} | Energy: ${log.energyLevel} | Mood: ${
-          log.mood ?? "-"
-        } | Appetite: ${log.appetite ?? "-"} | Notes: ${log.notes ?? "-"}`
+  if (pet.healthLogs.length === 0) {
+    doc.fontSize(11).text("No health logs recorded.");
+  } else {
+    pet.healthLogs.forEach((log) => {
+      doc
+        .fontSize(11)
+        .text(
+          `${log.date.toDateString()} | Energy: ${log.energyLevel} | Mood: ${
+            log.mood ?? "-"
+          } | Appetite: ${log.appetite ?? "-"} | Mobility: ${
+            log.mobilityLevel ?? "-"
+          } | Notes: ${log.notes ?? "-"}`
+        );
+    });
+  }
+
+  doc.moveDown();
+  doc.fontSize(14).text("Current Medications");
+  doc.moveDown(0.5);
+  if (pet.medications.length === 0) {
+    doc.fontSize(11).text("No active medications listed.");
+  } else {
+    pet.medications.forEach((medication) => {
+      doc.fontSize(11).text(
+        `${medication.name} | ${medication.dosage} | ${medication.frequency}`
       );
-  });
+    });
+  }
+
+  doc.moveDown();
+  doc.fontSize(14).text("Supplement Schedule");
+  doc.moveDown(0.5);
+  if (pet.doseSchedules.length === 0) {
+    doc.fontSize(11).text("No active supplement schedules listed.");
+  } else {
+    pet.doseSchedules.forEach((dose) => {
+      doc
+        .fontSize(11)
+        .text(
+          `${dose.supplementName} | ${dose.dosage} | ${dose.frequency}${
+            dose.notes ? ` | Notes: ${dose.notes}` : ""
+          }`
+        );
+    });
+  }
+
+  doc.moveDown();
+  doc.fontSize(14).text("Weight Trend");
+  doc.moveDown(0.5);
+  if (pet.weightLogs.length === 0) {
+    doc.fontSize(11).text("No weight entries recorded.");
+  } else {
+    pet.weightLogs.forEach((weightEntry) => {
+      doc.fontSize(11).text(
+        `${weightEntry.date.toDateString()} | ${weightEntry.weight} lbs`
+      );
+    });
+  }
 
   doc.moveDown();
   doc.fontSize(14).text("Recent AI Recommendations");
   doc.moveDown(0.5);
-  pet.recommendations.forEach((rec) => {
-    doc.fontSize(11).text(`${rec.createdAt.toDateString()} - ${rec.response}`);
-  });
+  if (pet.recommendations.length === 0) {
+    doc.fontSize(11).text("No AI recommendations recorded.");
+  } else {
+    pet.recommendations.forEach((rec) => {
+      doc.fontSize(11).text(`${rec.createdAt.toDateString()} - ${rec.response}`);
+      doc.moveDown(0.2);
+    });
+  }
+
+  doc.moveDown();
+  doc.fontSize(14).text("Recent Photo Evidence");
+  doc.moveDown(0.5);
+  if (pet.photoLogs.length === 0) {
+    doc.fontSize(11).text("No photos uploaded.");
+  } else {
+    pet.photoLogs.forEach((photo) => {
+      doc.fontSize(11).text(
+        `${photo.createdAt.toDateString()} | ${photo.category ?? "general"} | ${
+          photo.caption ?? "-"
+        }`
+      );
+      if (photo.aiAnalysis) {
+        doc.fontSize(10).text(`AI note: ${photo.aiAnalysis}`);
+      }
+      doc.moveDown(0.2);
+    });
+  }
 
   doc.end();
 

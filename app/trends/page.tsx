@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "Pet Wellness Trends | FursBliss",
+  description:
+    "Explore anonymized wellness trends across breeds, symptoms, and longevity-focused tracking behaviors.",
+};
 
 export default async function TrendsPage() {
   const pets = await prisma.pet.findMany({
@@ -44,6 +52,10 @@ export default async function TrendsPage() {
           <p className="text-muted-foreground">
             Aggregated, anonymized insights from the FursBliss community.
           </p>
+          <p className="text-xs text-muted-foreground">
+            Trend data should support questions for your veterinarian, not replace
+            clinical guidance.
+          </p>
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -80,6 +92,14 @@ export default async function TrendsPage() {
               )}
             </CardContent>
           </Card>
+        </div>
+        <div className="mt-6 flex gap-3">
+          <Button asChild>
+            <a href="/breeds">Browse breed guides</a>
+          </Button>
+          <Button variant="outline" asChild>
+            <a href="/signup">Track your pet</a>
+          </Button>
         </div>
       </main>
       <SiteFooter />

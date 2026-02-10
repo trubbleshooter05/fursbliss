@@ -27,7 +27,27 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(photos);
+  const insights = await prisma.aIInsight.findMany({
+    where: { petId, type: "photo_analysis" },
+    select: { prompt: true },
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+
+  const historyCountByPhotoId = insights.reduce<Record<string, number>>((acc, insight) => {
+    const match = insight.prompt.match(/PHOTO_LOG_ID:([a-zA-Z0-9_-]+)/);
+    if (match?.[1]) {
+      acc[match[1]] = (acc[match[1]] ?? 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  return NextResponse.json(
+    photos.map((photo) => ({
+      ...photo,
+      analysisHistoryCount: historyCountByPhotoId[photo.id] ?? 0,
+    }))
+  );
 }
 
 export async function POST(request: Request) {

@@ -12,8 +12,24 @@ const requestSchema = z.object({
   addItem: z.string().optional(),
 });
 
+const analysisSchema = z.object({
+  overallRisk: z.enum(["LOW", "MODERATE", "HIGH"]),
+  summary: z.string().min(1),
+  interactions: z.array(
+    z.object({
+      items: z.array(z.string()).min(2),
+      severity: z.enum(["SAFE", "CAUTION", "AVOID"]),
+      explanation: z.string().min(1),
+      recommendation: z.string().min(1),
+    })
+  ),
+  dosageConcerns: z.array(z.string()).default([]),
+  redundancies: z.array(z.string()).default([]),
+  vetQuestions: z.array(z.string()).default([]),
+});
+
 const systemPrompt =
-  "You are a veterinary pharmacology advisor. Always recommend consulting a veterinarian.";
+  "You are a veterinary pharmacology advisor. Always recommend consulting a veterinarian. Return valid JSON only.";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -77,13 +93,25 @@ export async function POST(request: Request) {
 CURRENT STACK: ${parsed.data.stack}
 CHECKING ADDITION OF: ${parsed.data.addItem || "None"}
 
-For each interaction, return:
-1. The two items
-2. Severity: SAFE | CAUTION | AVOID
-3. Plain-English explanation (1-2 sentences)
-4. Recommendation
+Return JSON with this exact shape:
+{
+  "overallRisk": "LOW" | "MODERATE" | "HIGH",
+  "summary": "short summary",
+  "interactions": [
+    {
+      "items": ["item1", "item2"],
+      "severity": "SAFE" | "CAUTION" | "AVOID",
+      "explanation": "plain English",
+      "recommendation": "what to do next"
+    }
+  ],
+  "dosageConcerns": ["..."],
+  "redundancies": ["..."],
+  "vetQuestions": ["..."]
+}
 
-Also flag redundancies and dosage concerns for this weight. Provide an overall stack assessment.`;
+If there are no interactions, return interactions as [].
+No markdown, no code fences, JSON only.`;
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const completion = await client.chat.completions.create({
@@ -103,22 +131,55 @@ Also flag redundancies and dosage concerns for this weight. Provide an overall s
       );
     }
 
+    const extractedJson = extractJsonObject(responseText);
+    const parsedAnalysis = analysisSchema.safeParse(extractedJson);
+    if (!parsedAnalysis.success) {
+      return NextResponse.json(
+        {
+          response: responseText,
+          structured: null,
+          warning: "AI output could not be structured. Showing raw output.",
+        },
+        { status: 200 }
+      );
+    }
+
     await prisma.aIInsight.create({
       data: {
         petId: parsed.data.petId,
         type: "interaction_check",
-        content: responseText,
+        content: JSON.stringify(parsedAnalysis.data),
         prompt,
         model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
       },
     });
 
-    return NextResponse.json({ response: responseText });
+    return NextResponse.json({
+      response: responseText,
+      structured: parsedAnalysis.data,
+    });
   } catch (error) {
     console.error("Interaction check error", error);
     return NextResponse.json(
       { message: "Unable to run interaction check." },
       { status: 500 }
     );
+  }
+}
+
+function extractJsonObject(raw: string): unknown {
+  const trimmed = raw.trim();
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    const match = trimmed.match(/\{[\s\S]*\}/);
+    if (!match) {
+      return null;
+    }
+    try {
+      return JSON.parse(match[0]);
+    } catch {
+      return null;
+    }
   }
 }

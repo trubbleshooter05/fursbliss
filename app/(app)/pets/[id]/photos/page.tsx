@@ -14,6 +14,7 @@ type PhotoLog = {
   category?: string | null;
   caption?: string | null;
   aiAnalysis?: string | null;
+  analysisHistoryCount?: number;
   createdAt: string;
 };
 
@@ -24,8 +25,10 @@ export default function PhotoProgressPage() {
   const [category, setCategory] = useState("general");
   const [caption, setCaption] = useState("");
   const [photos, setPhotos] = useState<PhotoLog[]>([]);
+  const [filterCategory, setFilterCategory] = useState("all");
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [analyzingPhotoId, setAnalyzingPhotoId] = useState<string | null>(null);
 
   const loadPhotos = async () => {
     if (!petId) return;
@@ -71,6 +74,7 @@ export default function PhotoProgressPage() {
 
   const runAnalysis = async (photoLogId: string) => {
     setError(null);
+    setAnalyzingPhotoId(photoLogId);
     try {
       const response = await fetch("/api/ai/photo-analysis", {
         method: "POST",
@@ -84,7 +88,32 @@ export default function PhotoProgressPage() {
       await loadPhotos();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setAnalyzingPhotoId(null);
     }
+  };
+
+  const visiblePhotos = photos.filter((photo) => {
+    if (filterCategory === "all") return true;
+    return (photo.category ?? "general").toLowerCase() === filterCategory.toLowerCase();
+  });
+
+  const categoryOptions = Array.from(
+    new Set(photos.map((photo) => (photo.category ?? "general").toLowerCase()))
+  );
+
+  const onCopyCard = async (photo: PhotoLog) => {
+    const text = [
+      "FursBliss Progress Card",
+      `Date: ${new Date(photo.createdAt).toDateString()}`,
+      `Category: ${photo.category ?? "general"}`,
+      photo.caption ? `Caption: ${photo.caption}` : "",
+      photo.aiAnalysis ? `AI Notes: ${photo.aiAnalysis}` : "",
+      "Reminder: This is not veterinary diagnosis. Confirm concerns with your vet.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    await navigator.clipboard.writeText(text);
   };
 
   return (
@@ -96,6 +125,10 @@ export default function PhotoProgressPage() {
         <h1 className="text-3xl font-semibold text-slate-900">Photo timeline</h1>
         <p className="text-muted-foreground">
           Upload photos to track visible changes over time.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          AI photo observations are not medical diagnosis and should be reviewed by a
+          veterinarian.
         </p>
       </div>
 
@@ -126,11 +159,31 @@ export default function PhotoProgressPage() {
         <CardHeader>
           <CardTitle>Photo timeline</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          {photos.length === 0 ? (
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant={filterCategory === "all" ? "default" : "outline"}
+              onClick={() => setFilterCategory("all")}
+            >
+              All
+            </Button>
+            {categoryOptions.map((option) => (
+              <Button
+                key={option}
+                size="sm"
+                variant={filterCategory === option ? "default" : "outline"}
+                onClick={() => setFilterCategory(option)}
+              >
+                {option}
+              </Button>
+            ))}
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+          {visiblePhotos.length === 0 ? (
             <p className="text-sm text-muted-foreground">No photos yet.</p>
           ) : (
-            photos.map((photo) => (
+            visiblePhotos.map((photo) => (
               <div key={photo.id} className="space-y-3 rounded-2xl border border-slate-100 bg-white p-4">
                 <img src={photo.imageUrl} alt="Pet" className="h-48 w-full rounded-xl object-cover" />
                 <p className="text-xs text-muted-foreground">
@@ -140,17 +193,39 @@ export default function PhotoProgressPage() {
                   <p className="text-sm text-slate-700">{photo.caption}</p>
                 )}
                 {photo.aiAnalysis ? (
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap">
-                    {photo.aiAnalysis}
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                      {photo.aiAnalysis}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Analysis runs: {photo.analysisHistoryCount ?? 1}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => onCopyCard(photo)}>
+                        Copy progress card
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => runAnalysis(photo.id)}
+                        disabled={analyzingPhotoId === photo.id}
+                      >
+                        {analyzingPhotoId === photo.id ? "Re-analyzing..." : "Re-run AI"}
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
-                  <Button variant="outline" onClick={() => runAnalysis(photo.id)}>
-                    Run AI analysis
+                  <Button
+                    variant="outline"
+                    onClick={() => runAnalysis(photo.id)}
+                    disabled={analyzingPhotoId === photo.id}
+                  >
+                    {analyzingPhotoId === photo.id ? "Analyzing..." : "Run AI analysis"}
                   </Button>
                 )}
               </div>
             ))
           )}
+          </div>
         </CardContent>
       </Card>
     </div>

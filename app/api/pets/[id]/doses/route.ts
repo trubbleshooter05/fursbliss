@@ -8,6 +8,8 @@ const schema = z.object({
   dosage: z.string().min(1),
   frequency: z.string().min(1),
   times: z.array(z.string()).optional().default([]),
+  daysOfWeek: z.array(z.number().int().min(0).max(6)).optional().default([]),
+  notes: z.string().optional(),
 });
 
 type RouteParams = { params: { id: string } };
@@ -38,6 +40,11 @@ export async function POST(request: Request, { params }: RouteParams) {
       dosage: parsed.data.dosage,
       frequency: parsed.data.frequency,
       times: parsed.data.times,
+      daysOfWeek:
+        parsed.data.daysOfWeek.length > 0
+          ? parsed.data.daysOfWeek.join(",")
+          : null,
+      notes: parsed.data.notes,
     },
   });
 

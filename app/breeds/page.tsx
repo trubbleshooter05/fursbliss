@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,11 @@ import { prisma } from "@/lib/prisma";
 import { breedPages } from "@/lib/breed-pages";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Breed Longevity Guides | FursBliss",
+  description:
+    "Evidence-based longevity guides by dog breed with risk timelines, supplement planning, and preventive care guidance.",
+};
 
 export default async function BreedsPage() {
   const profiles = await prisma.breedProfile.findMany({
@@ -39,6 +45,10 @@ export default async function BreedsPage() {
           <p className="text-muted-foreground">
             Evidence-based supplements and health risks by breed.
           </p>
+          <p className="text-xs text-muted-foreground">
+            Educational guidance only. Confirm supplement and medication decisions with
+            your veterinarian.
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -51,6 +61,9 @@ export default async function BreedsPage() {
                 <p>{item.description}</p>
                 <Link className="text-emerald-600 hover:underline" href={`/breeds/${item.slug}`}>
                   View guide →
+                </Link>
+                <Link className="text-slate-700 hover:underline" href="/signup">
+                  Create a personalized plan →
                 </Link>
               </CardContent>
             </Card>

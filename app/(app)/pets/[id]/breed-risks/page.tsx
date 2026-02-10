@@ -17,6 +17,12 @@ export default async function BreedRisksPage({ params }: PageProps) {
 
   const pet = await prisma.pet.findFirst({
     where: { id: params.id, userId },
+    include: {
+      doseSchedules: {
+        where: { active: true },
+        select: { supplementName: true },
+      },
+    },
   });
 
   if (!pet) {
@@ -27,13 +33,16 @@ export default async function BreedRisksPage({ params }: PageProps) {
     where: { breed: pet.breed },
   });
 
-  const riskTimeline = profile?.riskTimeline
-    ? (JSON.parse(profile.riskTimeline) as { age: number; risk: string; severity: string }[])
-    : [];
+  const riskTimeline = safeParseTimeline(profile?.riskTimeline).sort(
+    (a, b) => a.age - b.age
+  );
 
-  const supplementRecs = profile?.supplementRecs
-    ? (JSON.parse(profile.supplementRecs) as { supplement: string; startAge: number; reason: string }[])
-    : [];
+  const supplementRecs = safeParseSupplements(profile?.supplementRecs).sort(
+    (a, b) => a.startAge - b.startAge
+  );
+  const activeSupplements = new Set(
+    pet.doseSchedules.map((dose) => dose.supplementName.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -61,14 +70,25 @@ export default async function BreedRisksPage({ params }: PageProps) {
               riskTimeline.map((risk) => (
                 <div
                   key={`${risk.age}-${risk.risk}`}
-                  className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+                  className={`rounded-xl border px-4 py-3 ${
+                    pet.age >= risk.age
+                      ? "border-emerald-200 bg-emerald-50/50"
+                      : "border-slate-100 bg-slate-50"
+                  }`}
                 >
-                  <span>
-                    Age {risk.age}: {risk.risk}
-                  </span>
-                  <span className="text-xs font-semibold uppercase text-emerald-600">
-                    {risk.severity}
-                  </span>
+                  <div className="flex items-center justify-between gap-4">
+                    <span>
+                      Age {risk.age}: {risk.risk}
+                    </span>
+                    <span className="text-xs font-semibold uppercase text-emerald-600">
+                      {risk.severity}
+                    </span>
+                  </div>
+                  {pet.age >= risk.age && (
+                    <p className="mt-2 text-xs font-medium text-emerald-700">
+                      You are here: active monitoring window
+                    </p>
+                  )}
                 </div>
               ))
             )}
@@ -86,12 +106,20 @@ export default async function BreedRisksPage({ params }: PageProps) {
               supplementRecs.map((rec) => (
                 <div
                   key={`${rec.supplement}-${rec.startAge}`}
-                  className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+                  className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
                 >
-                  <span>{rec.supplement}</span>
-                  <span className="text-xs text-slate-600">
-                    Start age {rec.startAge}
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-slate-900">{rec.supplement}</span>
+                    <span className="text-xs text-slate-600">
+                      Start age {rec.startAge}
+                    </span>
+                  </div>
+                  <p className="text-xs">{rec.reason}</p>
+                  <p className="text-xs">
+                    {activeSupplements.has(rec.supplement.toLowerCase())
+                      ? "✅ Currently in your schedule"
+                      : "⬜ Not in your schedule yet"}
+                  </p>
                 </div>
               ))
             )}
@@ -100,4 +128,52 @@ export default async function BreedRisksPage({ params }: PageProps) {
       </div>
     </div>
   );
+}
+
+function safeParseTimeline(
+  value?: string | null
+): Array<{ age: number; risk: string; severity: string }> {
+  if (!value) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .map((item) => ({
+        age: Number(item?.age ?? 0),
+        risk: typeof item?.risk === "string" ? item.risk : "Unknown risk",
+        severity:
+          typeof item?.severity === "string" ? item.severity : "monitor",
+      }))
+      .filter((item) => Number.isFinite(item.age) && item.age > 0);
+  } catch {
+    return [];
+  }
+}
+
+function safeParseSupplements(
+  value?: string | null
+): Array<{ supplement: string; startAge: number; reason: string }> {
+  if (!value) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .map((item) => ({
+        supplement:
+          typeof item?.supplement === "string" ? item.supplement : "Supplement",
+        startAge: Number(item?.startAge ?? 0),
+        reason: typeof item?.reason === "string" ? item.reason : "",
+      }))
+      .filter((item) => Number.isFinite(item.startAge) && item.startAge > 0);
+  } catch {
+    return [];
+  }
 }

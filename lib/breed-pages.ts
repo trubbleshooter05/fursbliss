@@ -1,4 +1,11 @@
-export const breedPages = [
+type BreedPage = {
+  slug: string;
+  title: string;
+  description: string;
+  focus: string[];
+};
+
+const curatedBreedPages: BreedPage[] = [
   {
     slug: "golden-retriever-senior",
     title: "Senior Golden Retriever Supplements",
@@ -105,3 +112,141 @@ export const breedPages = [
     focus: ["Omega-3s", "Probiotics", "Joint support"],
   },
 ];
+
+const scalableBreedNames = [
+  "Australian Shepherd",
+  "Siberian Husky",
+  "Pembroke Welsh Corgi",
+  "Chihuahua",
+  "Doberman Pinscher",
+  "Bernese Mountain Dog",
+  "Maltese",
+  "Pomeranian",
+  "Bichon Frise",
+  "Boston Terrier",
+  "Havanese",
+  "Shetland Sheepdog",
+  "English Springer Spaniel",
+  "Brittany",
+  "Miniature Schnauzer",
+  "Cocker Spaniel",
+  "Shiba Inu",
+  "Saint Bernard",
+  "Bullmastiff",
+  "West Highland White Terrier",
+  "Akita",
+  "Newfoundland",
+  "Weimaraner",
+  "Vizsla",
+  "Rhodesian Ridgeback",
+  "Bloodhound",
+  "Basenji",
+  "Belgian Malinois",
+  "Belgian Tervuren",
+  "Belgian Sheepdog",
+  "Collie",
+  "Old English Sheepdog",
+  "Australian Cattle Dog",
+  "Miniature American Shepherd",
+  "Papillon",
+  "Pug",
+  "Whippet",
+  "Italian Greyhound",
+  "Greyhound",
+  "Great Pyrenees",
+  "Samoyed",
+  "Alaskan Malamute",
+  "Dalmatian",
+  "Airedale Terrier",
+  "Scottish Terrier",
+  "Cairn Terrier",
+  "Norwich Terrier",
+  "Norfolk Terrier",
+  "Parson Russell Terrier",
+  "Jack Russell Terrier",
+  "American Staffordshire Terrier",
+  "Staffordshire Bull Terrier",
+  "Bull Terrier",
+  "American Bulldog",
+  "English Bulldog",
+  "French Spaniel",
+  "Irish Setter",
+  "English Setter",
+  "Gordon Setter",
+  "Pointer",
+  "German Shorthaired Pointer",
+  "German Wirehaired Pointer",
+  "Wirehaired Pointing Griffon",
+  "Portuguese Water Dog",
+  "Lagotto Romagnolo",
+  "Soft Coated Wheaten Terrier",
+  "Keeshond",
+  "Chinese Shar-Pei",
+  "Lhasa Apso",
+  "Pekingese",
+  "Basset Hound",
+  "Treeing Walker Coonhound",
+  "Bluetick Coonhound",
+  "Redbone Coonhound",
+  "Black and Tan Coonhound",
+  "Afghan Hound",
+  "Borzoi",
+  "Saluki",
+  "Irish Wolfhound",
+  "Leonberger",
+  "Kuvasz",
+  "Anatolian Shepherd Dog",
+  "Cane Corso",
+  "Mastiff",
+  "Miniature Pinscher",
+  "Toy Poodle",
+  "Standard Poodle",
+  "Miniature Poodle",
+  "Cockapoo",
+  "Labradoodle",
+  "Goldendoodle",
+  "Schnoodle",
+  "Bernedoodle",
+  "Cavapoo",
+  "Pomsky",
+  "Aussiedoodle",
+  "Morkie",
+  "Shorkie",
+  "Puggle",
+  "Chiweenie",
+  "Boxador",
+  "Sheprador",
+  "Yorkipoo",
+  "Maltipoo",
+  "Huskydoodle",
+];
+
+const focusTemplates: string[][] = [
+  ["Omega-3s", "Glucosamine", "Antioxidants"],
+  ["Probiotics", "Fiber", "Digestive enzymes"],
+  ["DHA", "MCT support", "Antioxidants"],
+  ["CoQ10", "L-carnitine", "Omega-3s"],
+  ["Vitamin E", "Joint support", "Probiotics"],
+];
+
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const curatedSlugs = new Set(curatedBreedPages.map((page) => page.slug));
+
+const generatedBreedPages: BreedPage[] = scalableBreedNames
+  .map((breedName, index) => {
+    const slug = `${slugify(breedName)}-senior-longevity`;
+    return {
+      slug,
+      title: `${breedName} Senior Longevity Guide`,
+      description: `Evidence-informed longevity planning for senior ${breedName} dogs, including mobility, gut, metabolic, and cognitive tracking guidance.`,
+      focus: focusTemplates[index % focusTemplates.length],
+    };
+  })
+  .filter((page) => !curatedSlugs.has(page.slug));
+
+export const breedPages: BreedPage[] = [...curatedBreedPages, ...generatedBreedPages];

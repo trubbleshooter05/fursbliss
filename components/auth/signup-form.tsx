@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getProviders, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -32,7 +32,6 @@ export function SignupForm() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
-  const [hasGoogleProvider, setHasGoogleProvider] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,14 +48,6 @@ export function SignupForm() {
       form.setValue("referralCode", referral);
     }
   }, [searchParams, form]);
-
-  useEffect(() => {
-    const loadProviders = async () => {
-      const providers = await getProviders();
-      setHasGoogleProvider(Boolean(providers?.google));
-    };
-    void loadProviders();
-  }, []);
 
   const onSubmit = async (values: FormValues) => {
     const response = await fetch("/api/auth/register", {
@@ -101,20 +92,16 @@ export function SignupForm() {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {hasGoogleProvider && (
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={onGoogleSignUp}
-              disabled={form.formState.isSubmitting}
-            >
-              Continue with Google
-            </Button>
-          )}
-          {hasGoogleProvider && (
-            <p className="text-center text-xs text-muted-foreground">or create with email</p>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={onGoogleSignUp}
+            disabled={form.formState.isSubmitting}
+          >
+            Continue with Google
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">or create with email</p>
           <FormField
             control={form.control}
             name="name"

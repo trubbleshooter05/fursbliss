@@ -219,7 +219,8 @@ export default async function Home() {
             </h2>
             <p className="text-muted-foreground">
               Safety and efficacy have been accepted by FDA reviewers. One major
-              step remains: manufacturing verification before conditional approval.
+              step remains: manufacturing verification before conditional approval,
+              which could arrive as early as 2026.
               FursBliss helps you track eligibility, readiness, and updates.
             </p>
           </div>
@@ -228,7 +229,7 @@ export default async function Home() {
               <p className="font-medium text-slate-900">LOY-002 eligibility</p>
               <p className="mt-2">
                 Dog age 10+ and weight 14+ lbs. We&apos;ll notify you when
-                availability changes.
+                availability changes so you can act as soon as LOY-002 is available.
               </p>
             </div>
             <Button size="lg" asChild>

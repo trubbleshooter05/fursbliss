@@ -37,7 +37,8 @@ export default async function LongevityDrugsPage() {
           <p className="text-sm text-slate-700">
             Latest public update: FDA reviewers accepted Target Animal Safety (TAS)
             on Jan 13, 2026. LOY-002 now has efficacy + safety accepted, with
-            manufacturing review remaining before XCA filing.
+            manufacturing review remaining before XCA filing. Conditional approval
+            could arrive as early as 2026 depending on manufacturing review timing.
           </p>
           <a
             href="https://www.businesswire.com/news/home/20260113476778/"

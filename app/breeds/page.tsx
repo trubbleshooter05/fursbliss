@@ -18,18 +18,23 @@ export default async function BreedsPage() {
     orderBy: { breed: "asc" },
   });
 
-  const items =
-    profiles.length > 0
-      ? profiles.map((profile) => ({
-          slug: profile.seoSlug,
-          title: profile.seoTitle,
-          description: profile.seoDescription,
-        }))
-      : breedPages.map((page) => ({
-          slug: page.slug,
-          title: page.title,
-          description: page.description,
-        }));
+  const fromProfiles = profiles.map((profile) => ({
+    slug: profile.seoSlug,
+    title: profile.seoTitle,
+    description: profile.seoDescription,
+  }));
+  const fromFallback = breedPages.map((page) => ({
+    slug: page.slug,
+    title: page.title,
+    description: page.description,
+  }));
+  const unique = new Map<string, (typeof fromProfiles)[number]>();
+  [...fromProfiles, ...fromFallback].forEach((item) => {
+    if (!unique.has(item.slug)) {
+      unique.set(item.slug, item);
+    }
+  });
+  const items = Array.from(unique.values());
 
   return (
     <div className="min-h-screen bg-slate-50">

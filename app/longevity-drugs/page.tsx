@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { EligibilityChecker } from "@/components/longevity/eligibility-checker";
+import { LoyNotifyForm } from "@/components/longevity/loy-notify-form";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -81,9 +82,12 @@ export default async function LongevityDrugsPage() {
                 Estimated market expectations have been discussed in the ~$40-90/mo
                 range depending on dog size, but this is not final pricing guidance.
               </p>
-              <Button variant="outline" asChild>
-                <a href="/signup">Notify me when status changes</a>
-              </Button>
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+                <p className="mb-2 font-medium text-slate-900">
+                  Be first to know when LOY-002 becomes available
+                </p>
+                <LoyNotifyForm />
+              </div>
             </CardContent>
           </Card>
         </section>
@@ -192,8 +196,15 @@ export default async function LongevityDrugsPage() {
             <CardContent className="space-y-2 text-sm text-muted-foreground">
               <p>• Manufacturing technical section remains in progress.</p>
               <p>• Loyal has publicly signaled XCA filing expectation in 2027.</p>
+              <p>• LOY-001 for large dogs is also anticipated for market in 2026.</p>
+              <p>
+                • LOY-003 is a pill program for large and giant breed longevity support.
+              </p>
+              <p>
+                • STAY study sampling includes a longitudinal biobank (saliva + blood)
+                that may accelerate future insights.
+              </p>
               <p>• Full approval follows STAY study completion.</p>
-              <p>• LOY-001 and LOY-003 programs are also progressing.</p>
               <p className="text-xs">
                 Dates reflect public company communications and may change.
               </p>

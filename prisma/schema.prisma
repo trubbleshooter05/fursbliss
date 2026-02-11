@@ -321,3 +321,10 @@ model VetShareLink {
   vetComment String?
   createdAt  DateTime @default(now())
 }
+
+model WaitlistSignup {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("loy002")
+  createdAt DateTime @default(now())
+}

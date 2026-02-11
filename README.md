@@ -1,88 +1,109 @@
 # FursBliss
 
-FursBliss is a longevity-focused dog wellness platform. It combines daily tracking, AI guidance, drug-readiness monitoring, and vet-shareable reporting in one system.
+## Overview
 
-## Stack
+FursBliss is a **Pet Longevity Intelligence Platform** that helps pet parents and care teams monitor daily health signals, personalize longevity interventions, and prepare for emerging longevity therapeutics.
 
-- Next.js 14 (App Router) + TypeScript
-- Tailwind CSS + shadcn/ui
-- Prisma ORM + PostgreSQL
-- NextAuth v5 (Credentials + Google OAuth)
-- Stripe subscriptions (monthly + yearly)
-- OpenAI-powered insights and interaction checks
-- Resend email notifications
+The product combines AI-assisted decision support, structured health tracking, and subscription-powered premium workflows in a single App Router experience.
 
-## Product Areas
+## Core Features
 
-- Daily health logs (energy, appetite, mood, notes)
-- Breed risk timelines and supplement planning
-- LOY-002 longevity drug hub with eligibility and status tracking
-- AI supplement recommendations and interaction checker
-- Dose schedules, reminders, and completion tracking
-- Photo timeline + AI observations
-- Vet-share links and PDF report export
+- **LOY-001 / LOY-002 / LOY-003 Drug Hub**
+  - Timeline tracking, milestone updates, and eligibility readiness workflows.
+- **Breed-Specific Longevity Intelligence**
+  - 100+ SEO-indexable breed pages with risk and supplement focus context.
+- **Supplement Tracking**
+  - Dose schedules, completion logs, and daily adherence support.
+- **Interaction Checks**
+  - AI-assisted supplement and medication interaction analysis.
+- **Photo Tracking**
+  - Longitudinal photo logs with AI observation support.
+- **Premium Subscription Model**
+  - Stripe-powered monthly/yearly plans, gated premium features, and billing portal access.
 
-## Quick Start
+## Tech Stack
 
-1) Install dependencies
+- **Framework:** Next.js 14 (App Router), React, TypeScript
+- **Data Layer:** Prisma ORM, PostgreSQL
+- **Auth:** NextAuth (credentials + Google OAuth)
+- **Billing:** Stripe subscriptions + webhooks
+- **AI:** OpenAI API
+- **Email:** Resend
+- **UI:** Tailwind CSS, shadcn/ui
+- **Deploy:** Vercel
+
+## Local Development
+
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-2) Configure environment variables
+2. Create local env file:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Minimum required:
-
-- `DATABASE_URL`
-- `NEXTAUTH_SECRET`
-- `NEXTAUTH_URL`
-- `NEXT_PUBLIC_APP_URL`
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (for Google sign-in)
-- `STRIPE_SECRET_KEY`
-- `STRIPE_PUBLISHABLE_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_PRICE_MONTHLY`
-- `STRIPE_PRICE_YEARLY`
-- `OPENAI_API_KEY`
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
-- `CRON_SECRET`
-
-3) Run migrations
+3. Apply schema changes:
 
 ```bash
 npx prisma migrate dev
 ```
 
-4) Seed demo data (optional)
+4. (Optional) Seed sample data:
 
 ```bash
 npm run seed
 ```
 
-5) Start local app
+5. Run the app:
 
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+App runs at `http://localhost:3000`.
 
-## Stripe Webhook (Local)
+## Environment Variables
+
+Use `.env.local` for local development and configure matching values in Vercel for preview/production.
+
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
+- `NEXT_PUBLIC_APP_URL`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_MONTHLY`
+- `STRIPE_PRICE_YEARLY`
+- `STRIPE_PRICE_ID`
+- `OPENAI_API_KEY`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
+- `CRON_SECRET`
+- `DEMO_EMAIL`
+- `DEMO_PASSWORD`
+- `DEMO_SEED_SECRET`
+
+## Deployment
+
+FursBliss is designed for Vercel deployment:
+
+1. Configure all required environment variables in Vercel.
+2. Run Prisma migrations against the target database.
+3. Deploy using Vercel Git integration or CLI:
 
 ```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+vercel --prod
 ```
 
-Copy the generated signing secret to `STRIPE_WEBHOOK_SECRET`.
-
-## Security Notes
-
-- Never commit local database files (`*.db`, `*.sqlite`).
-- Never commit `.env.local` or `.env.production`.
-- Use strong `NEXTAUTH_SECRET` and `CRON_SECRET` in production.
+4. Validate key production flows:
+   - Signup/login (credentials + Google OAuth)
+   - Stripe checkout (monthly + yearly)
+   - Drug hub pages and waitlist capture
+   - API health and cron-backed reminders

@@ -7,17 +7,17 @@ import { Input } from "@/components/ui/input";
 export function LoyNotifyForm() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
-    setMessage(null);
+    setIsSuccess(false);
     setError(null);
 
     try {
-      const response = await fetch("/api/longevity/notify", {
+      const response = await fetch("/api/waitlist/loy002", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -26,7 +26,7 @@ export function LoyNotifyForm() {
       if (!response.ok) {
         throw new Error(data.message || "Unable to save your request right now.");
       }
-      setMessage("You're on the LOY update list. We'll email you when status changes.");
+      setIsSuccess(true);
       setEmail("");
     } catch (submitError) {
       setError(
@@ -51,13 +51,14 @@ export function LoyNotifyForm() {
           onChange={(event) => setEmail(event.target.value)}
         />
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Joining..." : "Notify me first"}
+          {isSubmitting ? "Notifying..." : "Notify Me"}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        We only email major LOY timeline updates. Unsubscribe anytime.
-      </p>
-      {message ? <p className="text-xs text-emerald-700">{message}</p> : null}
+      {isSuccess ? (
+        <p className="text-xs text-emerald-700">
+          You are on the list. We will send LOY-002 updates to your inbox.
+        </p>
+      ) : null}
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </form>
   );

@@ -83,8 +83,12 @@ export default async function LongevityDrugsPage() {
                 range depending on dog size, but this is not final pricing guidance.
               </p>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
-                <p className="mb-2 font-medium text-slate-900">
-                  Be first to know when LOY-002 becomes available
+                <h3 className="mb-1 font-semibold text-slate-900">
+                  Get notified when LOY-002 updates
+                </h3>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Be first to know about approval milestones, manufacturing updates,
+                  and potential availability timelines.
                 </p>
                 <LoyNotifyForm />
               </div>

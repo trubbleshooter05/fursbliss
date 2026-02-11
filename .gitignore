@@ -45,3 +45,9 @@ prisma/dev.db
 prisma/*.db
 prisma/*.sqlite
 prisma/*.sqlite3
+
+# local db files
+dev.db
+*.db
+*.sqlite
+*.sqlite3

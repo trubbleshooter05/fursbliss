@@ -1,79 +1,88 @@
 # FursBliss
 
-FursBliss is a professional pet health tracking SaaS built with Next.js, Prisma, NextAuth, Stripe, and OpenAI. Track daily wellness, visualize trends, and generate AI-powered supplement recommendations.
+FursBliss is a longevity-focused dog wellness platform. It combines daily tracking, AI guidance, drug-readiness monitoring, and vet-shareable reporting in one system.
 
-## Tech Stack
+## Stack
 
 - Next.js 14 (App Router) + TypeScript
 - Tailwind CSS + shadcn/ui
-- Prisma ORM + SQLite (easy to migrate to PostgreSQL)
-- NextAuth.js v5 (credentials authentication)
-- Stripe subscriptions
-- OpenAI GPT-4 recommendations
+- Prisma ORM + PostgreSQL
+- NextAuth v5 (Credentials + Google OAuth)
+- Stripe subscriptions (monthly + yearly)
+- OpenAI-powered insights and interaction checks
+- Resend email notifications
 
-## Features
+## Product Areas
 
-- Daily health logs with energy, appetite, mood, and notes
-- Pet profiles with symptom tracking
-- AI supplement recommendations (premium)
-- Stripe Checkout + Customer Portal
-- Analytics dashboards with Recharts
+- Daily health logs (energy, appetite, mood, notes)
+- Breed risk timelines and supplement planning
+- LOY-002 longevity drug hub with eligibility and status tracking
+- AI supplement recommendations and interaction checker
+- Dose schedules, reminders, and completion tracking
+- Photo timeline + AI observations
+- Vet-share links and PDF report export
 
-## Getting Started
+## Quick Start
 
-### 1) Install dependencies
+1) Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2) Configure environment variables
-
-Copy the sample file and fill in secrets:
+2) Configure environment variables
 
 ```bash
 cp .env.example .env.local
 ```
 
-Required values:
+Minimum required:
 
 - `DATABASE_URL`
 - `NEXTAUTH_SECRET`
 - `NEXTAUTH_URL`
+- `NEXT_PUBLIC_APP_URL`
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (for Google sign-in)
 - `STRIPE_SECRET_KEY`
 - `STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_PRICE_ID`
+- `STRIPE_PRICE_MONTHLY`
+- `STRIPE_PRICE_YEARLY`
 - `OPENAI_API_KEY`
-- `NEXT_PUBLIC_APP_URL`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
+- `CRON_SECRET`
 
-### 3) Run database migrations
+3) Run migrations
 
 ```bash
 npx prisma migrate dev
 ```
 
-### 4) Start the dev server
+4) Seed demo data (optional)
+
+```bash
+npm run seed
+```
+
+5) Start local app
 
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:3000` in your browser.
+Open `http://localhost:3000`.
 
-## Stripe Webhooks (Local)
-
-To test webhooks locally, use the Stripe CLI:
+## Stripe Webhook (Local)
 
 ```bash
 stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 
-Then copy the webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
+Copy the generated signing secret to `STRIPE_WEBHOOK_SECRET`.
 
-## Production Notes
+## Security Notes
 
-- Set `NEXTAUTH_SECRET` to a secure random value.
-- Update `NEXT_PUBLIC_APP_URL` and `NEXTAUTH_URL` to your production domain.
-- Configure Stripe prices and webhook endpoint in the Stripe dashboard.
-- Use PostgreSQL by updating `DATABASE_URL` in production.
+- Never commit local database files (`*.db`, `*.sqlite`).
+- Never commit `.env.local` or `.env.production`.
+- Use strong `NEXTAUTH_SECRET` and `CRON_SECRET` in production.

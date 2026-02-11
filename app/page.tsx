@@ -71,6 +71,24 @@ const plans = [
   },
 ];
 
+const howItWorks = [
+  {
+    title: "Add your dog",
+    description:
+      "Create a profile with breed, age, weight, and current symptoms in under two minutes.",
+  },
+  {
+    title: "Track daily",
+    description:
+      "Log energy, appetite, mood, stool, weight, photos, and supplement adherence in one dashboard.",
+  },
+  {
+    title: "Get AI longevity insights",
+    description:
+      "Receive evidence-rated recommendations and interaction checks you can share with your veterinarian.",
+  },
+];
+
 export default async function Home() {
   const session = await auth();
   if (session?.user) {
@@ -135,6 +153,27 @@ export default async function Home() {
           </Card>
         </section>
 
+        <section className="grid gap-6 rounded-3xl border border-slate-200/70 bg-white/90 p-8 md:grid-cols-3">
+          <div>
+            <p className="text-3xl font-semibold text-slate-900">1,300+</p>
+            <p className="text-sm text-muted-foreground">
+              Dogs enrolled in LOY-002 STAY study
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-semibold text-slate-900">$150M+</p>
+            <p className="text-sm text-muted-foreground">
+              Loyal total funding reported
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-semibold text-slate-900">70</p>
+            <p className="text-sm text-muted-foreground">
+              Clinics included in STAY enrollment
+            </p>
+          </div>
+        </section>
+
         <section className="space-y-10" id="features">
           <div className="space-y-3">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-emerald-600">
@@ -179,7 +218,8 @@ export default async function Home() {
               The first FDA dog longevity drug is coming.
             </h2>
             <p className="text-muted-foreground">
-              LOY-002 has passed 2 of 3 FDA milestones for conditional approval.
+              Safety and efficacy have been accepted by FDA reviewers. One major
+              step remains: manufacturing verification before conditional approval.
               FursBliss helps you track eligibility, readiness, and updates.
             </p>
           </div>
@@ -194,6 +234,30 @@ export default async function Home() {
             <Button size="lg" asChild>
               <Link href="/longevity-drugs">Check eligibility</Link>
             </Button>
+          </div>
+        </section>
+
+        <section className="space-y-8 rounded-3xl border border-slate-200/70 bg-white/90 px-8 py-12">
+          <div className="space-y-3">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-emerald-600">
+              How it works
+            </p>
+            <h2 className="text-3xl font-semibold text-slate-900">
+              Daily clarity in three simple steps
+            </h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {howItWorks.map((step, index) => (
+              <Card key={step.title} className="border border-slate-200/70">
+                <CardHeader className="space-y-3">
+                  <Badge className="w-fit bg-emerald-500/10 text-emerald-700">
+                    Step {index + 1}
+                  </Badge>
+                  <CardTitle className="text-xl">{step.title}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                </CardHeader>
+              </Card>
+            ))}
           </div>
         </section>
 

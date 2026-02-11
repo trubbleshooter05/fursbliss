@@ -158,39 +158,60 @@ async function main() {
     },
   });
 
-  await prisma.fDADrugStatus.createMany({
-    data: [
-      {
-        drugName: "LOY-002",
-        company: "Loyal",
-        currentStatus: "Safety Accepted",
-        statusDetail: "TAS accepted Jan 13, 2026",
-        lastUpdated: new Date(),
-        targetSpecies: "dog",
-        estimatedApproval: "2026-2027",
-        sourceUrl: "https://loyal.com",
-        milestones: JSON.stringify([
-          { date: "2025-02", event: "RXE Accepted" },
-          { date: "2026-01", event: "TAS Accepted" },
-          { date: "2026-2027", event: "Conditional Approval (est.)" },
-        ]),
-      },
-      {
-        drugName: "LOY-001",
-        company: "Loyal",
-        currentStatus: "In Progress",
-        statusDetail: "Safety + Manufacturing underway",
-        lastUpdated: new Date(),
-        targetSpecies: "dog",
-        estimatedApproval: "2026",
-        sourceUrl: "https://loyal.com",
-        milestones: JSON.stringify([
-          { date: "2023-11", event: "RXE Accepted" },
-          { date: "2026", event: "Conditional Approval (est.)" },
-        ]),
-      },
-    ],
-  });
+  const drugStatuses = [
+    {
+      drugName: "LOY-002",
+      company: "Loyal",
+      currentStatus: "Safety Accepted",
+      statusDetail:
+        "TAS accepted Jan 13, 2026. Manufacturing section in progress for XCA path.",
+      lastUpdated: new Date("2026-01-13T00:00:00.000Z"),
+      targetSpecies: "dog",
+      estimatedApproval: "XCA filing target: 2027",
+      sourceUrl: "https://www.businesswire.com/news/home/20260113476778/",
+      milestones: JSON.stringify([
+        { date: "2025-02", event: "RXE Accepted" },
+        { date: "2026-01", event: "TAS Accepted" },
+        { date: "2027 (est.)", event: "Manufacturing + XCA filing" },
+      ]),
+    },
+    {
+      drugName: "LOY-001",
+      company: "Loyal",
+      currentStatus: "In Progress",
+      statusDetail: "Program progressing for large/giant breeds (7+ years, 40+ lbs).",
+      lastUpdated: new Date("2026-01-13T00:00:00.000Z"),
+      targetSpecies: "dog",
+      estimatedApproval: "Timeline not finalized",
+      sourceUrl: "https://loyal.com/for-dog-owners",
+      milestones: JSON.stringify([
+        { date: "2023-11", event: "RXE Accepted" },
+        { date: "2026+", event: "Program progress updates ongoing" },
+      ]),
+    },
+    {
+      drugName: "LOY-003",
+      company: "Loyal",
+      currentStatus: "In Progress",
+      statusDetail: "Daily pill program in development for large/giant breeds.",
+      lastUpdated: new Date("2026-01-13T00:00:00.000Z"),
+      targetSpecies: "dog",
+      estimatedApproval: "Timeline not finalized",
+      sourceUrl: "https://loyal.com/for-dog-owners",
+      milestones: JSON.stringify([
+        { date: "2024+", event: "Pipeline development" },
+        { date: "2026+", event: "Program progress updates ongoing" },
+      ]),
+    },
+  ] as const;
+
+  for (const status of drugStatuses) {
+    await prisma.fDADrugStatus.upsert({
+      where: { drugName: status.drugName },
+      update: status,
+      create: status,
+    });
+  }
 
   await prisma.breedProfile.createMany({
     data: [

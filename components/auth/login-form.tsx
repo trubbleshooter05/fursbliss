@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { getProviders, signIn } from "next-auth/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -27,6 +28,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [hasGoogleProvider, setHasGoogleProvider] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,6 +36,14 @@ export function LoginForm() {
       password: "",
     },
   });
+
+  useEffect(() => {
+    const loadProviders = async () => {
+      const providers = await getProviders();
+      setHasGoogleProvider(Boolean(providers?.google));
+    };
+    void loadProviders();
+  }, []);
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -85,9 +95,27 @@ export function LoginForm() {
     }
   };
 
+  const onGoogleSignIn = async () => {
+    await signIn("google", { callbackUrl: "/dashboard" });
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {hasGoogleProvider && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={onGoogleSignIn}
+            disabled={form.formState.isSubmitting}
+          >
+            Continue with Google
+          </Button>
+        )}
+        {hasGoogleProvider && (
+          <p className="text-center text-xs text-muted-foreground">or use email</p>
+        )}
         <FormField
           control={form.control}
           name="email"

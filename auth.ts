@@ -1,9 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getEffectiveSubscriptionStatus } from "@/lib/subscription";
+import { generateReferralCode } from "@/lib/auth-tokens";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -54,9 +57,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
   ],
   callbacks: {
-    jwt: async ({ token, user }) => {
+    jwt: async ({ token, user, account }) => {
+      if (account?.provider === "google" && token.email) {
+        const oauthUser = await upsertGoogleUser({
+          email: token.email,
+          name: user?.name ?? token.name,
+          image: user?.image ?? (typeof token.picture === "string" ? token.picture : null),
+        });
+        token.id = oauthUser.id;
+        token.sub = oauthUser.id;
+        token.subscriptionStatus = getEffectiveSubscriptionStatus({
+          subscriptionStatus: oauthUser.subscriptionStatus,
+          subscriptionPlan: oauthUser.subscriptionPlan,
+          subscriptionEndsAt: oauthUser.subscriptionEndsAt,
+        });
+        token.role = oauthUser.role ?? "user";
+        return token;
+      }
+
       if (user) {
         token.id = user.id;
         token.sub = user.id;
@@ -94,3 +122,52 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
   },
 });
+
+async function upsertGoogleUser(input: {
+  email: string;
+  name?: string | null;
+  image?: string | null;
+}) {
+  const existing = await prisma.user.findUnique({
+    where: { email: input.email.toLowerCase() },
+  });
+
+  if (existing) {
+    return prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        name: input.name ?? existing.name,
+        image: input.image ?? existing.image,
+        emailVerified: existing.emailVerified ?? new Date(),
+      },
+      select: {
+        id: true,
+        role: true,
+        subscriptionStatus: true,
+        subscriptionPlan: true,
+        subscriptionEndsAt: true,
+      },
+    });
+  }
+
+  const placeholderPassword = await bcrypt.hash(crypto.randomBytes(24).toString("hex"), 10);
+  return prisma.user.create({
+    data: {
+      email: input.email.toLowerCase(),
+      name: input.name ?? null,
+      image: input.image ?? null,
+      emailVerified: new Date(),
+      password: placeholderPassword,
+      referralCode: generateReferralCode(),
+      subscriptionStatus: "free",
+      role: "user",
+    },
+    select: {
+      id: true,
+      role: true,
+      subscriptionStatus: true,
+      subscriptionPlan: true,
+      subscriptionEndsAt: true,
+    },
+  });
+}

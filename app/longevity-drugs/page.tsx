@@ -34,6 +34,17 @@ export default async function LongevityDrugsPage() {
             Track LOY-002 status, eligibility, and readiness. FursBliss is not
             affiliated with Loyal or the FDA.
           </p>
+          <p className="text-sm text-slate-700">
+            Latest public update: FDA reviewers accepted Target Animal Safety (TAS)
+            on Jan 13, 2026. LOY-002 now has efficacy + safety accepted, with
+            manufacturing review remaining before XCA filing.
+          </p>
+          <a
+            href="https://www.businesswire.com/news/home/20260113476778/"
+            className="inline-block text-sm font-medium text-emerald-700 hover:underline"
+          >
+            Source: BusinessWire Jan 2026 update
+          </a>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
@@ -158,6 +169,35 @@ export default async function LongevityDrugsPage() {
               )})
             )}
           </div>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>January 2026 highlights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>• TAS accepted by FDA CVM on Jan 13, 2026.</p>
+              <p>• STAY study enrollment completed: 1,300 dogs across 70 clinics.</p>
+              <p>• No clinically significant adverse events at 1x, 3x, and 5x doses.</p>
+              <p>• Field safety dataset included 400+ dogs.</p>
+              <p>• Loyal reports $150M+ total funding raised.</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Timeline outlook</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>• Manufacturing technical section remains in progress.</p>
+              <p>• Loyal has publicly signaled XCA filing expectation in 2027.</p>
+              <p>• Full approval follows STAY study completion.</p>
+              <p>• LOY-001 and LOY-003 programs are also progressing.</p>
+              <p className="text-xs">
+                Dates reflect public company communications and may change.
+              </p>
+            </CardContent>
+          </Card>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">

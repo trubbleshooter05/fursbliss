@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { MetaPixel } from "@/components/meta-pixel";
+import { MetaEventDebug } from "@/components/meta-event-debug";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -24,9 +26,6 @@ export const metadata: Metadata = {
   description:
     "Track daily health signals, get AI-powered supplement guidance, and prepare for LOY-002. The longevity command center for your dog.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"),
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "FursBliss | The Longevity Command Center for Your Dog",
     description:
@@ -53,6 +52,8 @@ export default function RootLayout({
       <body
         className={`${fraunces.variable} ${jakarta.variable} ${spaceMono.variable} bg-background font-sans antialiased`}
       >
+        <MetaPixel />
+        <MetaEventDebug />
         {children}
         <Toaster />
       </body>

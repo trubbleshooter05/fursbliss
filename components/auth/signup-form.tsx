@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { trackMetaEvent } from "@/lib/meta-events";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name."),
@@ -79,6 +80,10 @@ export function SignupForm() {
       email: values.email,
       password: values.password,
       redirect: false,
+    });
+
+    await trackMetaEvent("CompleteRegistration", {
+      content_name: "account_created",
     });
 
     router.push("/dashboard");

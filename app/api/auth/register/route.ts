@@ -125,6 +125,11 @@ export async function POST(request: Request) {
       }
     }
 
+    await prisma.quizSubmission.updateMany({
+      where: { email: user.email, userId: null },
+      data: { userId: user.id },
+    });
+
     const verificationToken = await createVerificationToken(user.email);
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
     const emailResult = await sendVerificationEmail(user.email, verifyUrl);

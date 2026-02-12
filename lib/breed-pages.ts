@@ -221,6 +221,24 @@ const scalableBreedNames = [
   "Huskydoodle",
 ];
 
+const curatedBreedNames = [
+  "Golden Retriever",
+  "German Shepherd",
+  "Poodle",
+  "Labrador Retriever",
+  "French Bulldog",
+  "Dachshund",
+  "Boxer",
+  "Beagle",
+  "Yorkshire Terrier",
+  "Rottweiler",
+  "Border Collie",
+  "Cavalier King Charles Spaniel",
+  "Shih Tzu",
+  "Great Dane",
+  "Mixed Breed",
+];
+
 const focusTemplates: string[][] = [
   ["Omega-3s", "Glucosamine", "Antioxidants"],
   ["Probiotics", "Fiber", "Digestive enzymes"],
@@ -250,3 +268,7 @@ const generatedBreedPages: BreedPage[] = scalableBreedNames
   .filter((page) => !curatedSlugs.has(page.slug));
 
 export const breedPages: BreedPage[] = [...curatedBreedPages, ...generatedBreedPages];
+
+export const quizBreedOptions = Array.from(
+  new Set([...curatedBreedNames, ...scalableBreedNames])
+).sort((a, b) => a.localeCompare(b));

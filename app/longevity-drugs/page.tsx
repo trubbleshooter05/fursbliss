@@ -15,6 +15,16 @@ export const metadata: Metadata = {
   title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003) | FursBliss",
   description:
     "Track LOY-001, LOY-002, and LOY-003 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
+  alternates: {
+    canonical: "/longevity-drugs",
+  },
+  openGraph: {
+    title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003) | FursBliss",
+    description:
+      "Track LOY-001, LOY-002, and LOY-003 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
+    url: "/longevity-drugs",
+    type: "website",
+  },
 };
 
 const drugComparison = [
@@ -278,7 +288,11 @@ export default async function LongevityDrugsPage() {
               <p>• STAY study enrollment completed: 1,300 dogs across 70 clinics.</p>
               <p>• No clinically significant adverse events at 1x, 3x, and 5x doses.</p>
               <p>• Field safety dataset included 400+ dogs.</p>
-              <p>• Loyal reports $150M+ total funding raised.</p>
+              <p>• Loyal now reports $250M+ total funding raised.</p>
+              <p>
+                • Series C: $100M raised Feb 11, 2026, led by age1 (Laura Deming&apos;s
+                Longevity Fund) and Baillie Gifford.
+              </p>
             </CardContent>
           </Card>
           </AnimateIn>

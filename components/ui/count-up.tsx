@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { useInView } from "framer-motion";
 
 type CountUpProps = {
   to: number;
@@ -21,13 +21,18 @@ export function CountUp({
   className,
 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement | null>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
-  const [value, setValue] = useState(0);
+  const inView = useInView(ref, { once: true, margin: "-120px" });
+  // Render target number on SSR/hydration so stats never show 0.
+  const [value, setValue] = useState(to);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    if (!inView) {
+    if (!inView || hasAnimated) {
       return;
     }
+
+    setHasAnimated(true);
+    setValue(0);
     const start = performance.now();
     let raf = 0;
 
@@ -43,8 +48,18 @@ export function CountUp({
     };
 
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [duration, inView, to]);
+    const fallback = window.setTimeout(() => setValue(to), (duration + 0.5) * 1000);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(fallback);
+    };
+  }, [duration, hasAnimated, inView, to]);
+
+  useEffect(() => {
+    // Safety net if intersection observer never fires.
+    const fallback = window.setTimeout(() => setValue(to), 2000);
+    return () => window.clearTimeout(fallback);
+  }, [to]);
 
   const display = useMemo(() => {
     if (decimals > 0) {
@@ -54,10 +69,10 @@ export function CountUp({
   }, [decimals, value]);
 
   return (
-    <motion.span ref={ref} className={className}>
+    <span ref={ref} className={className}>
       {prefix}
       {display}
       {suffix}
-    </motion.span>
+    </span>
   );
 }

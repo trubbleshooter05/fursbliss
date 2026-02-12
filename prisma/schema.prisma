@@ -32,6 +32,7 @@ model User {
   pets               Pet[]
   notifications      Notification[]
   referrals          Referral[]
+  quizSubmissions    QuizSubmission[]
 }
 
 model Pet {
@@ -327,4 +328,22 @@ model WaitlistSignup {
   email     String   @unique
   source    String   @default("loy002")
   createdAt DateTime @default(now())
+}
+
+model QuizSubmission {
+  id                String   @id @default(cuid())
+  email             String
+  dogName           String
+  breed             String
+  age               Int
+  weight            Float
+  concerns          String[]
+  score             Int
+  userId            String?
+  emailSequenceStep Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email])
 }

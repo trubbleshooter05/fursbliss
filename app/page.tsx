@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
@@ -118,6 +119,15 @@ const loyaltyTimeline = [
   { label: "Approval", status: "pending", detail: "Pending" },
 ] as const;
 
+export const metadata: Metadata = {
+  title: "FursBliss | Dog Longevity Intelligence Platform",
+  description:
+    "Track daily health signals, get AI-powered supplement guidance, and prepare for LOY-002. The longevity command center for your dog.",
+  alternates: {
+    canonical: "/",
+  },
+};
+
 export default async function Home() {
   const session = await auth();
   if (session?.user) {
@@ -164,7 +174,7 @@ export default async function Home() {
                   className="w-full border-white/35 bg-white/5 text-white hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/#how-it-works">See How It Works</Link>
+                  <Link href="/quiz">Take the Free Longevity Quiz</Link>
                 </Button>
               </div>
             </AnimateIn>
@@ -195,9 +205,11 @@ export default async function Home() {
             </div>
             <div className="text-center md:border-r md:border-white/15">
               <p className="stat-number text-4xl font-bold text-white md:text-5xl">
-                <CountUp to={150} prefix="$" suffix="M+" />
+                <CountUp to={250} prefix="$" suffix="M+" />
               </p>
-              <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/70">Funding reported</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/70">
+                Total funding raised
+              </p>
             </div>
             <div className="text-center">
               <p className="stat-number text-4xl font-bold text-white md:text-5xl">
@@ -260,6 +272,27 @@ export default async function Home() {
           </div>
         </section>
 
+        <AnimateIn>
+          <section className="rounded-3xl border border-accent/40 bg-accent/15 p-6 md:p-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  Free Quiz
+                </p>
+                <h2 className="font-display text-3xl tracking-[-0.03em] text-foreground md:text-4xl">
+                  How ready is your dog for the longevity revolution?
+                </h2>
+                <p className="text-muted-foreground">
+                  Take the 60-second quiz and get a personalized longevity readiness score.
+                </p>
+              </div>
+              <Button className="min-h-11 w-full md:w-auto" asChild>
+                <Link href="/quiz">Take the Quiz</Link>
+              </Button>
+            </div>
+          </section>
+        </AnimateIn>
+
         <section id="how-it-works" className="space-y-8 rounded-3xl border border-border bg-card px-4 py-8 sm:px-6 sm:py-10 md:px-10">
           <AnimateIn className="space-y-3">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">How it works</p>
@@ -291,8 +324,9 @@ export default async function Home() {
                 The first FDA dog longevity drug is coming.
               </h2>
               <p className="max-w-2xl text-muted-foreground">
-                Safety and efficacy have already been accepted. Manufacturing remains the key step
-                before conditional approval, which could arrive as early as 2026.
+                Safety and efficacy accepted. $250M+ in total funding secured. Loyal plans to
+                submit the final manufacturing requirement this year - conditional approval could
+                follow in late 2026 or early 2027.
               </p>
               <Button size="lg" className="bg-accent text-accent-foreground hover:scale-[1.02] transition-all duration-300" asChild>
                 <Link href="/longevity-drugs">Check Eligibility</Link>

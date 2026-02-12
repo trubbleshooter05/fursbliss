@@ -9,11 +9,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/pricing",
     "/longevity-drugs",
+    "/quiz",
+    "/blog",
     "/breeds",
     "/trends",
     "/community",
+    "/privacy",
+    "/terms",
+    "/invite",
     "/signup",
     "/login",
+  ];
+  const blogRoutes = [
+    "/blog/loyal-series-c-100m-loy-002-update",
   ];
 
   return [
@@ -28,6 +36,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.65,
+    })),
+    ...blogRoutes.map((path) => ({
+      url: `${base}${path}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
     })),
   ];
 }

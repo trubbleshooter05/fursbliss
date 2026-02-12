@@ -14,6 +14,7 @@ type AccountPageProps = {
   searchParams?: {
     success?: string;
     session_id?: string;
+    sync?: string;
   };
 };
 
@@ -77,6 +78,23 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   }
 
   const isPremium = user.subscriptionStatus === "premium";
+  const billingLabel =
+    user.subscriptionPlan === "yearly"
+      ? "Billed yearly"
+      : user.subscriptionPlan === "monthly"
+        ? "Billed monthly"
+        : "No active billing cycle";
+  const syncStatus = searchParams?.sync;
+  const syncMessage =
+    syncStatus === "ok"
+      ? "Subscription refreshed successfully."
+      : syncStatus === "no_active"
+        ? "No active Stripe subscription found for this account."
+        : syncStatus === "missing_customer"
+          ? "No Stripe customer is linked yet for this account."
+          : syncStatus === "error"
+            ? "Unable to refresh subscription right now. Please try again."
+            : null;
   const emailPreferences = normalizeEmailPreferences(user.emailPreferences);
   const referralCode =
     user.referralCode ??
@@ -94,6 +112,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         <p className="text-muted-foreground">
           Manage your profile and subscription details.
         </p>
+        {syncMessage ? (
+          <p className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+            {syncMessage}
+          </p>
+        ) : null}
       </AnimateIn>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -154,6 +177,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 {isPremium ? "Unlimited access" : "Basic tracking"}
               </span>
             </div>
+            {isPremium ? <p className="text-xs text-muted-foreground">{billingLabel}</p> : null}
             {isPremium ? (
               <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
                 <a href="/api/stripe/portal">Manage Subscription</a>

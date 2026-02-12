@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { VetCommentForm } from "@/components/pets/vet-comment-form";
 
 type PageProps = {
@@ -52,6 +53,16 @@ export default async function VetViewPage({ params }: PageProps) {
             Secure read-only clinical snapshot. Link expires{" "}
             {format(link.expiresAt, "MMM d, yyyy")} • Views: {link.viewCount + 1}
           </p>
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="w-fit hover:scale-[1.02] transition-all duration-300"
+          >
+            <a href={`/api/reports/generate?petId=${pet.id}&range=30&token=${params.token}`}>
+              Download vet report PDF
+            </a>
+          </Button>
         </div>
 
         <Card>
@@ -216,6 +227,12 @@ export default async function VetViewPage({ params }: PageProps) {
                     <p className="text-xs text-muted-foreground">
                       {format(photo.createdAt, "MMM d")}
                     </p>
+                    {photo.caption ? (
+                      <p className="text-[11px] text-muted-foreground">Caption: {photo.caption}</p>
+                    ) : null}
+                    {photo.aiAnalysis ? (
+                      <p className="text-[11px] text-muted-foreground">AI note: {photo.aiAnalysis}</p>
+                    ) : null}
                   </div>
                 ))}
               </div>

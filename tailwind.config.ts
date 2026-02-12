@@ -10,8 +10,9 @@ const config: Config = {
   theme: {
   	extend: {
   		fontFamily: {
-  			sans: ["var(--font-geist-sans)", "Inter", "ui-sans-serif", "system-ui"],
-  			mono: ["var(--font-geist-mono)", "ui-monospace", "SFMono-Regular"],
+				sans: ["var(--font-body)", "ui-sans-serif", "system-ui"],
+				display: ["var(--font-display)", "ui-serif", "Georgia"],
+				mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular"],
   		},
   		colors: {
   			background: 'hsl(var(--background))',

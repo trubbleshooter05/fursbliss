@@ -62,21 +62,38 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const plan = searchParams.get("plan") === "yearly" ? "yearly" : "monthly";
-  const priceId =
-    plan === "yearly"
-      ? process.env.STRIPE_PRICE_YEARLY
-      : process.env.STRIPE_PRICE_MONTHLY ?? process.env.STRIPE_PRICE_ID;
+  const requestedPlan = searchParams.get("plan");
+  const requestedPriceId = searchParams.get("priceId");
+  const monthlyPriceId =
+    process.env.STRIPE_PRICE_ID_MONTHLY ??
+    process.env.STRIPE_PRICE_MONTHLY ??
+    process.env.STRIPE_PRICE_ID;
+  const annualPriceId = process.env.STRIPE_PRICE_ID_ANNUAL ?? process.env.STRIPE_PRICE_YEARLY;
+
+  const plan = requestedPlan === "yearly" ? "yearly" : "monthly";
+  let priceId = plan === "yearly" ? annualPriceId : monthlyPriceId;
+
+  if (requestedPriceId) {
+    const knownPriceIds = [monthlyPriceId, annualPriceId].filter(
+      (value): value is string => Boolean(value)
+    );
+    if (!knownPriceIds.includes(requestedPriceId)) {
+      return NextResponse.json({ message: "Invalid Stripe price selected" }, { status: 400 });
+    }
+    priceId = requestedPriceId;
+  }
 
   if (!priceId) {
     return NextResponse.json({ message: "Stripe price not configured" }, { status: 500 });
   }
 
+  const selectedPlan = priceId === annualPriceId ? "yearly" : "monthly";
+
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    metadata: { plan },
+    metadata: { plan: selectedPlan },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?success=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
   });

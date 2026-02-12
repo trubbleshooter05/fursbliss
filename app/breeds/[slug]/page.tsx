@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -49,6 +50,16 @@ export default async function BreedDetailPage({ params }: PageProps) {
       <div className="min-h-screen bg-slate-50">
         <SiteHeader />
         <main className="mx-auto w-full max-w-4xl px-6 py-16 space-y-6">
+          <div className="relative h-64 overflow-hidden rounded-3xl border border-border">
+            <Image
+              src={`https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80&sig=${params.slug.length}`}
+              alt={`${fallback.title} photo`}
+              fill
+              sizes="(max-width: 1024px) 100vw, 896px"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/15" />
+          </div>
           <h1 className="text-4xl font-semibold text-slate-900">{fallback.title}</h1>
           <p className="text-muted-foreground">{fallback.description}</p>
           <Card>
@@ -87,6 +98,16 @@ export default async function BreedDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-slate-50">
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl px-6 py-16 space-y-6">
+        <div className="relative h-64 overflow-hidden rounded-3xl border border-border">
+          <Image
+            src={`https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?auto=format&fit=crop&w=1200&q=80&sig=${params.slug.length + 11}`}
+            alt={`${profile.breed} dog`}
+            fill
+            sizes="(max-width: 1024px) 100vw, 896px"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/15" />
+        </div>
         <h1 className="text-4xl font-semibold text-slate-900">{profile.seoTitle}</h1>
         <p className="text-muted-foreground">{profile.seoDescription}</p>
 

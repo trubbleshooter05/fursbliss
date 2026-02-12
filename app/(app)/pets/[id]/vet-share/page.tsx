@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 
 type ShareLink = {
   id: string;
+  token: string;
   url: string;
   expiresAt: string;
   createdAt: string;
@@ -193,7 +194,11 @@ export default function VetSharePage() {
                     </Button>
                     {!link.isExpired && (
                       <Button variant="outline" asChild>
-                        <a href={`/api/exports/pet-report?petId=${petId}`} target="_blank" rel="noreferrer">
+                        <a
+                          href={`/api/reports/generate?petId=${petId}&range=30&token=${link.token}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           Export PDF
                         </a>
                       </Button>

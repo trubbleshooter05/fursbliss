@@ -96,7 +96,12 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     links: links.map((link) => ({
-      ...link,
+      id: link.id,
+      token: link.token,
+      expiresAt: link.expiresAt,
+      viewCount: link.viewCount,
+      createdAt: link.createdAt,
+      vetComment: link.vetComment,
       url: `/vet-view/${link.token}`,
       isExpired: link.expiresAt.getTime() < Date.now(),
     })),

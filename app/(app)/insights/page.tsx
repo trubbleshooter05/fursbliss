@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InsightsPanel } from "@/components/insights/insights-panel";
+import { AnimateIn } from "@/components/ui/animate-in";
 
 type InsightsPageProps = {
   searchParams?: { petId?: string };
@@ -24,13 +25,13 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
 
   if (pets.length === 0) {
     return (
-      <Card>
+      <Card className="rounded-2xl border-border">
         <CardHeader>
-          <CardTitle>Add a pet first</CardTitle>
+          <CardTitle className="font-display text-3xl">Add a pet first</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
           <p>Create a pet profile before requesting AI recommendations.</p>
-          <Button asChild>
+          <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
             <Link href="/pets/new">Add New Pet</Link>
           </Button>
         </CardContent>
@@ -45,22 +46,32 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
   });
 
   return (
-    <InsightsPanel
-      pets={pets.map((pet) => ({
-        ...pet,
-        symptoms: Array.isArray(pet.symptoms)
-          ? pet.symptoms.filter((symptom): symptom is string => typeof symptom === "string")
-          : [],
-      }))}
-      recommendations={recommendations.map((rec) => ({
-        id: rec.id,
-        petId: rec.petId,
-        createdAt: rec.createdAt.toISOString(),
-        response: rec.response,
-        notes: rec.notes,
-      }))}
-      subscriptionStatus={session.user.subscriptionStatus ?? "free"}
-      defaultPetId={searchParams?.petId}
-    />
+    <div className="space-y-6">
+      <AnimateIn className="space-y-2">
+        <h1 className="font-display text-4xl tracking-[-0.02em] text-foreground">AI Insights</h1>
+        <p className="text-muted-foreground">
+          Evidence-rated guidance, interaction checks, and longevity-focused recommendations.
+        </p>
+      </AnimateIn>
+      <AnimateIn delay={0.08}>
+        <InsightsPanel
+          pets={pets.map((pet) => ({
+            ...pet,
+            symptoms: Array.isArray(pet.symptoms)
+              ? pet.symptoms.filter((symptom): symptom is string => typeof symptom === "string")
+              : [],
+          }))}
+          recommendations={recommendations.map((rec) => ({
+            id: rec.id,
+            petId: rec.petId,
+            createdAt: rec.createdAt.toISOString(),
+            response: rec.response,
+            notes: rec.notes,
+          }))}
+          subscriptionStatus={session.user.subscriptionStatus ?? "free"}
+          defaultPetId={searchParams?.petId}
+        />
+      </AnimateIn>
+    </div>
   );
 }

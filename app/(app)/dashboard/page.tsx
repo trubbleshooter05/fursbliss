@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { format, startOfWeek } from "date-fns";
+import { Activity, HeartPulse, PawPrint } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { EnergyTrendChart } from "@/components/dashboard/energy-trend-chart";
 import { ReminderPanel } from "@/components/dashboard/reminder-panel";
+import { AnimateIn } from "@/components/ui/animate-in";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -67,54 +69,61 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <AnimateIn className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-900">Dashboard</h1>
+          <h1 className="font-display text-4xl tracking-[-0.02em] text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">
             Overview of your pet wellness activity.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button asChild>
+          <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
             <Link href="/pets/new">Add Pet</Link>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" className="hover:scale-[1.02] transition-all duration-300" asChild>
             <Link href="/logs/new">Log Health</Link>
           </Button>
         </div>
-      </div>
+      </AnimateIn>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card>
+        <AnimateIn>
+        <Card className="rounded-2xl border-border">
           <CardHeader>
-            <CardTitle>Total pets</CardTitle>
+            <CardTitle className="flex items-center gap-2"><PawPrint className="h-4 w-4 text-primary" />Total pets</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-semibold">
+          <CardContent className="stat-number text-4xl font-semibold">
             {pets.length}
           </CardContent>
         </Card>
-        <Card>
+        </AnimateIn>
+        <AnimateIn delay={0.1}>
+        <Card className="rounded-2xl border-border">
           <CardHeader>
-            <CardTitle>Health logs this week</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Activity className="h-4 w-4 text-primary" />Health logs this week</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-semibold">
+          <CardContent className="stat-number text-4xl font-semibold">
             {healthLogsThisWeek}
           </CardContent>
         </Card>
-        <Card>
+        </AnimateIn>
+        <AnimateIn delay={0.2}>
+        <Card className="rounded-2xl border-border">
           <CardHeader>
-            <CardTitle>Average energy level</CardTitle>
+            <CardTitle className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary" />Average energy level</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-semibold">
+          <CardContent className="stat-number text-4xl font-semibold">
             {averageEnergy || "—"}
           </CardContent>
         </Card>
+        </AnimateIn>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card>
+        <AnimateIn>
+        <Card className="rounded-2xl border-border">
           <CardHeader>
-            <CardTitle>Energy trend</CardTitle>
+            <CardTitle className="font-display text-2xl">Energy trend</CardTitle>
           </CardHeader>
           <CardContent>
             {chartData.length > 1 ? (
@@ -126,9 +135,11 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
-        <Card>
+        </AnimateIn>
+        <AnimateIn delay={0.1}>
+        <Card className="rounded-2xl border-border">
           <CardHeader>
-            <CardTitle>Pets snapshot</CardTitle>
+            <CardTitle className="font-display text-2xl">Pets snapshot</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {pets.length === 0 && (
@@ -158,20 +169,24 @@ export default async function DashboardPage() {
             ))}
           </CardContent>
         </Card>
+        </AnimateIn>
       </div>
 
-      <Card>
+      <AnimateIn>
+      <Card className="rounded-2xl border-border">
         <CardHeader>
-          <CardTitle>Reminders</CardTitle>
+          <CardTitle className="font-display text-2xl">Reminders</CardTitle>
         </CardHeader>
         <CardContent>
           <ReminderPanel notifications={notifications} />
         </CardContent>
       </Card>
+      </AnimateIn>
 
-      <Card>
+      <AnimateIn>
+      <Card className="rounded-2xl border-border">
         <CardHeader>
-          <CardTitle>Recent health logs</CardTitle>
+          <CardTitle className="font-display text-2xl">Recent health logs</CardTitle>
         </CardHeader>
         <CardContent>
           {healthLogs.length === 0 ? (
@@ -179,14 +194,15 @@ export default async function DashboardPage() {
               No health logs yet. Start by logging today&apos;s wellness check.
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Pet</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Energy</TableHead>
-                  <TableHead>Mood</TableHead>
-                  <TableHead>Notes</TableHead>
+                  <TableHead className="hidden md:table-cell">Mood</TableHead>
+                  <TableHead className="hidden lg:table-cell">Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -195,17 +211,19 @@ export default async function DashboardPage() {
                     <TableCell className="font-medium">{log.pet.name}</TableCell>
                     <TableCell>{format(log.date, "MMM d, yyyy")}</TableCell>
                     <TableCell>{log.energyLevel}</TableCell>
-                    <TableCell>{log.mood ?? "—"}</TableCell>
-                    <TableCell className="max-w-[240px] truncate">
+                    <TableCell className="hidden md:table-cell">{log.mood ?? "—"}</TableCell>
+                    <TableCell className="hidden max-w-[240px] truncate lg:table-cell">
                       {log.notes ?? "—"}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>
+      </AnimateIn>
     </div>
   );
 }

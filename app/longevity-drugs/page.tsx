@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,13 +8,41 @@ import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { EligibilityChecker } from "@/components/longevity/eligibility-checker";
 import { LoyNotifyForm } from "@/components/longevity/loy-notify-form";
+import { AnimateIn } from "@/components/ui/animate-in";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Dog Longevity Drug Hub (LOY-002) | FursBliss",
+  title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003) | FursBliss",
   description:
-    "Track LOY-002 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
+    "Track LOY-001, LOY-002, and LOY-003 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
 };
+
+const drugComparison = [
+  {
+    name: "LOY-001",
+    target: "Large/giant dogs, 7+ years, 40+ lbs",
+    format: "Injectable (veterinarian-administered)",
+    fdaStatus: "RXE accepted Nov 2023",
+    timing: "Market target: 2026",
+    source: "loy001" as const,
+  },
+  {
+    name: "LOY-002",
+    target: "Senior dogs, 10+ years, 14+ lbs",
+    format: "Prescription daily oral therapy",
+    fdaStatus: "Efficacy + safety accepted; manufacturing review pending",
+    timing: "Conditional approval could arrive in 2026",
+    source: "loy002" as const,
+  },
+  {
+    name: "LOY-003",
+    target: "Large/giant dogs, 7+ years, 40+ lbs",
+    format: "Prescription pill alternative",
+    fdaStatus: "In development",
+    timing: "Under active pipeline development",
+    source: "loy003" as const,
+  },
+];
 
 export default async function LongevityDrugsPage() {
   const statuses = await prisma.fDADrugStatus.findMany({
@@ -21,17 +50,26 @@ export default async function LongevityDrugsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl px-6 py-16 space-y-10">
-        <section className="space-y-4">
+        <section className="section-molecule relative overflow-hidden rounded-3xl border border-border bg-[var(--color-section-alt)] p-8 md:p-10">
+          <Image
+            src="https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=1800&q=80"
+            alt="Senior dog in a clinical setting"
+            fill
+            sizes="100vw"
+            className="object-cover opacity-15"
+          />
+          <div className="relative z-10 space-y-4">
+          <AnimateIn className="space-y-4">
           <Badge className="w-fit bg-emerald-500/10 text-emerald-600">
             Longevity Drug Hub
           </Badge>
-          <h1 className="text-4xl font-semibold text-slate-900">
+          <h1 className="font-display text-5xl tracking-[-0.03em] text-foreground md:text-6xl">
             The first FDA dog longevity drug is coming.
           </h1>
-          <p className="text-muted-foreground">
+          <p className="max-w-3xl text-muted-foreground">
             Track LOY-002 status, eligibility, and readiness. FursBliss is not
             affiliated with Loyal or the FDA.
           </p>
@@ -47,12 +85,15 @@ export default async function LongevityDrugsPage() {
           >
             Source: BusinessWire Jan 2026 update
           </a>
+          </AnimateIn>
+          </div>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <AnimateIn>
+          <Card id="eligibility" className="rounded-2xl border-border">
             <CardHeader>
-              <CardTitle>Is my dog eligible?</CardTitle>
+              <CardTitle className="font-display text-2xl">Is my dog eligible?</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
@@ -65,22 +106,24 @@ export default async function LongevityDrugsPage() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          </AnimateIn>
+          <AnimateIn delay={0.1}>
+          <Card className="rounded-2xl border-border">
             <CardHeader>
-              <CardTitle>What LOY-002 does (plain English)</CardTitle>
+              <CardTitle className="font-display text-2xl">What LOY-002 does (plain English)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Loyal has three public longevity programs in motion: LOY-001,
+                LOY-002, and LOY-003.
+              </p>
               <p>
                 LOY-002 is designed as a caloric-restriction mimetic to support
                 healthy aging pathways in senior dogs.
               </p>
               <p>
-                It is intended to be prescribed by a veterinarian, likely as a daily
-                oral therapy if approved.
-              </p>
-              <p>
-                Estimated market expectations have been discussed in the ~$40-90/mo
-                range depending on dog size, but this is not final pricing guidance.
+                Public reporting now suggests conditional approval timing could land
+                as early as 2026, while manufacturing review is still a gating step.
               </p>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
                 <h3 className="mb-1 font-semibold text-slate-900">
@@ -90,14 +133,56 @@ export default async function LongevityDrugsPage() {
                   Be first to know about approval milestones, manufacturing updates,
                   and potential availability timelines.
                 </p>
-                <LoyNotifyForm />
+                <LoyNotifyForm source="loy002" />
               </div>
             </CardContent>
           </Card>
+          </AnimateIn>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold text-slate-900">FDA status tracker</h2>
+          <AnimateIn>
+            <h2 className="font-display text-4xl text-foreground">Loyal pipeline comparison</h2>
+          </AnimateIn>
+          <div className="grid gap-4 md:grid-cols-3">
+            {drugComparison.map((drug, index) => (
+              <AnimateIn key={drug.name} delay={index * 0.08}>
+                <Card className="h-full rounded-2xl border-border bg-card">
+                  <CardHeader className="space-y-2">
+                    <CardTitle className="font-display text-2xl">{drug.name}</CardTitle>
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                      Drug snapshot
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm text-muted-foreground">
+                    <p>
+                      <span className="font-medium text-slate-900">Target:</span> {drug.target}
+                    </p>
+                    <p>
+                      <span className="font-medium text-slate-900">Format:</span> {drug.format}
+                    </p>
+                    <p>
+                      <span className="font-medium text-slate-900">FDA status:</span> {drug.fdaStatus}
+                    </p>
+                    <p>
+                      <span className="font-medium text-slate-900">Outlook:</span> {drug.timing}
+                    </p>
+                    <div className="pt-2">
+                      <Button size="sm" variant="outline" asChild>
+                        <a href="#eligibility">Check eligibility</a>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimateIn>
+            ))}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <AnimateIn>
+          <h2 className="font-display text-4xl text-foreground">FDA status tracker</h2>
+          </AnimateIn>
           <div className="grid gap-6 md:grid-cols-2">
             {statuses.length === 0 ? (
               <Card>
@@ -118,9 +203,10 @@ export default async function LongevityDrugsPage() {
                 );
 
                 return (
-                <Card key={status.id}>
+                <AnimateIn key={status.id}>
+                <Card className="rounded-2xl border-border">
                   <CardHeader className="space-y-2">
-                    <CardTitle>{status.drugName}</CardTitle>
+                    <CardTitle className="font-display text-2xl">{status.drugName}</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {status.company}
                     </p>
@@ -175,15 +261,17 @@ export default async function LongevityDrugsPage() {
                     )}
                   </CardContent>
                 </Card>
+                </AnimateIn>
               )})
             )}
           </div>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <AnimateIn>
+          <Card className="rounded-2xl border-border">
             <CardHeader>
-              <CardTitle>January 2026 highlights</CardTitle>
+              <CardTitle className="font-display text-2xl">January 2026 highlights</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
               <p>• TAS accepted by FDA CVM on Jan 13, 2026.</p>
@@ -193,9 +281,11 @@ export default async function LongevityDrugsPage() {
               <p>• Loyal reports $150M+ total funding raised.</p>
             </CardContent>
           </Card>
-          <Card>
+          </AnimateIn>
+          <AnimateIn delay={0.1}>
+          <Card className="rounded-2xl border-border">
             <CardHeader>
-              <CardTitle>Timeline outlook</CardTitle>
+              <CardTitle className="font-display text-2xl">Timeline outlook</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
               <p>• Manufacturing technical section remains in progress.</p>
@@ -214,12 +304,102 @@ export default async function LongevityDrugsPage() {
               </p>
             </CardContent>
           </Card>
+          </AnimateIn>
+        </section>
+
+        <section className="space-y-6">
+          <AnimateIn>
+            <h2 className="font-display text-4xl text-foreground">Drug deep dives</h2>
+          </AnimateIn>
+          <div className="grid gap-6">
+            <AnimateIn>
+              <Card className="rounded-2xl border-border">
+                <CardHeader>
+                  <CardTitle className="font-display text-2xl">LOY-001 (large and giant breeds)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    LOY-001 targets dogs 7+ years and 40+ lbs. The mechanism is
+                    focused on reducing overexpression of IGF-1 and growth hormone
+                    after maturity.
+                  </p>
+                  <p>
+                    FDA status: RXE accepted in November 2023. Loyal has publicly
+                    signaled a 2026 market target.
+                  </p>
+                  <p>
+                    Expected format: injectable, administered by a veterinarian.
+                  </p>
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+                      Stay updated on LOY-001
+                    </p>
+                    <LoyNotifyForm source="loy001" />
+                  </div>
+                </CardContent>
+              </Card>
+            </AnimateIn>
+            <AnimateIn delay={0.08}>
+              <Card className="rounded-2xl border-border">
+                <CardHeader>
+                  <CardTitle className="font-display text-2xl">LOY-003 (pill alternative)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    LOY-003 targets the same large/giant population as LOY-001 but
+                    is being developed as a daily prescription pill.
+                  </p>
+                  <p>
+                    Mechanism: same longevity pathway strategy as LOY-001 with a
+                    pill-based format for daily use under veterinary guidance.
+                  </p>
+                  <p>Current status: in development.</p>
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+                      Stay updated on LOY-003
+                    </p>
+                    <LoyNotifyForm source="loy003" />
+                  </div>
+                </CardContent>
+              </Card>
+            </AnimateIn>
+            <AnimateIn delay={0.16}>
+              <Card className="rounded-2xl border-border">
+                <CardHeader>
+                  <CardTitle className="font-display text-2xl">LOY-002 (senior dogs)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    Conditional approval could come as early as 2026 based on current
+                    public timelines, while manufacturing section review remains a
+                    key milestone.
+                  </p>
+                  <p>
+                    STAY study enrollment is complete with 1,300 dogs across 70
+                    clinics, launched Dec 2023 with an expected ~4 year duration.
+                  </p>
+                  <p>
+                    Loyal has also communicated plans for a longitudinal biobank from
+                    STAY samples to support deeper longevity insights.
+                  </p>
+                </CardContent>
+              </Card>
+            </AnimateIn>
+          </div>
+          <AnimateIn delay={0.24}>
+            <p className="text-xs text-muted-foreground">
+              Sources: Loyal public updates, BusinessWire announcements, dvm360 (Feb
+              2026), and additional public reporting. Milestones can change with FDA
+              review.
+            </p>
+          </AnimateIn>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <AnimateIn>
+          <Card className="rounded-2xl border-border">
             <CardHeader>
-              <CardTitle>Rapamycin awareness</CardTitle>
+              <CardTitle className="font-display text-2xl">Rapamycin awareness</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
@@ -235,9 +415,11 @@ export default async function LongevityDrugsPage() {
               </Button>
             </CardContent>
           </Card>
-          <Card>
+          </AnimateIn>
+          <AnimateIn delay={0.1}>
+          <Card className="rounded-2xl border-border">
             <CardHeader>
-              <CardTitle>Important disclaimer</CardTitle>
+              <CardTitle className="font-display text-2xl">Important disclaimer</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
@@ -251,6 +433,7 @@ export default async function LongevityDrugsPage() {
               </p>
             </CardContent>
           </Card>
+          </AnimateIn>
         </section>
       </main>
       <SiteFooter />

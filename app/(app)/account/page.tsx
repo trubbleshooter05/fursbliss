@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { generateReferralCode } from "@/lib/auth-tokens";
 import { normalizeEmailPreferences } from "@/lib/email-preferences";
 import { EmailPreferencesForm } from "@/components/account/email-preferences-form";
+import { AnimateIn } from "@/components/ui/animate-in";
 
 export default async function AccountPage() {
   const session = await auth();
@@ -37,17 +38,18 @@ export default async function AccountPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-slate-900">Account</h1>
+      <AnimateIn className="space-y-2">
+        <h1 className="font-display text-4xl tracking-[-0.02em] text-foreground">Account</h1>
         <p className="text-muted-foreground">
           Manage your profile and subscription details.
         </p>
-      </div>
+      </AnimateIn>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card>
+        <AnimateIn>
+        <Card className="rounded-2xl border-border">
           <CardHeader>
-            <CardTitle>Profile</CardTitle>
+            <CardTitle className="font-display text-2xl">Profile</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -60,12 +62,12 @@ export default async function AccountPage() {
               <p className="text-sm text-muted-foreground">Email</p>
               <p className="text-lg font-medium text-slate-900">{user.email}</p>
             </div>
-            <Button variant="outline" asChild>
+            <Button variant="outline" className="hover:scale-[1.02] transition-all duration-300" asChild>
               <Link href="/forgot-password">Change password</Link>
             </Button>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-muted-foreground">
+            <div className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
               <p className="font-medium text-slate-900">Referral code</p>
-              <p className="mt-1 text-base font-semibold text-emerald-600">
+              <p className="stat-number mt-1 text-base font-semibold text-primary">
                 {referralCode}
               </p>
               <p className="mt-2 text-xs">
@@ -74,13 +76,23 @@ export default async function AccountPage() {
               <p className="mt-2 text-xs">
                 Share link: {`${process.env.NEXT_PUBLIC_APP_URL}/invite/${referralCode}`}
               </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3 hover:scale-[1.02] transition-all duration-300"
+                asChild
+              >
+                <Link href="/referrals">Open referral dashboard</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
+        </AnimateIn>
 
-        <Card>
+        <AnimateIn delay={0.1}>
+        <Card className="rounded-2xl border-border">
           <CardHeader>
-            <CardTitle>Subscription</CardTitle>
+            <CardTitle className="font-display text-2xl">Subscription</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
@@ -92,34 +104,37 @@ export default async function AccountPage() {
               </span>
             </div>
             {isPremium ? (
-              <Button asChild>
+              <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
                 <a href="/api/stripe/portal">Manage Subscription</a>
               </Button>
             ) : (
-              <Button asChild>
+              <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
                 <Link href="/pricing">Upgrade to Premium</Link>
               </Button>
             )}
             <div className="space-y-2">
-              <Button variant="outline" asChild>
+              <Button variant="outline" className="hover:scale-[1.02] transition-all duration-300" asChild>
                 <a href="/api/exports/logs">Export logs CSV</a>
               </Button>
-              <Button variant="outline" asChild>
+              <Button variant="outline" className="hover:scale-[1.02] transition-all duration-300" asChild>
                 <Link href="/pets">Download pet report (PDF) from My Pets</Link>
               </Button>
             </div>
           </CardContent>
         </Card>
+        </AnimateIn>
       </div>
 
-      <Card>
+      <AnimateIn delay={0.2}>
+      <Card className="rounded-2xl border-border">
         <CardHeader>
-          <CardTitle>Email preferences</CardTitle>
+          <CardTitle className="font-display text-2xl">Email preferences</CardTitle>
         </CardHeader>
         <CardContent>
           <EmailPreferencesForm initialPreferences={emailPreferences} />
         </CardContent>
       </Card>
+      </AnimateIn>
     </div>
   );
 }

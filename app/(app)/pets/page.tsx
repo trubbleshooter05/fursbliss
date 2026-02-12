@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { format } from "date-fns";
+import Image from "next/image";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AnimateIn } from "@/components/ui/animate-in";
 
 export default async function PetsPage() {
   const session = await auth();
@@ -21,17 +23,17 @@ export default async function PetsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <AnimateIn className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-900">My Pets</h1>
+          <h1 className="font-display text-4xl tracking-[-0.02em] text-foreground">My Pets</h1>
           <p className="text-muted-foreground">
             Manage pet profiles and track their latest health check-ins.
           </p>
         </div>
-        <Button asChild>
+        <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
           <Link href="/pets/new">Add New Pet</Link>
         </Button>
-      </div>
+      </AnimateIn>
 
       {pets.length === 0 ? (
         <Card>
@@ -40,11 +42,12 @@ export default async function PetsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {pets.map((pet) => (
-            <Card key={pet.id} className="overflow-hidden">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {pets.map((pet, index) => (
+            <AnimateIn key={pet.id} delay={(index % 6) * 0.06}>
+            <Card className="overflow-hidden rounded-2xl border-border">
               <CardHeader className="space-y-2">
-                <CardTitle className="flex items-center justify-between text-lg">
+                <CardTitle className="flex items-center justify-between font-display text-2xl">
                   <span>{pet.name}</span>
                   <Badge variant="outline">{pet.breed}</Badge>
                 </CardTitle>
@@ -54,13 +57,15 @@ export default async function PetsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {pet.photoUrl ? (
-                  <img
+                  <Image
                     src={pet.photoUrl}
                     alt={pet.name}
-                    className="h-40 w-full rounded-xl object-cover"
+                    width={700}
+                    height={420}
+                    className="h-36 w-full rounded-xl object-cover sm:h-40"
                   />
                 ) : (
-                  <div className="flex h-40 items-center justify-center rounded-xl bg-slate-100 text-sm text-muted-foreground">
+                  <div className="flex h-36 items-center justify-center rounded-xl bg-slate-100 text-sm text-muted-foreground sm:h-40">
                     No photo uploaded
                   </div>
                 )}
@@ -72,16 +77,17 @@ export default async function PetsPage() {
                       : "No logs yet"}
                   </span>
                 </div>
-                <Button variant="outline" className="w-full" asChild>
+                <Button variant="outline" className="w-full hover:scale-[1.02] transition-all duration-300" asChild>
                   <Link href={`/pets/${pet.id}`}>View Details</Link>
                 </Button>
-                <Button variant="ghost" className="w-full" asChild>
+                <Button variant="ghost" className="w-full hover:scale-[1.02] transition-all duration-300" asChild>
                   <a href={`/api/exports/pet-report?petId=${pet.id}`}>
                     Download report (PDF)
                   </a>
                 </Button>
               </CardContent>
             </Card>
+            </AnimateIn>
           ))}
         </div>
       )}

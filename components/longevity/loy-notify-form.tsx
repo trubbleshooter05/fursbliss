@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export function LoyNotifyForm() {
+type LoyNotifyFormProps = {
+  source?: "loy001" | "loy002" | "loy003";
+};
+
+export function LoyNotifyForm({ source = "loy002" }: LoyNotifyFormProps) {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -20,7 +24,7 @@ export function LoyNotifyForm() {
       const response = await fetch("/api/waitlist/loy002", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, source }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -56,7 +60,7 @@ export function LoyNotifyForm() {
       </div>
       {isSuccess ? (
         <p className="text-xs text-emerald-700">
-          You are on the list. We will send LOY-002 updates to your inbox.
+          You are on the list. We will send {source.toUpperCase()} updates to your inbox.
         </p>
       ) : null}
       {error ? <p className="text-xs text-red-600">{error}</p> : null}

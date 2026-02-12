@@ -42,6 +42,16 @@ const plans = [
   },
 ];
 
+const comparisonRows = [
+  { feature: "Pet profiles", free: "1 pet", premium: "Unlimited pets" },
+  { feature: "Daily health logs", free: "Unlimited", premium: "Unlimited" },
+  { feature: "AI recommendations", free: "3 / month", premium: "Unlimited" },
+  { feature: "Supplement interaction checks", free: "Limited", premium: "Unlimited" },
+  { feature: "Vet-ready PDF reports", free: "Preview only", premium: "Full export + sharing" },
+  { feature: "Photo progress tracking", free: "Basic", premium: "Unlimited + comparisons" },
+  { feature: "Dosing reminders", free: "View only", premium: "Active reminders + logs" },
+];
+
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
 
@@ -191,6 +201,37 @@ export default function PricingPage() {
             </AnimateIn>
           ))}
         </div>
+
+        <AnimateIn className="space-y-4 rounded-3xl border border-border bg-card p-5 sm:p-6">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Full plan comparison
+            </p>
+            <h2 className="font-display text-3xl tracking-[-0.02em] text-foreground">
+              Exactly what you get on each plan
+            </h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-3 py-3 text-left font-semibold text-foreground">Feature</th>
+                  <th className="px-3 py-3 text-left font-semibold text-foreground">Free</th>
+                  <th className="px-3 py-3 text-left font-semibold text-foreground">Premium</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row) => (
+                  <tr key={row.feature} className="border-b border-border/70">
+                    <td className="px-3 py-3 text-foreground">{row.feature}</td>
+                    <td className="px-3 py-3 text-muted-foreground">{row.free}</td>
+                    <td className="px-3 py-3 text-foreground">{row.premium}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </AnimateIn>
       </main>
       <SiteFooter />
     </div>

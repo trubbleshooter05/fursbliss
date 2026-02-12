@@ -112,6 +112,27 @@ const howItWorks = [
   },
 ];
 
+const publicPreviewItems = [
+  {
+    title: "Run the 60-second quiz",
+    description: "Get a real readiness score and recommendations before creating an account.",
+    href: "/quiz",
+    cta: "Open quiz",
+  },
+  {
+    title: "Explore breed longevity pages",
+    description: "See research-backed lifespan context and supplement guidance by breed.",
+    href: "/breeds",
+    cta: "Browse breeds",
+  },
+  {
+    title: "Track LOY drug milestones",
+    description: "Follow RXE, TAS, manufacturing, and approval progress in one place.",
+    href: "/longevity-drugs",
+    cta: "Open drug hub",
+  },
+];
+
 const loyaltyTimeline = [
   { label: "RXE", status: "done", detail: "Accepted" },
   { label: "TAS", status: "done", detail: "Accepted" },
@@ -246,6 +267,38 @@ export default async function Home() {
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">{feature.description}</p>
                   </CardHeader>
+                </Card>
+              </AnimateIn>
+            ))}
+          </div>
+        </section>
+
+        <section className="space-y-8 rounded-3xl border border-border bg-card px-6 py-8 md:px-8">
+          <AnimateIn className="space-y-3">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
+              Try before signup
+            </p>
+            <h2 className="text-3xl font-display text-foreground md:text-4xl">
+              Experience core value without creating an account
+            </h2>
+            <p className="max-w-3xl text-muted-foreground">
+              Start with the same public tools your ad traffic sees first, then create an account
+              only when you want tracking and premium features.
+            </p>
+          </AnimateIn>
+          <div className="grid gap-4 md:grid-cols-3">
+            {publicPreviewItems.map((item, index) => (
+              <AnimateIn key={item.title} delay={index * 0.08}>
+                <Card className="h-full rounded-2xl border border-border bg-background/70">
+                  <CardHeader className="space-y-2">
+                    <CardTitle className="font-display text-2xl">{item.title}</CardTitle>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link href={item.href}>{item.cta}</Link>
+                    </Button>
+                  </CardContent>
                 </Card>
               </AnimateIn>
             ))}

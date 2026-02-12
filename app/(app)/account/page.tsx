@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,14 @@ import { normalizeEmailPreferences } from "@/lib/email-preferences";
 import { EmailPreferencesForm } from "@/components/account/email-preferences-form";
 import { AnimateIn } from "@/components/ui/animate-in";
 
-export default async function AccountPage() {
+type AccountPageProps = {
+  searchParams?: {
+    success?: string;
+    session_id?: string;
+  };
+};
+
+export default async function AccountPage({ searchParams }: AccountPageProps) {
   const session = await auth();
   const userId = session?.user?.id;
 
@@ -17,12 +25,55 @@ export default async function AccountPage() {
     return null;
   }
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { id: userId },
   });
 
   if (!user) {
     return null;
+  }
+
+  const checkoutSuccess = searchParams?.success === "true";
+  const checkoutSessionId =
+    typeof searchParams?.session_id === "string" ? searchParams.session_id : null;
+
+  // Fallback sync in case Stripe webhook is delayed/missed.
+  if (checkoutSuccess && checkoutSessionId) {
+    try {
+      const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId, {
+        expand: ["subscription"],
+      });
+      const checkoutCustomerId =
+        typeof checkoutSession.customer === "string"
+          ? checkoutSession.customer
+          : checkoutSession.customer?.id ?? null;
+      const sessionBelongsToUser =
+        Boolean(checkoutCustomerId) && checkoutCustomerId === user.stripeCustomerId;
+
+      if (sessionBelongsToUser && checkoutSession.subscription) {
+        const subscription =
+          typeof checkoutSession.subscription === "string"
+            ? await stripe.subscriptions.retrieve(checkoutSession.subscription)
+            : checkoutSession.subscription;
+        const isActive = ["active", "trialing"].includes(subscription.status);
+        const plan =
+          subscription.items.data[0]?.price?.recurring?.interval === "year" ? "yearly" : "monthly";
+
+        if (isActive) {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              subscriptionStatus: "premium",
+              subscriptionId: subscription.id,
+              subscriptionPlan: plan,
+              subscriptionEndsAt: null,
+            },
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Account subscription sync failed", error);
+    }
   }
 
   const isPremium = user.subscriptionStatus === "premium";
@@ -108,9 +159,18 @@ export default async function AccountPage() {
                 <a href="/api/stripe/portal">Manage Subscription</a>
               </Button>
             ) : (
-              <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
-                <Link href="/pricing">Upgrade to Premium</Link>
-              </Button>
+              <div className="space-y-2">
+                <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
+                  <Link href="/pricing">Upgrade to Premium</Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hover:scale-[1.02] transition-all duration-300"
+                  asChild
+                >
+                  <a href="/api/stripe/sync-subscription">I already paid - refresh status</a>
+                </Button>
+              </div>
             )}
             <div className="space-y-2">
               <Button variant="outline" className="hover:scale-[1.02] transition-all duration-300" asChild>

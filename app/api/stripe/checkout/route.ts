@@ -94,7 +94,7 @@ export async function GET(request: Request) {
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { plan: selectedPlan },
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?success=true`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?success=true&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
   });
 

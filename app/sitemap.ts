@@ -17,8 +17,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/privacy",
     "/terms",
     "/invite",
-    "/signup",
-    "/login",
   ];
   const blogRoutes = [
     "/blog/loyal-series-c-100m-loy-002-update",

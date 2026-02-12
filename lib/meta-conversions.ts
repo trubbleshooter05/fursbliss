@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "crypto";
-import bizSdk from "facebook-nodejs-business-sdk";
+import * as bizSdk from "facebook-nodejs-business-sdk";
 
 type MetaConversionEventName = "CompleteRegistration" | "Lead";
 

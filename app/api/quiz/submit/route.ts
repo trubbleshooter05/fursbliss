@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calculateLongevityScore } from "@/lib/quiz";
 import { sendEmail } from "@/lib/email";
+import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 
 const requestSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(320),
@@ -63,6 +64,12 @@ export async function POST(request: Request) {
         </div>`,
       });
     }
+
+    void sendMetaConversionEvent({
+      eventName: "Lead",
+      email: parsed.data.email,
+      request,
+    });
 
     return NextResponse.json({
       id: submission.id,

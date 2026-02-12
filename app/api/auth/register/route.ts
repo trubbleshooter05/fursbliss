@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { createVerificationToken, generateReferralCode } from "@/lib/auth-tokens";
 import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
+import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -133,6 +134,12 @@ export async function POST(request: Request) {
     const verificationToken = await createVerificationToken(user.email);
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
     const emailResult = await sendVerificationEmail(user.email, verifyUrl);
+
+    void sendMetaConversionEvent({
+      eventName: "CompleteRegistration",
+      email: user.email,
+      request,
+    });
 
     return NextResponse.json({
       id: user.id,

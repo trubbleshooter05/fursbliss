@@ -24,6 +24,11 @@ export const metadata: Metadata = {
       "Track LOY-001, LOY-002, and LOY-003 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
     url: "/longevity-drugs",
     type: "website",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/opengraph-image"],
   },
 };
 

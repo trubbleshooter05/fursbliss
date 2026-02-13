@@ -14,6 +14,11 @@ export const metadata: Metadata = {
       "Compare FursBliss Free and Premium plans for dog longevity tracking, AI insights, interaction checks, and vet-ready reports.",
     url: "/pricing",
     type: "website",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/opengraph-image"],
   },
 };
 

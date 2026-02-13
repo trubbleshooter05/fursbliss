@@ -33,12 +33,21 @@ export const metadata: Metadata = {
     type: "website",
     url: "/",
     siteName: "FursBliss",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "FursBliss | Dog Longevity Intelligence Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "FursBliss | Dog Longevity Intelligence Platform",
     description:
       "Track daily health signals, AI supplement guidance, and LOY-002 readiness for your dog.",
+    images: ["/opengraph-image"],
   },
 };
 

@@ -17,6 +17,11 @@ export const metadata: Metadata = {
       "Latest dog longevity research, LOY drug updates, and practical senior-dog health guidance.",
     url: "/blog",
     type: "website",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/opengraph-image"],
   },
 };
 

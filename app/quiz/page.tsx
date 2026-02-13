@@ -18,6 +18,11 @@ export const metadata: Metadata = {
       "Take the 60-second FursBliss quiz and get your dog's personalized longevity readiness score.",
     url: "/quiz",
     type: "website",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/opengraph-image"],
   },
 };
 

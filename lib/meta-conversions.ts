@@ -94,7 +94,9 @@ export async function sendMetaConversionEvent({
 
   const eventRequest = new EventRequest(accessToken, pixelId).setEvents([serverEvent]);
 
-  const testEventCode = process.env.META_TEST_EVENT_CODE;
+  const rawTestEventCode = process.env.META_TEST_EVENT_CODE?.trim();
+  const testEventCode =
+    rawTestEventCode && rawTestEventCode !== "0" ? rawTestEventCode : undefined;
   if (testEventCode) {
     eventRequest.setTestEventCode(testEventCode);
   }

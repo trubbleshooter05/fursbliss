@@ -7,6 +7,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getEffectiveSubscriptionStatus } from "@/lib/subscription";
 import { generateReferralCode } from "@/lib/auth-tokens";
+import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -151,7 +152,7 @@ async function upsertGoogleUser(input: {
   }
 
   const placeholderPassword = await bcrypt.hash(crypto.randomBytes(24).toString("hex"), 10);
-  return prisma.user.create({
+  const createdUser = await prisma.user.create({
     data: {
       email: input.email.toLowerCase(),
       name: input.name ?? null,
@@ -170,4 +171,12 @@ async function upsertGoogleUser(input: {
       subscriptionEndsAt: true,
     },
   });
+
+  await sendMetaConversionEvent({
+    eventName: "CompleteRegistration",
+    email: input.email,
+    eventSourceUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}/signup`,
+  });
+
+  return createdUser;
 }

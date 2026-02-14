@@ -6,7 +6,8 @@ type MetaConversionEventName = "CompleteRegistration" | "Lead";
 type SendMetaConversionEventParams = {
   eventName: MetaConversionEventName;
   email: string;
-  request: Request;
+  request?: Request;
+  eventSourceUrl?: string;
 };
 
 function hashEmail(email: string) {
@@ -49,6 +50,7 @@ export async function sendMetaConversionEvent({
   eventName,
   email,
   request,
+  eventSourceUrl,
 }: SendMetaConversionEventParams) {
   const pixelId = process.env.META_PIXEL_ID;
   const accessToken = process.env.META_CONVERSIONS_API_TOKEN;
@@ -60,13 +62,15 @@ export async function sendMetaConversionEvent({
   const { FacebookAdsApi, EventRequest, UserData, ServerEvent } = bizSdk;
   FacebookAdsApi.init(accessToken);
 
-  const cookies = parseCookies(request);
-  const fbc = buildFbcValue(request, cookies);
+  const cookies = request ? parseCookies(request) : {};
+  const fbc = request ? buildFbcValue(request, cookies) : undefined;
   const fbp = cookies._fbp;
-  const userAgent = request.headers.get("user-agent") || undefined;
-  const clientIpAddress = getClientIpAddress(request);
-  const eventSourceUrl =
-    request.headers.get("referer") ?? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}`;
+  const userAgent = request?.headers.get("user-agent") || undefined;
+  const clientIpAddress = request ? getClientIpAddress(request) : undefined;
+  const resolvedEventSourceUrl =
+    eventSourceUrl ??
+    request?.headers.get("referer") ??
+    `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}`;
 
   const userData = new UserData()
     .setEmails([hashEmail(email)])
@@ -84,7 +88,7 @@ export async function sendMetaConversionEvent({
     .setEventName(eventName)
     .setEventTime(Math.floor(Date.now() / 1000))
     .setActionSource("website")
-    .setEventSourceUrl(eventSourceUrl)
+    .setEventSourceUrl(resolvedEventSourceUrl)
     .setEventId(randomUUID())
     .setUserData(userData);
 

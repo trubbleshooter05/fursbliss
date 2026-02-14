@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       });
     }
 
-    void sendMetaConversionEvent({
+    await sendMetaConversionEvent({
       eventName: "Lead",
       email: parsed.data.email,
       request,

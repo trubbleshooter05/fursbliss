@@ -135,6 +135,9 @@ export async function POST(request: Request) {
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
     const emailResult = await sendVerificationEmail(user.email, verifyUrl);
 
+    console.info("[Meta CAPI] register route reached; sending CompleteRegistration", {
+      email: user.email,
+    });
     await sendMetaConversionEvent({
       eventName: "CompleteRegistration",
       email: user.email,

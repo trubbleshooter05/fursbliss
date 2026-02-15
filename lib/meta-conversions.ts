@@ -54,8 +54,24 @@ export async function sendMetaConversionEvent({
 }: SendMetaConversionEventParams) {
   const pixelId = process.env.META_PIXEL_ID;
   const accessToken = process.env.META_CONVERSIONS_API_TOKEN;
+  const isCompleteRegistration = eventName === "CompleteRegistration";
+
+  if (isCompleteRegistration) {
+    console.info("[Meta CAPI] CompleteRegistration attempt", {
+      hasPixelId: Boolean(pixelId),
+      hasAccessToken: Boolean(accessToken),
+      requestUrl: request?.url ?? null,
+      eventSourceUrl: eventSourceUrl ?? null,
+    });
+  }
 
   if (!pixelId || !accessToken) {
+    if (isCompleteRegistration) {
+      console.warn("[Meta CAPI] CompleteRegistration skipped: missing env", {
+        hasPixelId: Boolean(pixelId),
+        hasAccessToken: Boolean(accessToken),
+      });
+    }
     return;
   }
 
@@ -102,8 +118,23 @@ export async function sendMetaConversionEvent({
   }
 
   try {
-    await eventRequest.execute();
+    const result = await eventRequest.execute();
+    if (isCompleteRegistration) {
+      console.info("[Meta CAPI] CompleteRegistration sent", {
+        result: result ?? null,
+      });
+    }
   } catch (error) {
-    console.error("Meta Conversions API error", error);
+    const err = error as {
+      message?: string;
+      response?: unknown;
+      body?: unknown;
+    };
+    console.error("Meta Conversions API error", {
+      eventName,
+      message: err?.message ?? String(error),
+      response: err?.response ?? null,
+      body: err?.body ?? null,
+    });
   }
 }

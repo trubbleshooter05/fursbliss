@@ -134,6 +134,9 @@ async function upsertGoogleUser(input: {
   });
 
   if (existing) {
+    console.info("[Meta CAPI] Google OAuth existing user; skipping CompleteRegistration CAPI", {
+      email: input.email.toLowerCase(),
+    });
     return prisma.user.update({
       where: { id: existing.id },
       data: {
@@ -172,6 +175,9 @@ async function upsertGoogleUser(input: {
     },
   });
 
+  console.info("[Meta CAPI] Google OAuth new user created; sending CompleteRegistration", {
+    email: input.email.toLowerCase(),
+  });
   await sendMetaConversionEvent({
     eventName: "CompleteRegistration",
     email: input.email,

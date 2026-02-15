@@ -21,6 +21,8 @@ const spaceMono = Space_Mono({
   weight: ["400", "700"],
 });
 
+const SHARE_IMAGE_URL = "/opengraph-image";
+
 export const metadata: Metadata = {
   title: "FursBliss | Dog Longevity Intelligence Platform",
   description:
@@ -35,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "FursBliss",
     images: [
       {
-        url: "/opengraph-image",
+        url: SHARE_IMAGE_URL,
         width: 1200,
         height: 630,
         alt: "FursBliss | Dog Longevity Intelligence Platform",
@@ -47,7 +49,7 @@ export const metadata: Metadata = {
     title: "FursBliss | Dog Longevity Intelligence Platform",
     description:
       "Track daily health signals, AI supplement guidance, and LOY-002 readiness for your dog.",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
 };
 

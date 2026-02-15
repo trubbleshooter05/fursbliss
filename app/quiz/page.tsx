@@ -5,6 +5,8 @@ import { LongevityQuiz } from "@/components/quiz/longevity-quiz";
 import { prisma } from "@/lib/prisma";
 import { quizBreedOptions } from "@/lib/breed-pages";
 
+const SHARE_IMAGE_URL = "/opengraph-image";
+
 export const metadata: Metadata = {
   title: "Free Dog Longevity Readiness Quiz | FursBliss",
   description:
@@ -18,11 +20,11 @@ export const metadata: Metadata = {
       "Take the 60-second FursBliss quiz and get your dog's personalized longevity readiness score.",
     url: "/quiz",
     type: "website",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
 };
 

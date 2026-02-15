@@ -10,6 +10,8 @@ import { EligibilityChecker } from "@/components/longevity/eligibility-checker";
 import { LoyNotifyForm } from "@/components/longevity/loy-notify-form";
 import { AnimateIn } from "@/components/ui/animate-in";
 
+const SHARE_IMAGE_URL = "/opengraph-image";
+
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003) | FursBliss",
@@ -24,11 +26,11 @@ export const metadata: Metadata = {
       "Track LOY-001, LOY-002, and LOY-003 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
     url: "/longevity-drugs",
     type: "website",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
 };
 

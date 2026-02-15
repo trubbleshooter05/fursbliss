@@ -4,6 +4,8 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
 
+const SHARE_IMAGE_URL = "/opengraph-image";
+
 export const metadata: Metadata = {
   title: "Loyal Series C Funding News (Feb 2026) | FursBliss Blog",
   description:
@@ -17,11 +19,11 @@ export const metadata: Metadata = {
       "Loyal raised $100M in a Feb 2026 Series C, bringing total funding to $250M+. What this means for LOY-001, LOY-002, and LOY-003 timelines.",
     url: "/blog/loyal-series-c-100m-loy-002-update",
     type: "article",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
 };
 

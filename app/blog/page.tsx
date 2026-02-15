@@ -4,6 +4,8 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+const SHARE_IMAGE_URL = "/opengraph-image";
+
 export const metadata: Metadata = {
   title: "FursBliss Blog | Dog Longevity News",
   description:
@@ -17,11 +19,11 @@ export const metadata: Metadata = {
       "Latest dog longevity research, LOY drug updates, and practical senior-dog health guidance.",
     url: "/blog",
     type: "website",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/opengraph-image"],
+    images: [SHARE_IMAGE_URL],
   },
 };
 

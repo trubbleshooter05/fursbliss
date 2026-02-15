@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PawPrint } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -37,7 +37,45 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
     email: "",
   });
 
-  const progress = (step / 6) * 100;
+  const TOTAL_STEPS = 5;
+  const progress = (step / TOTAL_STEPS) * 100;
+  const normalizedDogName = state.dogName.trim();
+  const dogPossessive = normalizedDogName ? `${normalizedDogName}'s` : "your dog's";
+  const stepNameByNumber: Record<number, string> = {
+    1: "breed",
+    2: "age",
+    3: "weight",
+    4: "concerns",
+    5: "email_and_name",
+  };
+
+  const [quizSessionId] = useState(() => {
+    if (typeof window !== "undefined") {
+      const existing = window.sessionStorage.getItem("quiz_session_id");
+      if (existing) return existing;
+      const created = `quiz_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+      window.sessionStorage.setItem("quiz_session_id", created);
+      return created;
+    }
+    return `quiz_${Date.now()}`;
+  });
+
+  useEffect(() => {
+    const stepName = stepNameByNumber[step];
+    if (!stepName) return;
+    void fetch("/api/quiz/step-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: quizSessionId,
+        stepNumber: step,
+        stepName,
+      }),
+    }).catch(() => {
+      // Non-blocking analytics write
+    });
+  }, [quizSessionId, step]);
+
   const filteredBreeds = useMemo(() => {
     if (!state.breed) return breeds.slice(0, 20);
     const query = state.breed.toLowerCase();
@@ -45,15 +83,14 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
   }, [breeds, state.breed]);
 
   const canContinue = useMemo(() => {
-    if (step === 1) return state.dogName.trim().length > 0;
-    if (step === 2) return state.breed.trim().length > 0;
-    if (step === 5) return state.concerns.length > 0;
-    if (step === 6) return state.email.trim().length > 5;
+    if (step === 1) return state.breed.trim().length > 0;
+    if (step === 4) return state.concerns.length > 0;
+    if (step === 5) return state.email.trim().length > 5;
     return true;
-  }, [state.breed, state.concerns.length, state.dogName, state.email, step]);
+  }, [state.breed, state.concerns.length, state.email, step]);
 
   const nextStep = () => {
-    if (!canContinue || step >= 6) return;
+    if (!canContinue || step >= TOTAL_STEPS) return;
     setStep((current) => current + 1);
   };
 
@@ -72,7 +109,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: state.email,
-          dogName: state.dogName,
+          dogName: normalizedDogName || "Your Dog",
           breed: state.breed,
           age: state.age,
           weight: state.weight,
@@ -118,38 +155,23 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
           <Card className="rounded-2xl border-border bg-card">
             <CardHeader>
               <CardTitle className="font-display text-3xl text-foreground">
-                {step === 1 && "What's your dog's name?"}
-                {step === 2 && `What breed is ${state.dogName || "your dog"}?`}
-                {step === 3 && `How old is ${state.dogName || "your dog"}?`}
-                {step === 4 && `How much does ${state.dogName || "your dog"} weigh?`}
-                {step === 5 && "What are you most concerned about?"}
-                {step === 6 &&
-                  `Enter your email to see ${state.dogName || "your dog's"} personalized longevity readiness score.`}
+                {step === 1 && "What breed is your dog?"}
+                {step === 2 && "How old is your dog?"}
+                {step === 3 && "How much does your dog weigh?"}
+                {step === 4 && "What are you most concerned about?"}
+                {step === 5 &&
+                  `Enter your email to see ${dogPossessive} personalized longevity readiness score.`}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {step === 1 ? (
                 <div className="space-y-3">
-                  <label className="text-sm text-muted-foreground">Dog name</label>
-                  <div className="relative">
-                    <PawPrint className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      className="pl-9"
-                      placeholder="Luna"
-                      value={state.dogName}
-                      onChange={(event) =>
-                        setState((prev) => ({ ...prev, dogName: event.target.value }))
-                      }
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              {step === 2 ? (
-                <div className="space-y-3">
                   <Input
                     placeholder="Search breed..."
                     value={state.breed}
+                    inputMode="search"
+                    autoComplete="off"
+                    enterKeyHint="search"
                     onChange={(event) =>
                       setState((prev) => ({ ...prev, breed: event.target.value }))
                     }
@@ -173,7 +195,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
                 </div>
               ) : null}
 
-              {step === 3 ? (
+              {step === 2 ? (
                 <div className="space-y-3">
                   <Input
                     type="number"
@@ -190,7 +212,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
                 </div>
               ) : null}
 
-              {step === 4 ? (
+              {step === 3 ? (
                 <div className="space-y-3">
                   <Input
                     type="number"
@@ -207,7 +229,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
                 </div>
               ) : null}
 
-              {step === 5 ? (
+              {step === 4 ? (
                 <div className="grid gap-2">
                   {QUIZ_CONCERNS.map((concern) => {
                     const isSelected = state.concerns.includes(concern.key);
@@ -236,8 +258,22 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
                 </div>
               ) : null}
 
-              {step === 6 ? (
+              {step === 5 ? (
                 <div className="space-y-3">
+                  <label className="text-sm text-muted-foreground">
+                    Dog name (optional)
+                  </label>
+                  <div className="relative">
+                    <PawPrint className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      className="pl-9"
+                      placeholder="Luna"
+                      value={state.dogName}
+                      onChange={(event) =>
+                        setState((prev) => ({ ...prev, dogName: event.target.value }))
+                      }
+                    />
+                  </div>
                   <Input
                     type="email"
                     placeholder="you@example.com"
@@ -266,7 +302,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         >
           Back
         </Button>
-        {step < 6 ? (
+        {step < TOTAL_STEPS ? (
           <Button className="min-h-11" disabled={!canContinue} onClick={nextStep}>
             Continue
           </Button>

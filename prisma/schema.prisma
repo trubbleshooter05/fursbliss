@@ -347,3 +347,15 @@ model QuizSubmission {
 
   @@index([email])
 }
+
+model QuizStepEvent {
+  id         String   @id @default(cuid())
+  sessionId  String   @map("session_id")
+  stepNumber Int      @map("step_number")
+  stepName   String   @map("step_name")
+  timestamp  DateTime @default(now())
+
+  @@index([sessionId, timestamp])
+  @@index([stepNumber, timestamp])
+  @@map("quiz_step_events")
+}

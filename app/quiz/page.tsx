@@ -39,6 +39,10 @@ export default async function QuizPage() {
   const breeds = Array.from(
     new Set([...breedRows.map((row) => row.breed), ...quizBreedOptions])
   ).sort((a, b) => a.localeCompare(b));
+  const breedOptions = [
+    "Mixed Breed / Not Sure",
+    ...breeds.filter((breed) => breed !== "Mixed Breed / Not Sure"),
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,6 +56,9 @@ export default async function QuizPage() {
             backgroundSize: "20px 20px, 100% 100%",
           }}
         >
+          <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+            A $100M-backed longevity drug for dogs could arrive in 2026.
+          </p>
           <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-sky-800/90">
             Longevity readiness quiz
           </p>
@@ -64,7 +71,7 @@ export default async function QuizPage() {
           </p>
         </section>
 
-        <LongevityQuiz breeds={breeds} />
+        <LongevityQuiz breeds={breedOptions} />
       </main>
       <SiteFooter />
     </div>

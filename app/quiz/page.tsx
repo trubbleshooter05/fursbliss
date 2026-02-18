@@ -57,7 +57,7 @@ export default async function QuizPage() {
           }}
         >
           <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-            A $100M-backed longevity drug for dogs could arrive in 2026.
+            A $250M+-backed longevity drug for dogs could arrive in 2026.
           </p>
           <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-sky-800/90">
             Longevity readiness quiz

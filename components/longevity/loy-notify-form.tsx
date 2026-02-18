@@ -6,10 +6,16 @@ import { Input } from "@/components/ui/input";
 
 type LoyNotifyFormProps = {
   source?: "loy001" | "loy002" | "loy003";
+  defaultEmail?: string;
+  submitLabel?: string;
 };
 
-export function LoyNotifyForm({ source = "loy002" }: LoyNotifyFormProps) {
-  const [email, setEmail] = useState("");
+export function LoyNotifyForm({
+  source = "loy002",
+  defaultEmail = "",
+  submitLabel = "Notify Me",
+}: LoyNotifyFormProps) {
+  const [email, setEmail] = useState(defaultEmail);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +61,7 @@ export function LoyNotifyForm({ source = "loy002" }: LoyNotifyFormProps) {
           onChange={(event) => setEmail(event.target.value)}
         />
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Notifying..." : "Notify Me"}
+          {isSubmitting ? "Notifying..." : submitLabel}
         </Button>
       </div>
       {isSuccess ? (

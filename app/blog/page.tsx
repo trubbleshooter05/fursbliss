@@ -29,11 +29,18 @@ export const metadata: Metadata = {
 
 const posts = [
   {
-    slug: "loyal-series-c-100m-loy-002-update",
-    title: "Loyal Raises $100M Series C: Why It Matters for Dog Longevity",
+    slug: "how-to-spot-fake-dog-health-advice-social-media",
+    title: "How to Spot Fake Dog Health Advice on Social Media",
     excerpt:
-      "Loyal announced a $100M Series C on Feb 11, 2026, bringing total funding to $250M+.",
-    date: "Feb 11, 2026",
+      "How to spot scammy supplement claims fast, including the recent mushroom-viral pattern, and use FursBliss checks as a safer next step.",
+    date: "Feb 8, 2026",
+  },
+  {
+    slug: "loy-002-vs-rapamycin-triad-2026-update",
+    title: "LOY-002 vs Rapamycin: Two Paths to Dog Longevity",
+    excerpt:
+      "How Loyal's LOY-002 program compares with Dog Aging Project's TRIAD rapamycin trial across mechanism, eligibility, timeline, and availability.",
+    date: "Feb 14, 2026",
   },
 ];
 

@@ -8,10 +8,19 @@ import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 
 const registerSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email().max(320),
   name: z.string().min(1).optional(),
   password: z.string().min(6),
   referralCode: z.string().min(4).optional().or(z.literal("")),
+  quizSnapshot: z
+    .object({
+      dogName: z.string().min(1).max(64).optional(),
+      breed: z.string().min(2).max(80),
+      age: z.number().int().min(1).max(30),
+      weight: z.number().min(1).max(400),
+      concerns: z.array(z.string()).max(8).optional().default([]),
+    })
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -82,6 +91,30 @@ export async function POST(request: Request) {
       },
     });
 
+    // Mirror the Lead flow: fire CAPI with request context on successful create.
+    console.info("[Meta CAPI] register route reached; sending CompleteRegistration", {
+      email: user.email,
+    });
+    await sendMetaConversionEvent({
+      eventName: "CompleteRegistration",
+      email: user.email,
+      request,
+    });
+
+    if (parsed.data.quizSnapshot) {
+      const snapshot = parsed.data.quizSnapshot;
+      await prisma.pet.create({
+        data: {
+          userId: user.id,
+          name: snapshot.dogName?.trim() || "My Dog",
+          breed: snapshot.breed,
+          age: snapshot.age,
+          weight: snapshot.weight,
+          symptoms: snapshot.concerns,
+        },
+      });
+    }
+
     if (resolvedReferralOwner) {
       await prisma.referral.create({
         data: {
@@ -134,15 +167,6 @@ export async function POST(request: Request) {
     const verificationToken = await createVerificationToken(user.email);
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
     const emailResult = await sendVerificationEmail(user.email, verifyUrl);
-
-    console.info("[Meta CAPI] register route reached; sending CompleteRegistration", {
-      email: user.email,
-    });
-    await sendMetaConversionEvent({
-      eventName: "CompleteRegistration",
-      email: user.email,
-      request,
-    });
 
     return NextResponse.json({
       id: user.id,

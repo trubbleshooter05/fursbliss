@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import { headers } from "next/headers";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { z } from "zod";
@@ -178,10 +179,17 @@ async function upsertGoogleUser(input: {
   console.info("[Meta CAPI] Google OAuth new user created; sending CompleteRegistration", {
     email: input.email.toLowerCase(),
   });
+  const requestHeaders = new Headers(headers());
+  const callbackRequest = new Request(
+    `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}/api/auth/callback/google`,
+    {
+      headers: requestHeaders,
+    }
+  );
   await sendMetaConversionEvent({
     eventName: "CompleteRegistration",
     email: input.email,
-    eventSourceUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}/signup`,
+    request: callbackRequest,
   });
 
   return createdUser;

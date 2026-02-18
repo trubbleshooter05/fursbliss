@@ -27,12 +27,20 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type QuizSnapshot = {
+  dogName: string;
+  breed: string;
+  age: number;
+  weight: number;
+  concerns: string[];
+};
 
 export function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
+  const [quizSnapshot, setQuizSnapshot] = useState<QuizSnapshot | null>(null);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,13 +56,46 @@ export function SignupForm() {
     if (referral) {
       form.setValue("referralCode", referral);
     }
+
+    const email = searchParams.get("email");
+    if (email) {
+      form.setValue("email", email);
+    }
+
+    const breed = searchParams.get("breed");
+    const age = Number(searchParams.get("age"));
+    const weight = Number(searchParams.get("weight"));
+    const dogName = searchParams.get("dogName") ?? "";
+    const concerns = (searchParams.get("concerns") ?? "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (
+      breed &&
+      Number.isFinite(age) &&
+      age > 0 &&
+      Number.isFinite(weight) &&
+      weight > 0
+    ) {
+      setQuizSnapshot({
+        dogName,
+        breed,
+        age,
+        weight,
+        concerns,
+      });
+    }
   }, [searchParams, form]);
 
   const onSubmit = async (values: FormValues) => {
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify({
+        ...values,
+        quizSnapshot,
+      }),
     });
 
     const data = await response.json();
@@ -97,6 +138,14 @@ export function SignupForm() {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {quizSnapshot ? (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              Continuing from your quiz result: we&apos;ll carry over{" "}
+              {quizSnapshot.dogName ? `${quizSnapshot.dogName}'s` : "your dog's"}{" "}
+              {quizSnapshot.breed}, age {quizSnapshot.age}, and weight{" "}
+              {quizSnapshot.weight} lbs after signup.
+            </div>
+          ) : null}
           <Button
             type="button"
             variant="outline"

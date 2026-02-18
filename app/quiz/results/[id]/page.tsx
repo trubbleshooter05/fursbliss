@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShareScoreButton } from "@/components/quiz/share-score-button";
+import { LoyNotifyForm } from "@/components/longevity/loy-notify-form";
 import { buildQuizRecommendations } from "@/lib/quiz";
 import { prisma } from "@/lib/prisma";
 
@@ -107,25 +108,58 @@ export default async function QuizResultsPage({ params }: PageProps) {
           </Card>
         </div>
 
-        <section className="mt-8 grid gap-3 md:grid-cols-3">
-          <Button asChild className="min-h-11">
-            <Link
-              href={`/signup?dogName=${encodeURIComponent(
-                submission.dogName
-              )}&breed=${encodeURIComponent(submission.breed)}&age=${
-                submission.age
-              }&weight=${submission.weight}`}
-            >
-              Start Tracking {submission.dogName}
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="min-h-11">
-            <Link href="/longevity-drugs">Join the LOY-002 Waitlist</Link>
-          </Button>
-          <ShareScoreButton
-            dogName={submission.dogName}
-            resultPath={`/quiz/results/${submission.id}`}
-          />
+        <section className="mt-8 space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 md:p-6">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+              Next step
+            </p>
+            <h2 className="font-display text-3xl tracking-[-0.02em] text-slate-900">
+              Your dog is LOY-002 eligible. What&apos;s next?
+            </h2>
+            <p className="text-sm text-slate-700">
+              Save this result to your account so you can keep tracking and receive
+              LOY-002 timeline updates.
+            </p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="rounded-2xl border-emerald-200 bg-white">
+              <CardContent className="space-y-3 p-4">
+                <Button asChild className="min-h-11 w-full">
+                  <Link
+                    href={`/signup?fromQuiz=1&quizId=${submission.id}&dogName=${encodeURIComponent(
+                      submission.dogName
+                    )}&breed=${encodeURIComponent(submission.breed)}&age=${
+                      submission.age
+                    }&weight=${submission.weight}&concerns=${encodeURIComponent(
+                      submission.concerns.join(",")
+                    )}&email=${encodeURIComponent(submission.email)}`}
+                  >
+                    Create Free Account - Save your results, track health signals, get LOY-002 updates
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl border-border bg-white">
+              <CardContent className="space-y-3 p-4">
+                <LoyNotifyForm
+                  source="loy002"
+                  defaultEmail={submission.email}
+                  submitLabel="Get notified when LOY-002 launches"
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <Button asChild variant="outline" className="min-h-11">
+              <Link href="/longevity-drugs">Read the full LOY-002 timeline</Link>
+            </Button>
+            <ShareScoreButton
+              dogName={submission.dogName}
+              resultPath={`/quiz/results/${submission.id}`}
+            />
+          </div>
         </section>
       </main>
       <SiteFooter />

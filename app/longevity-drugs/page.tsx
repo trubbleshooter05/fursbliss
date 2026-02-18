@@ -14,16 +14,16 @@ const SHARE_IMAGE_URL = "/opengraph-image";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003) | FursBliss",
+  title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003, TRIAD Rapamycin) | FursBliss",
   description:
-    "Track LOY-001, LOY-002, and LOY-003 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
+    "Track LOY-001, LOY-002, LOY-003, and TRIAD Rapamycin study updates, eligibility criteria, and readiness planning for longevity-focused pet owners.",
   alternates: {
     canonical: "/longevity-drugs",
   },
   openGraph: {
-    title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003) | FursBliss",
+    title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003, TRIAD Rapamycin) | FursBliss",
     description:
-      "Track LOY-001, LOY-002, and LOY-003 status, eligibility criteria, and readiness planning for longevity-focused pet owners.",
+      "Track LOY-001, LOY-002, LOY-003, and TRIAD Rapamycin study updates, eligibility criteria, and readiness planning for longevity-focused pet owners.",
     url: "/longevity-drugs",
     type: "website",
     images: [SHARE_IMAGE_URL],
@@ -87,8 +87,9 @@ export default async function LongevityDrugsPage() {
             The first FDA dog longevity drug is coming.
           </h1>
           <p className="max-w-3xl text-muted-foreground">
-            Track LOY-002 status, eligibility, and readiness. FursBliss is not
-            affiliated with Loyal or the FDA.
+            Track both major dog longevity approaches in one place: Loyal's LOY
+            pipeline and Dog Aging Project TRIAD rapamycin research.
+            FursBliss is not affiliated with Loyal, Dog Aging Project, NIH, or the FDA.
           </p>
           <p className="text-sm text-slate-700">
             Latest public update: FDA reviewers accepted Target Animal Safety (TAS)
@@ -194,6 +195,79 @@ export default async function LongevityDrugsPage() {
               </AnimateIn>
             ))}
           </div>
+        </section>
+
+        <section className="space-y-4">
+          <AnimateIn>
+            <h2 className="font-display text-4xl text-foreground">
+              LOY-002 vs TRIAD Rapamycin
+            </h2>
+          </AnimateIn>
+          <AnimateIn delay={0.06}>
+            <Card className="rounded-2xl border-border">
+              <CardContent className="pt-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[720px] border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-3 py-3 text-left font-semibold text-foreground">Category</th>
+                        <th className="px-3 py-3 text-left font-semibold text-foreground">LOY-002 (Loyal)</th>
+                        <th className="px-3 py-3 text-left font-semibold text-foreground">
+                          Rapamycin (TRIAD / Dog Aging Project)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-border/70">
+                        <td className="px-3 py-3 text-foreground">Type</td>
+                        <td className="px-3 py-3 text-muted-foreground">Daily pill</td>
+                        <td className="px-3 py-3 text-muted-foreground">Weekly pill (research protocol)</td>
+                      </tr>
+                      <tr className="border-b border-border/70">
+                        <td className="px-3 py-3 text-foreground">Mechanism</td>
+                        <td className="px-3 py-3 text-muted-foreground">Caloric restriction mimetic</td>
+                        <td className="px-3 py-3 text-muted-foreground">mTOR inhibitor</td>
+                      </tr>
+                      <tr className="border-b border-border/70">
+                        <td className="px-3 py-3 text-foreground">Age target</td>
+                        <td className="px-3 py-3 text-muted-foreground">10+ years</td>
+                        <td className="px-3 py-3 text-muted-foreground">7+ years</td>
+                      </tr>
+                      <tr className="border-b border-border/70">
+                        <td className="px-3 py-3 text-foreground">Weight target</td>
+                        <td className="px-3 py-3 text-muted-foreground">14+ lbs</td>
+                        <td className="px-3 py-3 text-muted-foreground">44+ lbs</td>
+                      </tr>
+                      <tr className="border-b border-border/70">
+                        <td className="px-3 py-3 text-foreground">Trial size</td>
+                        <td className="px-3 py-3 text-muted-foreground">1,300 dogs (STAY)</td>
+                        <td className="px-3 py-3 text-muted-foreground">580 target (180+ enrolled as of Feb 2026)</td>
+                      </tr>
+                      <tr className="border-b border-border/70">
+                        <td className="px-3 py-3 text-foreground">Regulatory path</td>
+                        <td className="px-3 py-3 text-muted-foreground">Toward FDA conditional approval</td>
+                        <td className="px-3 py-3 text-muted-foreground">Research trial (not an FDA approval program)</td>
+                      </tr>
+                      <tr className="border-b border-border/70">
+                        <td className="px-3 py-3 text-foreground">Timeline</td>
+                        <td className="px-3 py-3 text-muted-foreground">
+                          Conditional approval could be 2026 to 2027
+                        </td>
+                        <td className="px-3 py-3 text-muted-foreground">
+                          Trial follow-up through 2029 (study end Nov 2029)
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-3 py-3 text-foreground">Funding source</td>
+                        <td className="px-3 py-3 text-muted-foreground">Private venture funding ($250M+)</td>
+                        <td className="px-3 py-3 text-muted-foreground">$7M NIH funding for TRIAD progression</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </AnimateIn>
         </section>
 
         <section className="space-y-4">
@@ -420,20 +494,48 @@ export default async function LongevityDrugsPage() {
           <AnimateIn>
           <Card className="rounded-2xl border-border">
             <CardHeader>
-              <CardTitle className="font-display text-2xl">Rapamycin awareness</CardTitle>
+              <CardTitle className="font-display text-2xl">TRIAD Rapamycin update (Feb 14, 2026)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
-                Rapamycin is currently available off-label through veterinarians and
-                is being studied in canine longevity research.
+                Rapamycin is an mTOR-pathway inhibitor being tested for potential
+                healthspan and lifespan effects in aging dogs.
               </p>
               <p>
-                FursBliss helps owners track dosing, side effects, and outcomes over
-                time with a dedicated module.
+                The Dog Aging Project published TRIAD methodology in GeroScience,
+                framing it as a rigorous pharmacologic aging-intervention test in
+                real-world companion dogs.
               </p>
-              <Button variant="outline" asChild>
-                <a href="/login">Open rapamycin tracking</a>
-              </Button>
+              <p>
+                TRIAD is still enrolling dogs (7+ years, 44+ lbs) across 20 trial
+                sites, targeting 580 total with about 180 enrolled so far.
+                Medication is projected to begin in spring 2026, and the study is
+                expected to conclude in Nov 2029.
+              </p>
+              <p>
+                Prior Dog Aging Project work reported small-dose rapamycin signals
+                for improved cardiac function, supporting continued investigation.
+              </p>
+              <a
+                href="https://dogagingproject.org/triad/"
+                className="inline-block font-medium text-emerald-700 hover:underline"
+              >
+                Dog Aging Project TRIAD enrollment page
+              </a>
+              <div className="grid gap-2 text-xs">
+                <a
+                  href="https://www.avma.org/news/dog-aging-project-lands-major-grant-anti-aging-trial"
+                  className="font-medium text-emerald-700 hover:underline"
+                >
+                  Source: AVMA coverage on TRIAD enrollment and NIH funding
+                </a>
+                <a
+                  href="https://vetmed.tamu.edu/news/press-releases/rapamycin-improves-heart-function-in-middle-aged-companion-dogs/"
+                  className="font-medium text-emerald-700 hover:underline"
+                >
+                  Source: Texas A&M VetMed on prior rapamycin cardiac findings
+                </a>
+              </div>
             </CardContent>
           </Card>
           </AnimateIn>

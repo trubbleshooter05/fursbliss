@@ -111,7 +111,8 @@ function buildLoy002Status(age: number, weight: number) {
 }
 
 function dedupeConcerns(concerns: string[]) {
-  return [...new Set(concerns.map((c) => c.trim()).filter(Boolean))];
+  const cleaned = concerns.map((c) => c.trim()).filter(Boolean);
+  return cleaned.filter((value, index) => cleaned.indexOf(value) === index);
 }
 
 function buildNextSteps(input: {

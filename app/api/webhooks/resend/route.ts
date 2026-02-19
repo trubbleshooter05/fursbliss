@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import {
   pauseEnrollmentById,
   unsubscribeEnrollmentById,
@@ -6,6 +7,10 @@ import {
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+
+function toPrismaJson(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
 
 function normalizeEventType(payload: Record<string, unknown>) {
   const raw =
@@ -59,7 +64,7 @@ export async function POST(request: Request) {
       messageId,
       eventType,
       eventAt,
-      payloadJson: payload,
+      payloadJson: toPrismaJson(payload),
     },
   });
 

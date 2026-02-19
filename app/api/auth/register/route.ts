@@ -21,6 +21,7 @@ const registerSchema = z.object({
       weight: z.number().min(1).max(400),
       concerns: z.array(z.string()).max(8).optional().default([]),
     })
+    .nullable()
     .optional(),
 });
 

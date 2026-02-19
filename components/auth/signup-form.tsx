@@ -111,7 +111,7 @@ export function SignupForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...values,
-        quizSnapshot,
+        ...(quizSnapshot ? { quizSnapshot } : {}),
       }),
     });
 

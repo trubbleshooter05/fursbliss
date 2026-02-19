@@ -8,7 +8,7 @@ import { renderLongevityReadinessPdf } from "@/lib/reports/longevity-pdf";
 export const runtime = "nodejs";
 
 type RouteContext = {
-  params: {
+  params?: {
     quizId: string;
   };
 };
@@ -58,6 +58,15 @@ function asStringArray(value: unknown) {
     : [];
 }
 
+function resolveQuizId(request: Request, context?: RouteContext) {
+  if (context?.params?.quizId) {
+    return context.params.quizId;
+  }
+  const pathname = new URL(request.url).pathname;
+  const parts = pathname.split("/").filter(Boolean);
+  return parts[parts.length - 1] ?? "";
+}
+
 async function renderFallbackPdf(input: {
   dogName: string;
   breed: string;
@@ -100,7 +109,12 @@ async function renderFallbackPdf(input: {
   });
 }
 
-export async function GET(_request: Request, { params }: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const quizId = resolveQuizId(request, context);
+  if (!quizId) {
+    return NextResponse.json({ message: "Missing quiz id." }, { status: 400 });
+  }
+
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -108,7 +122,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
     }
 
     const submission = await prisma.quizSubmission.findUnique({
-      where: { id: params.quizId },
+      where: { id: quizId },
       select: {
         id: true,
         userId: true,
@@ -167,7 +181,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
       pdfBuffer = await renderLongevityReadinessPdf(payload);
     } catch (renderError) {
       console.error("[longevity-report] branded renderer failed; using fallback", {
-        quizId: params.quizId,
+        quizId,
         userId: session.user.id,
         error:
           renderError instanceof Error ? renderError.message : String(renderError),
@@ -194,7 +208,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
     });
   } catch (error) {
     console.error("[longevity-report] route failed", {
-      quizId: params.quizId,
+      quizId,
       error: error instanceof Error ? error.message : String(error),
     });
     return NextResponse.json(

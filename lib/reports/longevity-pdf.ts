@@ -17,6 +17,16 @@ function formatDate(iso: string) {
   });
 }
 
+function safePdfText(value: string) {
+  // PDFKit built-in fonts are WinAnsi; normalize dynamic text to avoid
+  // unsupported Unicode glyph crashes in production.
+  return value
+    .normalize("NFKD")
+    .replace(/[^\x20-\x7E\n]/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 export async function renderLongevityReadinessPdf(
   payload: LongevityReadinessReportPayload
 ) {
@@ -24,7 +34,7 @@ export async function renderLongevityReadinessPdf(
     size: "LETTER",
     margin: 42,
     info: {
-      Title: `${payload.dog.name} - Longevity Readiness Report`,
+      Title: `${safePdfText(payload.dog.name)} - Longevity Readiness Report`,
       Author: "FursBliss",
       Subject: "Dog Longevity Readiness Report",
     },
@@ -66,12 +76,16 @@ export async function renderLongevityReadinessPdf(
     .roundedRect(left, y, pageWidth, 58, 12)
     .fill(BRAND.mint)
     .restore();
-  doc.fillColor(BRAND.text).font("Helvetica-Bold").fontSize(12).text(payload.dog.name, left + 16, y + 14);
+  doc
+    .fillColor(BRAND.text)
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .text(safePdfText(payload.dog.name), left + 16, y + 14);
   doc
     .font("Helvetica")
     .fontSize(10.5)
     .text(
-      `${payload.dog.breed}  •  ${payload.dog.age} years  •  ${payload.dog.weight} lbs`,
+      `${safePdfText(payload.dog.breed)} | ${payload.dog.age} years | ${payload.dog.weight} lbs`,
       left + 16,
       y + 33
     );
@@ -91,7 +105,7 @@ export async function renderLongevityReadinessPdf(
     .fillColor(BRAND.text)
     .font("Helvetica")
     .fontSize(10.5)
-    .text(payload.longevityScore.interpretation, left + 130, y + 30, {
+    .text(safePdfText(payload.longevityScore.interpretation), left + 130, y + 30, {
       width: pageWidth - 140,
     });
 
@@ -113,12 +127,14 @@ export async function renderLongevityReadinessPdf(
     .fillColor(payload.loy002Eligibility.isEligible ? "#047857" : "#B45309")
     .font("Helvetica-Bold")
     .fontSize(12)
-    .text(payload.loy002Eligibility.statusLabel, left + 12, y + 34);
+    .text(safePdfText(payload.loy002Eligibility.statusLabel), left + 12, y + 34);
   doc
     .fillColor(BRAND.muted)
     .font("Helvetica")
     .fontSize(9.8)
-    .text(payload.loy002Eligibility.detail, left + 12, y + 54, { width: colWidth - 24 });
+    .text(safePdfText(payload.loy002Eligibility.detail), left + 12, y + 54, {
+      width: colWidth - 24,
+    });
 
   const rightColX = left + colWidth + colGap;
   doc
@@ -142,7 +158,9 @@ export async function renderLongevityReadinessPdf(
     .fillColor(BRAND.muted)
     .font("Helvetica")
     .fontSize(9.8)
-    .text(payload.breedLifespan.referenceLabel, rightColX + 12, y + 59, { width: colWidth - 24 });
+    .text(safePdfText(payload.breedLifespan.referenceLabel), rightColX + 12, y + 59, {
+      width: colWidth - 24,
+    });
 
   y += 114;
 
@@ -160,7 +178,7 @@ export async function renderLongevityReadinessPdf(
       .fillColor(BRAND.text)
       .font("Helvetica")
       .fontSize(10.4)
-      .text(step, left + 22, y, { width: pageWidth - 24 });
+      .text(safePdfText(step), left + 22, y, { width: pageWidth - 24 });
     y += 34;
   });
 
@@ -176,7 +194,9 @@ export async function renderLongevityReadinessPdf(
   doc
     .font("Helvetica")
     .fontSize(8.6)
-    .text(payload.disclaimer, left + 120, footerY, { width: pageWidth - 120 });
+    .text(safePdfText(payload.disclaimer), left + 120, footerY, {
+      width: pageWidth - 120,
+    });
 
   doc.end();
 

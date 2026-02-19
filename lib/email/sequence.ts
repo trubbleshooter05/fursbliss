@@ -10,10 +10,6 @@ function addDays(base: Date, days: number) {
   return new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
-function addMinutes(base: Date, minutes: number) {
-  return new Date(base.getTime() + minutes * 60 * 1000);
-}
-
 export async function enrollUserInWelcomeSequence(userId: string) {
   const existing = await prisma.emailSequenceEnrollment.findFirst({
     where: {
@@ -50,14 +46,12 @@ export async function enrollUserInWelcomeSequence(userId: string) {
           },
           {
             step: 2,
-            // Temporary testing schedule: +5 minutes (revert to +2 days after QA).
-            scheduledAt: addMinutes(startedAt, 5),
+            scheduledAt: addDays(startedAt, 2),
             status: EmailSequenceStepStatus.pending,
           },
           {
             step: 3,
-            // Temporary testing schedule: +10 minutes (revert to +5 days after QA).
-            scheduledAt: addMinutes(startedAt, 10),
+            scheduledAt: addDays(startedAt, 5),
             status: EmailSequenceStepStatus.pending,
           },
         ],

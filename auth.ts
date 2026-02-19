@@ -131,8 +131,9 @@ async function upsertGoogleUser(input: {
   name?: string | null;
   image?: string | null;
 }) {
+  const normalizedEmail = input.email.toLowerCase();
   const existing = await prisma.user.findUnique({
-    where: { email: input.email.toLowerCase() },
+    where: { email: normalizedEmail },
   });
 
   if (existing) {
@@ -159,7 +160,7 @@ async function upsertGoogleUser(input: {
   const placeholderPassword = await bcrypt.hash(crypto.randomBytes(24).toString("hex"), 10);
   const createdUser = await prisma.user.create({
     data: {
-      email: input.email.toLowerCase(),
+      email: normalizedEmail,
       name: input.name ?? null,
       image: input.image ?? null,
       emailVerified: new Date(),
@@ -178,7 +179,7 @@ async function upsertGoogleUser(input: {
   });
 
   console.info("[Meta CAPI] Google OAuth new user created; sending CompleteRegistration", {
-    email: input.email.toLowerCase(),
+    email: normalizedEmail,
   });
   const requestHeaders = new Headers(headers());
   const callbackRequest = new Request(
@@ -194,7 +195,7 @@ async function upsertGoogleUser(input: {
   });
 
   await prisma.quizSubmission.updateMany({
-    where: { email: createdUser.email.toLowerCase(), userId: null },
+    where: { email: normalizedEmail, userId: null },
     data: { userId: createdUser.id },
   });
   const hasLinkedQuiz =

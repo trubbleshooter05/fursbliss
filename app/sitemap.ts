@@ -1,45 +1,28 @@
 import type { MetadataRoute } from "next";
-import { breedPages } from "@/lib/breed-pages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
+  const base = "https://fursbliss.com";
   const now = new Date();
 
-  const staticRoutes = [
-    "",
-    "/pricing",
-    "/longevity-drugs",
+  const routes = [
+    "/",
     "/quiz",
+    "/pricing",
+    "/signup",
+    "/login",
     "/blog",
+    "/blog/loy-002-vs-rapamycin-triad-2026-update",
+    "/blog/how-to-spot-fake-dog-health-advice-social-media",
     "/breeds",
+    "/longevity-drugs",
     "/trends",
     "/community",
-    "/privacy",
-    "/terms",
-    "/invite",
-  ];
-  const blogRoutes = [
-    "/blog/loyal-series-c-100m-loy-002-update",
   ];
 
-  return [
-    ...staticRoutes.map((path) => ({
-      url: `${base}${path}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: path === "" ? 1 : 0.7,
-    })),
-    ...breedPages.map((page) => ({
-      url: `${base}/breeds/${page.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.65,
-    })),
-    ...blogRoutes.map((path) => ({
-      url: `${base}${path}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.75,
-    })),
-  ];
+  return routes.map((path) => ({
+    url: `${base}${path === "/" ? "" : path}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: path === "/" ? 1 : 0.8,
+  }));
 }

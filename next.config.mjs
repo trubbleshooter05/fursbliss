@@ -28,14 +28,6 @@ const nextConfig = {
       },
     ];
   },
-  async redirects() {
-    return [
-      { source: "/products/:path*", destination: "/", permanent: true },
-      { source: "/collections/:path*", destination: "/", permanent: true },
-      { source: "/pages/:path*", destination: "/", permanent: true },
-      { source: "/cart", destination: "/", permanent: true },
-    ];
-  },
 };
 
 export default nextConfig;

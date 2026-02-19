@@ -44,6 +44,20 @@ function safeFilename(value: string) {
     .slice(0, 60);
 }
 
+function asString(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+
+function asNumber(value: unknown, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function asStringArray(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
 async function renderFallbackPdf(input: {
   dogName: string;
   breed: string;
@@ -128,13 +142,22 @@ export async function GET(_request: Request, { params }: RouteContext) {
       select: { averageLifespan: true },
     });
 
+    const normalizedSubmission = {
+      dogName: asString(submission.dogName, "Your Dog"),
+      breed: asString(submission.breed, "Mixed Breed"),
+      age: asNumber(submission.age, 8),
+      weight: asNumber(submission.weight, 40),
+      concerns: asStringArray(submission.concerns),
+      score: asNumber(submission.score, 55),
+    };
+
     const payload = buildLongevityReadinessReportPayload({
-      dogName: submission.dogName,
-      breed: submission.breed,
-      age: submission.age,
-      weight: submission.weight,
-      concerns: submission.concerns,
-      score: submission.score,
+      dogName: normalizedSubmission.dogName,
+      breed: normalizedSubmission.breed,
+      age: normalizedSubmission.age,
+      weight: normalizedSubmission.weight,
+      concerns: normalizedSubmission.concerns,
+      score: normalizedSubmission.score,
       breedAverageLifespan: breedProfile?.averageLifespan ?? null,
     });
 
@@ -150,16 +173,16 @@ export async function GET(_request: Request, { params }: RouteContext) {
           renderError instanceof Error ? renderError.message : String(renderError),
       });
       pdfBuffer = await renderFallbackPdf({
-        dogName: submission.dogName,
-        breed: submission.breed,
-        age: submission.age,
-        weight: submission.weight,
-        score: submission.score,
+        dogName: normalizedSubmission.dogName,
+        breed: normalizedSubmission.breed,
+        age: normalizedSubmission.age,
+        weight: normalizedSubmission.weight,
+        score: normalizedSubmission.score,
         eligibility: payload.loy002Eligibility.statusLabel,
         nextSteps: payload.nextSteps,
       });
     }
-    const reportName = `${safeFilename(submission.dogName)}-longevity-readiness-report.pdf`;
+    const reportName = `${safeFilename(normalizedSubmission.dogName)}-longevity-readiness-report.pdf`;
 
     return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,

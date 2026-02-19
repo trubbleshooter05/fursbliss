@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { getProviders, signIn } from "next-auth/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -27,6 +28,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [googleEnabled, setGoogleEnabled] = useState(true);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -86,8 +88,33 @@ export function LoginForm() {
   };
 
   const onGoogleSignIn = async () => {
+    if (!googleEnabled) {
+      toast({
+        title: "Google sign-in unavailable",
+        description:
+          "Google auth is not enabled in this environment. Use email sign-in for now.",
+        variant: "destructive",
+      });
+      return;
+    }
     await signIn("google", { callbackUrl: "/dashboard" });
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    void getProviders()
+      .then((providers) => {
+        if (!isMounted) return;
+        setGoogleEnabled(Boolean(providers?.google));
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setGoogleEnabled(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <Form {...form}>
@@ -97,9 +124,9 @@ export function LoginForm() {
           variant="outline"
           className="w-full"
           onClick={onGoogleSignIn}
-          disabled={form.formState.isSubmitting}
+          disabled={form.formState.isSubmitting || !googleEnabled}
         >
-          Continue with Google
+          {googleEnabled ? "Continue with Google" : "Google sign-in unavailable"}
         </Button>
         <p className="text-center text-xs text-muted-foreground">or use email</p>
         <FormField

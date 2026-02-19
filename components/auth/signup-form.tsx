@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { signIn } from "next-auth/react";
+import { getProviders, signIn } from "next-auth/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -41,6 +41,7 @@ export function SignupForm() {
   const { toast } = useToast();
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
   const [quizSnapshot, setQuizSnapshot] = useState<QuizSnapshot | null>(null);
+  const [googleEnabled, setGoogleEnabled] = useState(true);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -88,6 +89,22 @@ export function SignupForm() {
     }
   }, [searchParams, form]);
 
+  useEffect(() => {
+    let isMounted = true;
+    void getProviders()
+      .then((providers) => {
+        if (!isMounted) return;
+        setGoogleEnabled(Boolean(providers?.google));
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setGoogleEnabled(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const onSubmit = async (values: FormValues) => {
     const response = await fetch("/api/auth/register", {
       method: "POST",
@@ -131,6 +148,15 @@ export function SignupForm() {
   };
 
   const onGoogleSignUp = async () => {
+    if (!googleEnabled) {
+      toast({
+        title: "Google sign-in unavailable",
+        description:
+          "Google auth is not enabled in this environment. Use email signup for now.",
+        variant: "destructive",
+      });
+      return;
+    }
     await signIn("google", { callbackUrl: "/dashboard" });
   };
 
@@ -151,9 +177,9 @@ export function SignupForm() {
             variant="outline"
             className="w-full"
             onClick={onGoogleSignUp}
-            disabled={form.formState.isSubmitting}
+            disabled={form.formState.isSubmitting || !googleEnabled}
           >
-            Continue with Google
+            {googleEnabled ? "Continue with Google" : "Google sign-up unavailable"}
           </Button>
           <p className="text-center text-xs text-muted-foreground">or create with email</p>
           <FormField

@@ -5,8 +5,8 @@
       "schedule": "0 9 * * *"
     },
     {
-      "path": "/api/cron/email-sequence",
-      "schedule": "0 14 * * *"
+      "path": "/api/cron/email-drip",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

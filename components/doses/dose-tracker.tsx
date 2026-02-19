@@ -207,13 +207,13 @@ export function DoseTracker({
             <Card className="w-full max-w-xs rounded-2xl border-accent bg-card">
               <CardContent className="space-y-3 p-5 text-center">
                 <p className="font-display text-xl text-foreground">
-                  Unlock dosing reminders with Premium
+                  Get prepared before launch day
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Free plan includes one active dose schedule. Upgrade for unlimited schedules.
+                  Free users get notified. Premium users get prepared with full medication history and unlimited schedules.
                 </p>
                 <Button asChild className="w-full">
-                  <a href="/pricing">Upgrade to Premium</a>
+                  <a href="/pricing">Get prepared with Premium</a>
                 </Button>
               </CardContent>
             </Card>

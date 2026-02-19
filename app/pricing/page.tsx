@@ -6,14 +6,14 @@ const SHARE_IMAGE_URL = "/opengraph-image";
 export const metadata: Metadata = {
   title: "FursBliss Pricing | Free and Premium Dog Longevity Plans",
   description:
-    "Compare FursBliss Free and Premium plans for dog longevity tracking, AI insights, interaction checks, and vet-ready reports.",
+    "Compare Free vs Premium for LOY-002 launch readiness. Free users get notified. Premium users get prepared with vet-ready history and verification.",
   alternates: {
     canonical: "/pricing",
   },
   openGraph: {
     title: "FursBliss Pricing | Free and Premium Dog Longevity Plans",
     description:
-      "Compare FursBliss Free and Premium plans for dog longevity tracking, AI insights, interaction checks, and vet-ready reports.",
+      "Compare Free vs Premium for LOY-002 launch readiness. Free users get notified. Premium users get prepared with vet-ready history and verification.",
     url: "/pricing",
     type: "website",
     images: [SHARE_IMAGE_URL],

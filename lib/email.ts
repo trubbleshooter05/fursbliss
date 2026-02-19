@@ -5,6 +5,7 @@ type EmailPayload = {
   subject: string;
   html: string;
   text: string;
+  idempotencyKey?: string;
 };
 
 const resendApiKey = process.env.RESEND_API_KEY;
@@ -15,18 +16,27 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
 export async function sendEmail(payload: EmailPayload) {
   if (!resend) {
     console.warn("Resend not configured. Skipping email send.");
-    return { queued: false };
+    return { queued: false, messageId: null as string | null };
   }
 
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: resendFrom,
     to: payload.to,
     subject: payload.subject,
     html: payload.html,
     text: payload.text,
+    headers: payload.idempotencyKey
+      ? {
+          "Idempotency-Key": payload.idempotencyKey,
+        }
+      : undefined,
   });
 
-  return { queued: true };
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+
+  return { queued: true, messageId: result.data?.id ?? null };
 }
 
 export async function sendVerificationEmail(email: string, verifyUrl: string) {

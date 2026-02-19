@@ -174,7 +174,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 {isPremium ? "Premium" : "Free"}
               </Badge>
               <span className="text-sm text-muted-foreground">
-                {isPremium ? "Unlimited access" : "Basic tracking"}
+                {isPremium
+                  ? "Prepared before launch day"
+                  : "Get notified when LOY-002 launches"}
               </span>
             </div>
             {isPremium ? <p className="text-xs text-muted-foreground">{billingLabel}</p> : null}
@@ -185,8 +187,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             ) : (
               <div className="space-y-2">
                 <Button className="hover:scale-[1.02] transition-all duration-300" asChild>
-                  <Link href="/pricing">Upgrade to Premium</Link>
+                  <Link href="/pricing">Get prepared before launch day</Link>
                 </Button>
+                <p className="text-xs text-muted-foreground">
+                  Free users get notified. Premium users get prepared.
+                </p>
                 <Button
                   variant="outline"
                   className="hover:scale-[1.02] transition-all duration-300"

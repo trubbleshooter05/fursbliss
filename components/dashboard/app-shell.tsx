@@ -92,12 +92,12 @@ export function AppShell({ children, user, pets = [] }: AppShellProps) {
           </nav>
           {user.subscriptionStatus !== "premium" && (
             <div className="mt-6 rounded-2xl border border-accent/40 bg-accent/10 p-4 text-sm text-foreground">
-              <p className="font-semibold">Premium ready</p>
+              <p className="font-semibold">LOY-002 priority readiness</p>
               <p className="mt-2 text-xs text-muted-foreground">
-                Upgrade for unlimited pets, AI insights, and vet-ready reports.
+                Free users get notified. Premium users get prepared with vet-ready history and verification.
               </p>
               <Button size="sm" className="mt-3 w-full hover:scale-[1.02] transition-all duration-300" asChild>
-                <Link href="/pricing">Upgrade</Link>
+                <Link href="/pricing">Get prepared before launch day</Link>
               </Button>
             </div>
           )}
@@ -156,7 +156,9 @@ export function AppShell({ children, user, pets = [] }: AppShellProps) {
                 <PawPrint className="h-5 w-5" />
               </div>
               <p className="text-sm text-muted-foreground">
-                {user.subscriptionStatus === "premium" ? "Premium plan" : "Free plan"}
+                {user.subscriptionStatus === "premium"
+                  ? "Premium plan - prepared before launch"
+                  : "Free plan - launch notifications"}
               </p>
             </div>
             <UserMenu name={user.name} email={user.email} />

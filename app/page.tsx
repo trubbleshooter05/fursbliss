@@ -20,6 +20,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { CountUp } from "@/components/ui/count-up";
 import { HeroDashboardMock } from "@/components/hero/hero-dashboard-mock";
+import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
 
 const features = [
   {
@@ -67,28 +68,28 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    description: "Daily tracking for one pet and the essentials.",
+    description: "Get notified when LOY-002 launches.",
     features: [
       "1 pet profile",
       "Unlimited daily health logs",
       "3 AI recommendations per month",
-      "Weight + gut health tracking",
+      "LOY-002 launch updates",
     ],
-    cta: "Get Started Free",
+    cta: "Get notified",
     href: "/signup",
     highlight: false,
   },
   {
     name: "Premium",
     price: "$9",
-    description: "Unlimited pets, unlimited AI, advanced longevity tools.",
+    description: "Get prepared before launch day.",
     features: [
-      "Unlimited pets + AI",
-      "Interaction checker",
-      "Vet-shareable reports",
-      "Photo progress + reminders",
+      "Complete health history for your vet",
+      "Vet-ready documentation and reports",
+      "Tracked LOY-002 eligibility over time",
+      "AI-powered interaction checker",
     ],
-    cta: "Upgrade to Premium",
+    cta: "Get prepared",
     href: "/pricing",
     highlight: true,
   },
@@ -154,6 +155,7 @@ export default async function Home() {
   if (session?.user) {
     redirect("/dashboard");
   }
+  const latestResearchPosts = getBlogPostsSortedByDateDesc().slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -438,7 +440,7 @@ export default async function Home() {
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Pricing</p>
             <h2 className="text-4xl font-display text-foreground md:text-5xl">Simple plans for every pet family</h2>
             <p className="text-muted-foreground">
-              Start free and upgrade when you want unlimited AI and premium longevity tools.
+              Free users get notified. Premium users get prepared.
             </p>
           </AnimateIn>
           <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-2">
@@ -537,6 +539,48 @@ export default async function Home() {
             </div>
           </section>
         </AnimateIn>
+
+        <section className="space-y-6">
+          <AnimateIn className="space-y-3">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
+              Latest Research
+            </p>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-3xl font-display text-foreground md:text-4xl">
+                Fresh longevity updates for dog owners
+              </h2>
+              <Button variant="outline" asChild>
+                <Link href="/blog">View all posts</Link>
+              </Button>
+            </div>
+          </AnimateIn>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {latestResearchPosts.map((post, index) => (
+              <AnimateIn key={post.slug} delay={index * 0.08}>
+                <Card className="h-full rounded-2xl border border-border bg-card">
+                  <CardHeader className="space-y-2">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                      {new Date(post.date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                    <CardTitle className="font-display text-2xl leading-tight">
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        className="transition-colors hover:text-primary"
+                      >
+                        {post.title}
+                      </Link>
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">{post.excerpt}</p>
+                  </CardHeader>
+                </Card>
+              </AnimateIn>
+            ))}
+          </div>
+        </section>
       </main>
       <SiteFooter />
     </div>

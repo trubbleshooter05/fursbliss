@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
 
@@ -27,24 +28,9 @@ export const metadata: Metadata = {
   },
 };
 
-const posts = [
-  {
-    slug: "how-to-spot-fake-dog-health-advice-social-media",
-    title: "How to Spot Fake Dog Health Advice on Social Media",
-    excerpt:
-      "How to spot scammy supplement claims fast, including the recent mushroom-viral pattern, and use FursBliss checks as a safer next step.",
-    date: "Feb 8, 2026",
-  },
-  {
-    slug: "loy-002-vs-rapamycin-triad-2026-update",
-    title: "LOY-002 vs Rapamycin: Two Paths to Dog Longevity",
-    excerpt:
-      "How Loyal's LOY-002 program compares with Dog Aging Project's TRIAD rapamycin trial across mechanism, eligibility, timeline, and availability.",
-    date: "Feb 14, 2026",
-  },
-];
-
 export default function BlogIndexPage() {
+  const posts = getBlogPostsSortedByDateDesc();
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -63,7 +49,11 @@ export default function BlogIndexPage() {
             <Card key={post.slug} className="rounded-2xl border-border bg-card">
               <CardHeader className="space-y-2">
                 <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  {post.date}
+                  {new Date(post.date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </p>
                 <CardTitle className="font-display text-2xl">
                   <Link href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">

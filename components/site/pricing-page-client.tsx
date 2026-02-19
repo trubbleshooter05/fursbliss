@@ -14,29 +14,28 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    description: "Daily tracking for one pet and the essentials.",
+    description: "Get notified when LOY-002 launches.",
     features: [
       "1 pet profile",
       "Unlimited daily health logs",
       "3 AI recommendations per month",
-      "Weight + gut health tracking",
+      "LOY-002 launch updates",
     ],
-    cta: "Get Started",
+    cta: "Get notified for LOY-002 launch",
     href: "/signup",
     highlight: false,
   },
   {
     name: "Premium",
     price: "$9",
-    description: "Unlimited pets, unlimited AI, advanced longevity tools.",
+    description: "Get prepared before launch day.",
     features: [
-      "Unlimited pets + logs",
-      "Unlimited AI recommendations",
-      "Supplement interaction checker",
-      "Vet-ready PDF reports",
-      "Photo progress + reminders",
+      "Complete health history your vet can review on day one",
+      "Vet-ready documentation and longevity reports",
+      "LOY-002 eligibility verification tracked over time",
+      "AI-powered interaction checker for medications and supplements",
     ],
-    cta: "Subscribe monthly",
+    cta: "Get prepared before launch day",
     href: "/api/stripe/checkout?plan=monthly",
     highlight: true,
   },
@@ -44,12 +43,13 @@ const plans = [
 
 const comparisonRows = [
   { feature: "Pet profiles", free: "1 pet", premium: "Unlimited pets" },
-  { feature: "Daily health logs", free: "Unlimited", premium: "Unlimited" },
+  { feature: "Daily health logs", free: "Unlimited", premium: "Unlimited with readiness history" },
   { feature: "AI recommendations", free: "3 / month", premium: "Unlimited" },
-  { feature: "Supplement interaction checks", free: "Limited", premium: "Unlimited" },
-  { feature: "Vet-ready PDF reports", free: "Preview only", premium: "Full export + sharing" },
-  { feature: "Photo progress tracking", free: "Basic", premium: "Unlimited + comparisons" },
-  { feature: "Dosing reminders", free: "View only", premium: "Active reminders + logs" },
+  { feature: "LOY-002 launch updates", free: "Included", premium: "Included" },
+  { feature: "LOY-002 readiness verification", free: "Basic status view", premium: "Tracked over time" },
+  { feature: "Supplement interaction checks", free: "Limited", premium: "Unlimited AI-powered checks" },
+  { feature: "Vet-ready reports", free: "Preview only", premium: "Full export + sharing" },
+  { feature: "Preparation outcome", free: "Get notified", premium: "Get prepared before launch day" },
 ];
 
 export function PricingPageClient() {
@@ -60,7 +60,7 @@ export function PricingPageClient() {
       return {
         amount: "$79",
         suffix: "/ year",
-        cta: "Subscribe yearly",
+        cta: "Get prepared before launch day",
         href: "/api/stripe/checkout?plan=yearly",
       };
     }
@@ -68,7 +68,7 @@ export function PricingPageClient() {
     return {
       amount: "$9",
       suffix: "/ month",
-      cta: "Subscribe monthly",
+      cta: "Get prepared before launch day",
       href: "/api/stripe/checkout?plan=monthly",
     };
   }, [billingPeriod]);
@@ -82,10 +82,10 @@ export function PricingPageClient() {
             Pricing
           </p>
           <h1 className="font-display text-4xl tracking-[-0.03em] text-foreground sm:text-5xl md:text-6xl">
-            Plans for every pet family
+            LOY-002 readiness plans for every pet family
           </h1>
           <p className="mx-auto max-w-3xl text-muted-foreground">
-            Choose a plan that matches your pet wellness goals. Upgrade anytime.
+            Free users get notified. Premium users get prepared.
           </p>
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-card p-1 text-xs sm:text-sm">
             <button
@@ -210,6 +210,9 @@ export function PricingPageClient() {
             <h2 className="font-display text-3xl tracking-[-0.02em] text-foreground">
               Exactly what you get on each plan
             </h2>
+            <p className="text-sm text-muted-foreground">
+              Built for the LOY-002 launch moment: notification for Free, preparation for Premium.
+            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] border-collapse text-sm">

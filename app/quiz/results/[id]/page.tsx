@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShareScoreButton } from "@/components/quiz/share-score-button";
+import { ResultsDownloadReport } from "@/components/quiz/results-download-report";
 import { LoyNotifyForm } from "@/components/longevity/loy-notify-form";
 import { buildQuizRecommendations } from "@/lib/quiz";
 import { prisma } from "@/lib/prisma";
@@ -21,6 +23,7 @@ type PageProps = {
 };
 
 export default async function QuizResultsPage({ params }: PageProps) {
+  const session = await auth();
   const submission = await prisma.quizSubmission.findUnique({
     where: { id: params.id },
   });
@@ -47,6 +50,15 @@ export default async function QuizResultsPage({ params }: PageProps) {
     0,
     (breedProfile?.averageLifespan ?? 12) - submission.age
   );
+  const isSignedIn = Boolean(session?.user?.id);
+  const ownsQuiz = Boolean(session?.user?.id && submission.userId === session.user.id);
+  const signupFromQuizHref = `/signup?fromQuiz=1&quizId=${submission.id}&dogName=${encodeURIComponent(
+    submission.dogName
+  )}&breed=${encodeURIComponent(submission.breed)}&age=${submission.age}&weight=${
+    submission.weight
+  }&concerns=${encodeURIComponent(submission.concerns.join(","))}&email=${encodeURIComponent(
+    submission.email
+  )}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,23 +135,12 @@ export default async function QuizResultsPage({ params }: PageProps) {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card className="rounded-2xl border-emerald-200 bg-white">
-              <CardContent className="space-y-3 p-4">
-                <Button asChild className="min-h-11 w-full">
-                  <Link
-                    href={`/signup?fromQuiz=1&quizId=${submission.id}&dogName=${encodeURIComponent(
-                      submission.dogName
-                    )}&breed=${encodeURIComponent(submission.breed)}&age=${
-                      submission.age
-                    }&weight=${submission.weight}&concerns=${encodeURIComponent(
-                      submission.concerns.join(",")
-                    )}&email=${encodeURIComponent(submission.email)}`}
-                  >
-                    Create Free Account - Save your results, track health signals, get LOY-002 updates
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+            <ResultsDownloadReport
+              quizId={submission.id}
+              isSignedIn={isSignedIn}
+              ownsQuiz={ownsQuiz}
+              signupHref={signupFromQuizHref}
+            />
             <Card className="rounded-2xl border-border bg-white">
               <CardContent className="space-y-3 p-4">
                 <LoyNotifyForm

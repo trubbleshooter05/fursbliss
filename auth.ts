@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getEffectiveSubscriptionStatus } from "@/lib/subscription";
 import { generateReferralCode } from "@/lib/auth-tokens";
 import { sendMetaConversionEvent } from "@/lib/meta-conversions";
+import { enrollUserInWelcomeSequence } from "@/lib/email/sequence";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -191,6 +192,18 @@ async function upsertGoogleUser(input: {
     email: input.email,
     request: callbackRequest,
   });
+
+  await prisma.quizSubmission.updateMany({
+    where: { email: createdUser.email.toLowerCase(), userId: null },
+    data: { userId: createdUser.id },
+  });
+  const hasLinkedQuiz =
+    (await prisma.quizSubmission.count({
+      where: { userId: createdUser.id },
+    })) > 0;
+  if (hasLinkedQuiz) {
+    await enrollUserInWelcomeSequence(createdUser.id);
+  }
 
   return createdUser;
 }

@@ -9,6 +9,20 @@ datasource db {
   provider = "postgresql"
 }
 
+enum EmailSequenceEnrollmentStatus {
+  active
+  paused
+  completed
+  unsubscribed
+}
+
+enum EmailSequenceStepStatus {
+  pending
+  sent
+  failed
+  skipped
+}
+
 model User {
   id                 String   @id @default(cuid())
   email              String   @unique
@@ -33,6 +47,7 @@ model User {
   notifications      Notification[]
   referrals          Referral[]
   quizSubmissions    QuizSubmission[]
+  emailSequenceEnrollments EmailSequenceEnrollment[]
 }
 
 model Pet {
@@ -358,4 +373,49 @@ model QuizStepEvent {
   @@index([sessionId, timestamp])
   @@index([stepNumber, timestamp])
   @@map("quiz_step_events")
+}
+
+model EmailSequenceEnrollment {
+  id           String                        @id @default(cuid())
+  userId       String
+  user         User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sequenceType String                        @default("welcome_v1")
+  status       EmailSequenceEnrollmentStatus @default(active)
+  startedAt    DateTime                      @default(now())
+  completedAt  DateTime?
+  nextSendAt   DateTime?
+  createdAt    DateTime                      @default(now())
+  updatedAt    DateTime                      @updatedAt
+  steps        EmailSequenceStep[]
+
+  @@index([userId, sequenceType, status])
+}
+
+model EmailSequenceStep {
+  id              String                  @id @default(cuid())
+  enrollmentId    String
+  enrollment      EmailSequenceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  step            Int
+  scheduledAt     DateTime
+  sentAt          DateTime?
+  status          EmailSequenceStepStatus @default(pending)
+  resendMessageId String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([enrollmentId, step])
+  @@index([resendMessageId])
+}
+
+model EmailEvent {
+  id         String   @id @default(cuid())
+  messageId  String
+  eventType  String
+  eventAt    DateTime @default(now())
+  payloadJson Json
+  createdAt  DateTime @default(now())
+
+  @@index([messageId])
+  @@index([eventType, eventAt])
 }

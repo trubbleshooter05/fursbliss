@@ -6,6 +6,7 @@ import { createVerificationToken, generateReferralCode } from "@/lib/auth-tokens
 import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { sendMetaConversionEvent } from "@/lib/meta-conversions";
+import { enrollUserInWelcomeSequence } from "@/lib/email/sequence";
 
 const registerSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(320),
@@ -159,10 +160,20 @@ export async function POST(request: Request) {
       }
     }
 
-    await prisma.quizSubmission.updateMany({
+    const linkedQuizResults = await prisma.quizSubmission.updateMany({
       where: { email: user.email, userId: null },
       data: { userId: user.id },
     });
+
+    const hasLinkedQuiz =
+      linkedQuizResults.count > 0 ||
+      (await prisma.quizSubmission.count({
+        where: { userId: user.id },
+      })) > 0;
+
+    if (hasLinkedQuiz) {
+      await enrollUserInWelcomeSequence(user.id);
+    }
 
     const verificationToken = await createVerificationToken(user.email);
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;

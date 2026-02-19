@@ -140,7 +140,7 @@ async function upsertGoogleUser(input: {
     console.info("[Meta CAPI] Google OAuth existing user; skipping CompleteRegistration CAPI", {
       email: input.email.toLowerCase(),
     });
-    return prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: existing.id },
       data: {
         name: input.name ?? existing.name,
@@ -155,6 +155,20 @@ async function upsertGoogleUser(input: {
         subscriptionEndsAt: true,
       },
     });
+
+    await prisma.quizSubmission.updateMany({
+      where: { email: normalizedEmail, userId: null },
+      data: { userId: updatedUser.id },
+    });
+    const hasLinkedQuiz =
+      (await prisma.quizSubmission.count({
+        where: { userId: updatedUser.id },
+      })) > 0;
+    if (hasLinkedQuiz) {
+      await enrollUserInWelcomeSequence(updatedUser.id);
+    }
+
+    return updatedUser;
   }
 
   const placeholderPassword = await bcrypt.hash(crypto.randomBytes(24).toString("hex"), 10);

@@ -1,12 +1,21 @@
-import PDFDocument from "pdfkit";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFFont,
+  type PDFPage,
+} from "pdf-lib";
 import type { LongevityReadinessReportPayload } from "@/lib/longevity/report";
 
 const BRAND = {
-  teal: "#0D6E6E",
-  mint: "#E6F6F3",
-  text: "#111827",
-  muted: "#6B7280",
-  accent: "#E8A838",
+  teal: rgb(13 / 255, 110 / 255, 110 / 255),
+  mint: rgb(230 / 255, 246 / 255, 243 / 255),
+  text: rgb(17 / 255, 24 / 255, 39 / 255),
+  muted: rgb(107 / 255, 114 / 255, 128 / 255),
+  accent: rgb(232 / 255, 168 / 255, 56 / 255),
+  white: rgb(1, 1, 1),
+  border: rgb(229 / 255, 231 / 255, 235 / 255),
+  slate100: rgb(248 / 255, 250 / 255, 252 / 255),
 };
 
 function formatDate(iso: string) {
@@ -27,180 +36,282 @@ function safePdfText(value: string) {
     .trim();
 }
 
+function drawTextBlock(params: {
+  page: PDFPage;
+  text: string;
+  x: number;
+  y: number;
+  maxWidth: number;
+  lineHeight: number;
+  size: number;
+  font: PDFFont;
+  color: ReturnType<typeof rgb>;
+}) {
+  const { page, text, x, y, maxWidth, lineHeight, size, font, color } = params;
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    const width = font.widthOfTextAtSize(candidate, size);
+    if (width <= maxWidth) {
+      current = candidate;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+
+  let cursorY = y;
+  for (const line of lines) {
+    page.drawText(line, { x, y: cursorY, size, font, color });
+    cursorY -= lineHeight;
+  }
+  return cursorY;
+}
+
 export async function renderLongevityReadinessPdf(
   payload: LongevityReadinessReportPayload
 ) {
-  const doc = new PDFDocument({
-    size: "LETTER",
-    margin: 42,
-    info: {
-      Title: `${safePdfText(payload.dog.name)} - Longevity Readiness Report`,
-      Author: "FursBliss",
-      Subject: "Dog Longevity Readiness Report",
-    },
-  });
+  const pdfDoc = await PDFDocument.create();
+  pdfDoc.setTitle(`${safePdfText(payload.dog.name)} - Longevity Readiness Report`);
+  pdfDoc.setAuthor("FursBliss");
+  pdfDoc.setSubject("Dog Longevity Readiness Report");
 
-  const chunks: Uint8Array[] = [];
-  doc.on("data", (chunk) => chunks.push(chunk));
+  const page = pdfDoc.addPage([612, 792]); // US Letter
+  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-  const left = doc.page.margins.left;
+  const left = 42;
+  const pageWidth = 612 - 84;
+  let y = 750;
 
   // Header
-  doc
-    .save()
-    .roundedRect(left, 32, pageWidth, 82, 14)
-    .fill(BRAND.teal)
-    .restore();
+  page.drawRectangle({
+    x: left,
+    y: y - 64,
+    width: pageWidth,
+    height: 64,
+    color: BRAND.teal,
+  });
+  page.drawText("FursBliss", { x: left + 16, y: y - 28, font: bold, size: 22, color: BRAND.white });
+  page.drawText("Longevity Readiness Report", {
+    x: left + 16,
+    y: y - 45,
+    font: regular,
+    size: 11,
+    color: BRAND.white,
+  });
+  page.drawText(`Generated ${formatDate(payload.generatedAtIso)}`, {
+    x: left + pageWidth - 140,
+    y: y - 30,
+    font: regular,
+    size: 10,
+    color: BRAND.white,
+  });
 
-  doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(21).text("FursBliss", left + 18, 50);
-  doc
-    .font("Helvetica")
-    .fontSize(11)
-    .text("Longevity Readiness Report", left + 18, 77);
-
-  doc
-    .font("Helvetica")
-    .fontSize(10)
-    .fillColor("#D1FAF5")
-    .text(`Generated ${formatDate(payload.generatedAtIso)}`, left + pageWidth - 140, 53, {
-      align: "right",
-      width: 120,
-    });
-
-  let y = 128;
+  y -= 84;
 
   // Dog profile strip
-  doc
-    .save()
-    .roundedRect(left, y, pageWidth, 58, 12)
-    .fill(BRAND.mint)
-    .restore();
-  doc
-    .fillColor(BRAND.text)
-    .font("Helvetica-Bold")
-    .fontSize(12)
-    .text(safePdfText(payload.dog.name), left + 16, y + 14);
-  doc
-    .font("Helvetica")
-    .fontSize(10.5)
-    .text(
-      `${safePdfText(payload.dog.breed)} | ${payload.dog.age} years | ${payload.dog.weight} lbs`,
-      left + 16,
-      y + 33
-    );
+  page.drawRectangle({
+    x: left,
+    y: y - 52,
+    width: pageWidth,
+    height: 52,
+    color: BRAND.mint,
+  });
+  page.drawText(safePdfText(payload.dog.name), {
+    x: left + 14,
+    y: y - 22,
+    font: bold,
+    size: 12,
+    color: BRAND.text,
+  });
+  page.drawText(
+    `${safePdfText(payload.dog.breed)} | ${payload.dog.age} years | ${payload.dog.weight} lbs`,
+    { x: left + 14, y: y - 38, font: regular, size: 10, color: BRAND.text }
+  );
 
-  y += 76;
+  y -= 72;
 
-  // Score block
-  doc.fillColor(BRAND.text).font("Helvetica-Bold").fontSize(13).text("Longevity Readiness Score", left, y);
-  doc
-    .save()
-    .roundedRect(left, y + 20, 110, 54, 10)
-    .fill("#F8FAFC")
-    .restore();
-  doc.fillColor(BRAND.teal).font("Helvetica-Bold").fontSize(27).text(String(payload.longevityScore.value), left + 18, y + 34);
-  doc.fillColor(BRAND.muted).font("Helvetica").fontSize(10).text("/ 100", left + 70, y + 46);
-  doc
-    .fillColor(BRAND.text)
-    .font("Helvetica")
-    .fontSize(10.5)
-    .text(safePdfText(payload.longevityScore.interpretation), left + 130, y + 30, {
-      width: pageWidth - 140,
-    });
+  page.drawText("Longevity Readiness Score", {
+    x: left,
+    y,
+    font: bold,
+    size: 13,
+    color: BRAND.text,
+  });
+  page.drawRectangle({
+    x: left,
+    y: y - 54,
+    width: 110,
+    height: 42,
+    color: BRAND.slate100,
+    borderColor: BRAND.border,
+    borderWidth: 1,
+  });
+  page.drawText(String(payload.longevityScore.value), {
+    x: left + 16,
+    y: y - 38,
+    font: bold,
+    size: 26,
+    color: BRAND.teal,
+  });
+  page.drawText("/100", {
+    x: left + 70,
+    y: y - 31,
+    font: regular,
+    size: 10,
+    color: BRAND.muted,
+  });
+  drawTextBlock({
+    page,
+    text: safePdfText(payload.longevityScore.interpretation),
+    x: left + 126,
+    y: y - 18,
+    maxWidth: pageWidth - 126,
+    lineHeight: 13,
+    size: 10.5,
+    font: regular,
+    color: BRAND.text,
+  });
 
-  y += 90;
+  y -= 80;
 
-  // Eligibility and lifespan two-column
   const colGap = 14;
   const colWidth = (pageWidth - colGap) / 2;
 
-  doc
-    .save()
-    .roundedRect(left, y, colWidth, 94, 10)
-    .strokeColor("#D1D5DB")
-    .lineWidth(1)
-    .stroke()
-    .restore();
-  doc.fillColor(BRAND.text).font("Helvetica-Bold").fontSize(11.5).text("LOY-002 Eligibility Status", left + 12, y + 12);
-  doc
-    .fillColor(payload.loy002Eligibility.isEligible ? "#047857" : "#B45309")
-    .font("Helvetica-Bold")
-    .fontSize(12)
-    .text(safePdfText(payload.loy002Eligibility.statusLabel), left + 12, y + 34);
-  doc
-    .fillColor(BRAND.muted)
-    .font("Helvetica")
-    .fontSize(9.8)
-    .text(safePdfText(payload.loy002Eligibility.detail), left + 12, y + 54, {
-      width: colWidth - 24,
-    });
+  page.drawRectangle({
+    x: left,
+    y: y - 88,
+    width: colWidth,
+    height: 88,
+    borderColor: BRAND.border,
+    borderWidth: 1,
+  });
+  page.drawText("LOY-002 Eligibility Status", {
+    x: left + 10,
+    y: y - 18,
+    font: bold,
+    size: 11.5,
+    color: BRAND.text,
+  });
+  page.drawText(safePdfText(payload.loy002Eligibility.statusLabel), {
+    x: left + 10,
+    y: y - 36,
+    font: bold,
+    size: 12,
+    color: payload.loy002Eligibility.isEligible
+      ? rgb(4 / 255, 120 / 255, 87 / 255)
+      : rgb(180 / 255, 83 / 255, 9 / 255),
+  });
+  drawTextBlock({
+    page,
+    text: safePdfText(payload.loy002Eligibility.detail),
+    x: left + 10,
+    y: y - 52,
+    maxWidth: colWidth - 20,
+    lineHeight: 12,
+    size: 9.5,
+    font: regular,
+    color: BRAND.muted,
+  });
 
   const rightColX = left + colWidth + colGap;
-  doc
-    .save()
-    .roundedRect(rightColX, y, colWidth, 94, 10)
-    .strokeColor("#D1D5DB")
-    .lineWidth(1)
-    .stroke()
-    .restore();
-  doc
-    .fillColor(BRAND.text)
-    .font("Helvetica-Bold")
-    .fontSize(11.5)
-    .text("Breed Lifespan Reference", rightColX + 12, y + 12);
-  doc
-    .fillColor(BRAND.text)
-    .font("Helvetica-Bold")
-    .fontSize(16)
-    .text(`${payload.breedLifespan.averageYears.toFixed(1)} years avg`, rightColX + 12, y + 35);
-  doc
-    .fillColor(BRAND.muted)
-    .font("Helvetica")
-    .fontSize(9.8)
-    .text(safePdfText(payload.breedLifespan.referenceLabel), rightColX + 12, y + 59, {
-      width: colWidth - 24,
-    });
-
-  y += 114;
-
-  // Next steps
-  doc.fillColor(BRAND.text).font("Helvetica-Bold").fontSize(13).text("Top 3 Personalized Next Steps", left, y);
-  y += 22;
-  payload.nextSteps.forEach((step, index) => {
-    doc
-      .save()
-      .circle(left + 8, y + 7, 7)
-      .fill(BRAND.accent)
-      .restore();
-    doc.fillColor("#1F2937").font("Helvetica-Bold").fontSize(9).text(String(index + 1), left + 5.6, y + 4.2);
-    doc
-      .fillColor(BRAND.text)
-      .font("Helvetica")
-      .fontSize(10.4)
-      .text(safePdfText(step), left + 22, y, { width: pageWidth - 24 });
-    y += 34;
+  page.drawRectangle({
+    x: rightColX,
+    y: y - 88,
+    width: colWidth,
+    height: 88,
+    borderColor: BRAND.border,
+    borderWidth: 1,
+  });
+  page.drawText("Breed Lifespan Reference", {
+    x: rightColX + 10,
+    y: y - 18,
+    font: bold,
+    size: 11.5,
+    color: BRAND.text,
+  });
+  page.drawText(`${payload.breedLifespan.averageYears.toFixed(1)} years avg`, {
+    x: rightColX + 10,
+    y: y - 38,
+    font: bold,
+    size: 16,
+    color: BRAND.text,
+  });
+  drawTextBlock({
+    page,
+    text: safePdfText(payload.breedLifespan.referenceLabel),
+    x: rightColX + 10,
+    y: y - 56,
+    maxWidth: colWidth - 20,
+    lineHeight: 12,
+    size: 9.5,
+    font: regular,
+    color: BRAND.muted,
   });
 
-  // Footer
-  const footerY = doc.page.height - 72;
-  doc
-    .moveTo(left, footerY - 8)
-    .lineTo(left + pageWidth, footerY - 8)
-    .strokeColor("#E5E7EB")
-    .lineWidth(1)
-    .stroke();
-  doc.fillColor(BRAND.muted).font("Helvetica-Bold").fontSize(9.6).text("Generated by FursBliss", left, footerY);
-  doc
-    .font("Helvetica")
-    .fontSize(8.6)
-    .text(safePdfText(payload.disclaimer), left + 120, footerY, {
-      width: pageWidth - 120,
-    });
-
-  doc.end();
-
-  return await new Promise<Buffer>((resolve) => {
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
+  y -= 106;
+  page.drawText("Top 3 Personalized Next Steps", {
+    x: left,
+    y,
+    font: bold,
+    size: 13,
+    color: BRAND.text,
   });
+  y -= 20;
+  payload.nextSteps.slice(0, 3).forEach((step, index) => {
+    page.drawCircle({ x: left + 7, y: y + 3, size: 7, color: BRAND.accent });
+    page.drawText(String(index + 1), {
+      x: left + 4.3,
+      y: y + 0.4,
+      font: bold,
+      size: 8.8,
+      color: BRAND.text,
+    });
+    y =
+      drawTextBlock({
+        page,
+        text: safePdfText(step),
+        x: left + 20,
+        y: y - 1,
+        maxWidth: pageWidth - 24,
+        lineHeight: 13,
+        size: 10.3,
+        font: regular,
+        color: BRAND.text,
+      }) - 8;
+  });
+
+  const footerY = 54;
+  page.drawLine({
+    start: { x: left, y: footerY + 18 },
+    end: { x: left + pageWidth, y: footerY + 18 },
+    thickness: 1,
+    color: BRAND.border,
+  });
+  page.drawText("Generated by FursBliss", {
+    x: left,
+    y: footerY,
+    font: bold,
+    size: 9.5,
+    color: BRAND.muted,
+  });
+  drawTextBlock({
+    page,
+    text: safePdfText(payload.disclaimer),
+    x: left + 120,
+    y: footerY,
+    maxWidth: pageWidth - 120,
+    lineHeight: 10.5,
+    size: 8.4,
+    font: regular,
+    color: BRAND.muted,
+  });
+
+  const bytes = await pdfDoc.save();
+  return Buffer.from(bytes);
 }

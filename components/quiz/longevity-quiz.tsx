@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { QUIZ_CONCERNS } from "@/lib/quiz";
-import { trackMetaEvent } from "@/lib/meta-events";
+import { trackMetaCustomEvent, trackMetaEvent } from "@/lib/meta-events";
 
 type LongevityQuizProps = {
   breeds: string[];
@@ -28,6 +28,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasTrackedQuizStarted, setHasTrackedQuizStarted] = useState(false);
   const [state, setState] = useState<QuizState>({
     dogName: "",
     breed: "",
@@ -91,6 +92,10 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
 
   const nextStep = () => {
     if (!canContinue || step >= TOTAL_STEPS) return;
+    if (step === 1 && !hasTrackedQuizStarted) {
+      setHasTrackedQuizStarted(true);
+      void trackMetaCustomEvent("QuizStarted");
+    }
     setStep((current) => current + 1);
   };
 
@@ -121,10 +126,14 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         throw new Error(payload.message ?? "Unable to submit quiz.");
       }
 
-      await trackMetaEvent("Lead", { content_name: "quiz_email_captured" });
-      await trackMetaEvent("CompleteRegistration", {
-        content_name: "quiz_completed",
-      });
+      await trackMetaEvent(
+        "Lead",
+        { content_name: "quiz_email_captured" },
+        {
+          eventId: typeof payload?.metaEventId === "string" ? payload.metaEventId : undefined,
+        }
+      );
+      await trackMetaCustomEvent("QuizCompleted");
       router.push(`/quiz/results/${payload.id}`);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to submit quiz.");

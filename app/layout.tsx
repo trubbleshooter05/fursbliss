@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { MetaPixel } from "@/components/meta-pixel";
 import { MetaEventDebug } from "@/components/meta-event-debug";
+import { ExitIntentPopup } from "@/components/site/exit-intent-popup";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -22,6 +23,14 @@ const spaceMono = Space_Mono({
 });
 
 const SHARE_IMAGE_URL = "/opengraph-image";
+const ORGANIZATION_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "FursBliss",
+  description:
+    "Dog longevity intelligence platform - health tracking, supplement safety, and LOY-002 readiness",
+  url: "https://www.fursbliss.com",
+};
 
 export const metadata: Metadata = {
   title: "FursBliss | Dog Longevity Intelligence Platform",
@@ -63,9 +72,16 @@ export default function RootLayout({
       <body
         className={`${fraunces.variable} ${jakarta.variable} ${spaceMono.variable} bg-background font-sans antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(ORGANIZATION_JSON_LD),
+          }}
+        />
         <MetaPixel />
         <MetaEventDebug />
         {children}
+        <ExitIntentPopup />
         <Toaster />
       </body>
     </html>

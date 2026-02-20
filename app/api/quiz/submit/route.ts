@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -65,15 +66,18 @@ export async function POST(request: Request) {
       });
     }
 
+    const metaEventId = randomUUID();
     await sendMetaConversionEvent({
       eventName: "Lead",
       email: parsed.data.email,
       request,
+      eventId: metaEventId,
     });
 
     return NextResponse.json({
       id: submission.id,
       score: submission.score,
+      metaEventId,
     });
   } catch (error) {
     if (

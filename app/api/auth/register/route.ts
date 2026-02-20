@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
@@ -94,13 +95,16 @@ export async function POST(request: Request) {
     });
 
     // Mirror the Lead flow: fire CAPI with request context on successful create.
+    const metaEventId = randomUUID();
     console.info("[Meta CAPI] register route reached; sending CompleteRegistration", {
       email: user.email,
+      metaEventId,
     });
     await sendMetaConversionEvent({
       eventName: "CompleteRegistration",
       email: user.email,
       request,
+      eventId: metaEventId,
     });
 
     if (parsed.data.quizSnapshot) {
@@ -185,6 +189,7 @@ export async function POST(request: Request) {
       email: user.email,
       name: user.name,
       verificationUrl: emailResult.queued ? null : verifyUrl,
+      metaEventId,
     });
   } catch (error) {
     console.error("Registration error", error);

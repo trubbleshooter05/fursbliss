@@ -142,6 +142,8 @@ export function SignupForm() {
 
     await trackMetaEvent("CompleteRegistration", {
       content_name: "account_created",
+    }, {
+      eventId: typeof data?.metaEventId === "string" ? data.metaEventId : undefined,
     });
 
     router.push("/dashboard");

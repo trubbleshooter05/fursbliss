@@ -91,7 +91,7 @@ export function SiteHeader() {
                   </SheetClose>
                   <SheetClose asChild>
                     <Button asChild className="shimmer-cta hover:scale-[1.02] transition-all duration-300">
-                      <Link href="/signup">Get Started Free</Link>
+                      <Link href="/quiz">Take the 2-Min Quiz</Link>
                     </Button>
                   </SheetClose>
                 </div>
@@ -102,7 +102,7 @@ export function SiteHeader() {
             <Link href="/login">Login</Link>
           </Button>
           <Button asChild className="shimmer-cta hover:scale-[1.02] transition-all duration-300">
-            <Link href="/signup">Get Started Free</Link>
+            <Link href="/quiz">Take the 2-Min Quiz</Link>
           </Button>
         </div>
       </div>

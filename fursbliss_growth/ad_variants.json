@@ -1,0 +1,51 @@
+{
+  "generated_at_utc": "2026-02-15T16:37:17.279479+00:00",
+  "count": 5,
+  "items": [
+    {
+      "name": "emotional_variant_a",
+      "audience": "Senior dog owners 35-65 US",
+      "creative_direction": "Owner + senior dog bond moment, warm home light, high contrast headline",
+      "primary_text": "You are not late. Tracking today can protect more good days ahead.",
+      "headline": "More good days together",
+      "cta_label": "Take Quiz",
+      "destination": "https://www.fursbliss.com/quiz"
+    },
+    {
+      "name": "evidence_variant_b",
+      "audience": "Senior dog owners interested in longevity research",
+      "creative_direction": "Simple chart motif + calm clinical palette, no fear tactics",
+      "primary_text": "Daily baseline tracking helps you catch subtle changes earlier.",
+      "headline": "Early signals matter",
+      "cta_label": "Check Readiness",
+      "destination": "https://www.fursbliss.com/quiz"
+    },
+    {
+      "name": "loy002_variant_c",
+      "audience": "Owners searching LOY-002 updates",
+      "creative_direction": "Clean productless informational card with LOY-002 timeline framing",
+      "primary_text": "LOY-002 timelines may move fast. Build your dog's baseline before approval windows shift.",
+      "headline": "Plan before it is urgent",
+      "cta_label": "View LOY-002 Hub",
+      "destination": "https://www.fursbliss.com/longevity-drugs"
+    },
+    {
+      "name": "vet_ready_variant_d",
+      "audience": "Owners who value practical vet prep",
+      "creative_direction": "Checklist-style visual: appetite, mobility, sleep, stool",
+      "primary_text": "Bring trend data to your next vet visit instead of trying to remember details.",
+      "headline": "Walk into appointments prepared",
+      "cta_label": "Start Tracking",
+      "destination": "https://www.fursbliss.com/quiz"
+    },
+    {
+      "name": "breed_variant_e",
+      "audience": "Large-breed senior owners",
+      "creative_direction": "Senior golden/lab outdoors, bold text overlay, soft teal accent",
+      "primary_text": "Large breeds often show decline differently. Start your baseline now.",
+      "headline": "Large breeds need earlier signals",
+      "cta_label": "Get Score",
+      "destination": "https://www.fursbliss.com/quiz"
+    }
+  ]
+}

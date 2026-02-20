@@ -8,6 +8,7 @@ type SendMetaConversionEventParams = {
   email: string;
   request?: Request;
   eventSourceUrl?: string;
+  eventId?: string;
 };
 
 function hashEmail(email: string) {
@@ -51,6 +52,7 @@ export async function sendMetaConversionEvent({
   email,
   request,
   eventSourceUrl,
+  eventId,
 }: SendMetaConversionEventParams) {
   const pixelId = process.env.META_PIXEL_ID;
   const accessToken = process.env.META_CONVERSIONS_API_TOKEN;
@@ -105,7 +107,7 @@ export async function sendMetaConversionEvent({
     .setEventTime(Math.floor(Date.now() / 1000))
     .setActionSource("website")
     .setEventSourceUrl(resolvedEventSourceUrl)
-    .setEventId(randomUUID())
+    .setEventId(eventId ?? randomUUID())
     .setUserData(userData);
 
   const eventRequest = new EventRequest(accessToken, pixelId).setEvents([serverEvent]);

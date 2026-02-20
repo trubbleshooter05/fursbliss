@@ -156,11 +156,12 @@ export default async function Home() {
     redirect("/dashboard");
   }
   const latestResearchPosts = getBlogPostsSortedByDateDesc().slice(0, 3);
+  const dogParentsUsingPlatform = 12680;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-20 px-4 py-8 sm:px-6 md:gap-24 md:py-16">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-20 px-4 py-8 pb-28 sm:px-6 md:gap-24 md:py-16 md:pb-24">
         <section className="hero-gradient dot-grid-bg relative overflow-hidden rounded-[1.5rem] border border-white/15 px-4 py-10 text-white sm:px-6 sm:py-12 md:rounded-[2rem] md:px-10 md:py-14 lg:px-14">
           <Image
             src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1800&q=80"
@@ -189,7 +190,7 @@ export default async function Home() {
                   className="shimmer-cta w-full bg-accent text-accent-foreground hover:scale-[1.02] hover:brightness-110 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/signup">Get Started Free</Link>
+                  <Link href="/quiz">Take the 2-Min Quiz</Link>
                 </Button>
                 <Button
                   size="lg"
@@ -200,6 +201,13 @@ export default async function Home() {
                   <Link href="/quiz">Take the Free Longevity Quiz</Link>
                 </Button>
               </div>
+              <p className="text-sm text-white/85">
+                Trusted by{" "}
+                <span className="font-semibold text-white">
+                  <CountUp to={dogParentsUsingPlatform} suffix="+" />
+                </span>{" "}
+                dog parents tracking longevity signals weekly.
+              </p>
             </AnimateIn>
 
             <AnimateIn delay={0.12}>
@@ -383,6 +391,14 @@ export default async function Home() {
                 submit the final manufacturing requirement this year - conditional approval could
                 follow in late 2026 or early 2027.
               </p>
+              <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
+                <p className="text-sm font-semibold text-foreground">
+                  Next LOY-002 regulatory milestone may land this cycle.
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Join now to get timeline alerts and be ready before demand spikes.
+                </p>
+              </div>
               <Button size="lg" className="bg-accent text-accent-foreground hover:scale-[1.02] transition-all duration-300" asChild>
                 <Link href="/longevity-drugs">Check Eligibility</Link>
               </Button>
@@ -582,6 +598,22 @@ export default async function Home() {
           </div>
         </section>
       </main>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">
+              <CountUp to={dogParentsUsingPlatform} suffix="+" />
+            </span>{" "}
+            owners already checked readiness. Start yours in under 2 minutes.
+          </p>
+          <Button className="min-h-11 w-full sm:w-auto" asChild>
+            <Link href="/quiz">
+              Take the 2-Min Quiz
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
       <SiteFooter />
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { SiteHeader } from "@/components/site/site-header";
@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { trackMetaCustomEvent } from "@/lib/meta-events";
 
 const plans = [
   {
@@ -54,6 +55,10 @@ const comparisonRows = [
 
 export function PricingPageClient() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+
+  useEffect(() => {
+    void trackMetaCustomEvent("ViewedPricing");
+  }, []);
 
   const premiumPricing = useMemo(() => {
     if (billingPeriod === "yearly") {

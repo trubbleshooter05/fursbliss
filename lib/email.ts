@@ -23,10 +23,10 @@ function sleep(ms: number) {
 }
 
 async function waitForResendRateLimitSlot() {
-  let releaseCurrent: (() => void) | null = null;
+  let releaseCurrent!: () => void;
   const previous = resendSendChain;
   resendSendChain = new Promise<void>((resolve) => {
-    releaseCurrent = resolve;
+    releaseCurrent = () => resolve();
   });
 
   await previous;
@@ -38,7 +38,7 @@ async function waitForResendRateLimitSlot() {
   }
 
   resendLastSendAt = Date.now();
-  releaseCurrent?.();
+  releaseCurrent();
 }
 
 function isResend429(error: unknown) {

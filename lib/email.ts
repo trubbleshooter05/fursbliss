@@ -12,13 +12,76 @@ const resendApiKey = process.env.RESEND_API_KEY;
 const resendFrom = process.env.RESEND_FROM_EMAIL ?? "FursBliss <hello@fursbliss.com>";
 
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
+const RESEND_MIN_INTERVAL_MS = 600;
+const RESEND_429_RETRY_DELAY_MS = 2000;
 
-export async function sendEmail(payload: EmailPayload) {
+let resendSendChain: Promise<void> = Promise.resolve();
+let resendLastSendAt = 0;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForResendRateLimitSlot() {
+  let releaseCurrent: (() => void) | null = null;
+  const previous = resendSendChain;
+  resendSendChain = new Promise<void>((resolve) => {
+    releaseCurrent = resolve;
+  });
+
+  await previous;
+
+  const elapsedSinceLastSend = Date.now() - resendLastSendAt;
+  const waitMs = Math.max(0, RESEND_MIN_INTERVAL_MS - elapsedSinceLastSend);
+  if (waitMs > 0) {
+    await sleep(waitMs);
+  }
+
+  resendLastSendAt = Date.now();
+  releaseCurrent?.();
+}
+
+function isResend429(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const maybe = error as {
+    statusCode?: number;
+    status?: number;
+    code?: string;
+    name?: string;
+    message?: string;
+  };
+
+  if (maybe.statusCode === 429 || maybe.status === 429) {
+    return true;
+  }
+
+  const text = [maybe.code, maybe.name, maybe.message].filter(Boolean).join(" ").toLowerCase();
+  return text.includes("429") || text.includes("too many requests") || text.includes("rate limit");
+}
+
+function toErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim().length > 0) {
+      return message;
+    }
+  }
+  return String(error);
+}
+
+async function sendWithResend(payload: EmailPayload) {
   if (!resend) {
     console.warn("Resend not configured. Skipping email send.");
     return { queued: false, messageId: null as string | null };
   }
 
+  await waitForResendRateLimitSlot();
   const result = await resend.emails.send({
     from: resendFrom,
     to: payload.to,
@@ -33,10 +96,26 @@ export async function sendEmail(payload: EmailPayload) {
   });
 
   if (result.error) {
-    throw new Error(result.error.message);
+    throw result.error;
   }
 
   return { queued: true, messageId: result.data?.id ?? null };
+}
+
+export async function sendEmail(payload: EmailPayload) {
+  try {
+    return await sendWithResend(payload);
+  } catch (error) {
+    if (isResend429(error)) {
+      await sleep(RESEND_429_RETRY_DELAY_MS);
+      try {
+        return await sendWithResend(payload);
+      } catch (retryError) {
+        throw new Error(toErrorMessage(retryError));
+      }
+    }
+    throw new Error(toErrorMessage(error));
+  }
 }
 
 export async function sendVerificationEmail(email: string, verifyUrl: string) {

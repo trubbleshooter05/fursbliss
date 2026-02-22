@@ -156,7 +156,6 @@ export default async function Home() {
     redirect("/dashboard");
   }
   const latestResearchPosts = getBlogPostsSortedByDateDesc().slice(0, 3);
-  const dogParentsUsingPlatform = 12680;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -202,11 +201,7 @@ export default async function Home() {
                 </Button>
               </div>
               <p className="text-sm text-white/85">
-                Trusted by{" "}
-                <span className="font-semibold text-white">
-                  <CountUp to={dogParentsUsingPlatform} suffix="+" />
-                </span>{" "}
-                dog parents tracking longevity signals weekly.
+                Join dog owners preparing for LOY-002 with clear, practical readiness steps.
               </p>
             </AnimateIn>
 
@@ -601,10 +596,7 @@ export default async function Home() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">
-              <CountUp to={dogParentsUsingPlatform} suffix="+" />
-            </span>{" "}
-            owners already checked readiness. Start yours in under 2 minutes.
+            Join dog owners preparing for LOY-002. Start your readiness check in under 2 minutes.
           </p>
           <Button className="min-h-11 w-full sm:w-auto" asChild>
             <Link href="/quiz">

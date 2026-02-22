@@ -1,8 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getProviders, signIn } from "next-auth/react";
+import { getProviders } from "next-auth/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -36,10 +37,11 @@ type QuizSnapshot = {
 };
 
 export function SignupForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
+  const [resendingVerification, setResendingVerification] = useState(false);
   const [quizSnapshot, setQuizSnapshot] = useState<QuizSnapshot | null>(null);
   const [googleEnabled, setGoogleEnabled] = useState(true);
   const form = useForm<FormValues>({
@@ -125,28 +127,22 @@ export function SignupForm() {
       return;
     }
 
-    if (data?.verificationUrl) {
-      setVerificationUrl(data.verificationUrl);
-      toast({
-        title: "Verify your email",
-        description: "Use the verification link below to activate your account.",
-      });
-      return;
-    }
+    await trackMetaEvent(
+      "CompleteRegistration",
+      {
+        content_name: "account_created",
+      },
+      {
+        eventId: typeof data?.metaEventId === "string" ? data.metaEventId : undefined,
+      }
+    );
 
-    await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
+    setVerificationEmail(values.email);
+    setVerificationUrl(typeof data?.verificationUrl === "string" ? data.verificationUrl : null);
+    toast({
+      title: "Check your email",
+      description: `We sent a verification link to ${values.email}.`,
     });
-
-    await trackMetaEvent("CompleteRegistration", {
-      content_name: "account_created",
-    }, {
-      eventId: typeof data?.metaEventId === "string" ? data.metaEventId : undefined,
-    });
-
-    router.push("/dashboard");
   };
 
   const onGoogleSignUp = async () => {
@@ -161,6 +157,82 @@ export function SignupForm() {
     }
     await signIn("google", { callbackUrl: "/dashboard" });
   };
+
+  const resendVerificationEmail = async () => {
+    if (!verificationEmail || resendingVerification) return;
+    setResendingVerification(true);
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: verificationEmail }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        toast({
+          title: "Unable to resend",
+          description: data?.message ?? "Please wait a minute and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (typeof data?.verificationUrl === "string") {
+        setVerificationUrl(data.verificationUrl);
+      }
+
+      toast({
+        title: "Verification email sent",
+        description: data?.message ?? `We sent a new verification email to ${verificationEmail}.`,
+      });
+    } finally {
+      setResendingVerification(false);
+    }
+  };
+
+  if (verificationEmail) {
+    return (
+      <div className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm">
+        <p className="font-semibold text-emerald-900">Verify your email to continue</p>
+        <p className="text-emerald-800">
+          We sent a verification link to <span className="font-medium">{verificationEmail}</span>.
+          Open that email, click verify, then sign in.
+        </p>
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            className="w-full"
+            onClick={resendVerificationEmail}
+            disabled={resendingVerification}
+          >
+            {resendingVerification ? "Resending..." : "Resend verification email"}
+          </Button>
+          <Button type="button" variant="outline" className="w-full" asChild>
+            <Link href="/login">Go to sign in</Link>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full"
+            onClick={() => {
+              setVerificationEmail(null);
+              setVerificationUrl(null);
+            }}
+          >
+            Use a different email
+          </Button>
+        </div>
+        {verificationUrl ? (
+          <div className="rounded-xl border border-emerald-300 bg-white p-3 text-emerald-700">
+            Dev link:{" "}
+            <a className="font-semibold underline" href={verificationUrl}>
+              {verificationUrl}
+            </a>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -241,14 +313,6 @@ export function SignupForm() {
           </Button>
         </form>
       </Form>
-      {verificationUrl && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-          Dev link:{" "}
-          <a className="font-semibold underline" href={verificationUrl}>
-            {verificationUrl}
-          </a>
-        </div>
-      )}
     </>
   );
 }

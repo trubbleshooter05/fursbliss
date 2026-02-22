@@ -40,7 +40,7 @@ export function LoginForm() {
   const onSubmit = async (values: FormValues) => {
     try {
       const response = await signIn("credentials", {
-        email: values.email,
+        email: values.email.trim().toLowerCase(),
         password: values.password,
         redirect: false,
       });

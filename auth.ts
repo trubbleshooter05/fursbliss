@@ -12,7 +12,7 @@ import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 import { enrollUserInWelcomeSequence } from "@/lib/email/sequence";
 
 const credentialsSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email().max(320),
   password: z.string().min(6),
 });
 

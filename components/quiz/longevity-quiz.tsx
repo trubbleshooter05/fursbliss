@@ -2,12 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { PawPrint } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { QUIZ_CONCERNS } from "@/lib/quiz";
 import { trackMetaCustomEvent, trackMetaEvent } from "@/lib/meta-events";
 
 type LongevityQuizProps = {
@@ -15,39 +13,49 @@ type LongevityQuizProps = {
 };
 
 type QuizState = {
-  dogName: string;
   breed: string;
   age: number;
   weight: number;
-  concerns: string[];
+  topConcern: string;
+  supplementsOrMeds: string;
   email: string;
 };
 
+type QuizResult = {
+  id: string;
+  score: number;
+};
+
+const CONCERN_OPTIONS: Array<{ id: string; label: string; payloadConcern: string }> = [
+  { id: "longevity", label: "Longevity", payloadConcern: "general_longevity" },
+  { id: "mobility", label: "Mobility", payloadConcern: "joint_mobility" },
+  { id: "energy", label: "Energy", payloadConcern: "energy" },
+  { id: "weight", label: "Weight", payloadConcern: "weight" },
+  { id: "supplements", label: "Supplements", payloadConcern: "supplements" },
+  { id: "loy-002", label: "LOY-002", payloadConcern: "loy002" },
+];
+
 export function LongevityQuiz({ breeds }: LongevityQuizProps) {
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasTrackedQuizStarted, setHasTrackedQuizStarted] = useState(false);
+  const [result, setResult] = useState<QuizResult | null>(null);
   const [state, setState] = useState<QuizState>({
-    dogName: "",
     breed: "",
     age: 10,
     weight: 40,
-    concerns: [],
+    topConcern: "",
+    supplementsOrMeds: "",
     email: "",
   });
 
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 4;
   const progress = (step / TOTAL_STEPS) * 100;
-  const normalizedDogName = state.dogName.trim();
-  const dogPossessive = normalizedDogName ? `${normalizedDogName}'s` : "your dog's";
   const stepNameByNumber: Record<number, string> = {
-    1: "breed",
-    2: "age",
-    3: "weight",
-    4: "concerns",
-    5: "email_and_name",
+    1: "breed_and_age",
+    2: "weight_and_top_concern",
+    3: "supplements_or_medications",
+    4: "email_gate",
   };
 
   const [quizSessionId] = useState(() => {
@@ -62,6 +70,11 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
   });
 
   useEffect(() => {
+    void trackMetaCustomEvent("QuizStarted");
+  }, []);
+
+  useEffect(() => {
+    if (result) return;
     const stepName = stepNameByNumber[step];
     if (!stepName) return;
     void fetch("/api/quiz/step-event", {
@@ -83,19 +96,20 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
     return breeds.filter((breed) => breed.toLowerCase().includes(query)).slice(0, 20);
   }, [breeds, state.breed]);
 
+  const selectedConcern = useMemo(
+    () => CONCERN_OPTIONS.find((option) => option.id === state.topConcern),
+    [state.topConcern]
+  );
+
   const canContinue = useMemo(() => {
-    if (step === 1) return state.breed.trim().length > 0;
-    if (step === 4) return state.concerns.length > 0;
-    if (step === 5) return state.email.trim().length > 5;
+    if (step === 1) return state.breed.trim().length > 0 && state.age > 0;
+    if (step === 2) return state.weight > 0 && state.topConcern.trim().length > 0;
+    if (step === 4) return state.email.trim().length > 5 && state.email.includes("@");
     return true;
-  }, [state.breed, state.concerns.length, state.email, step]);
+  }, [state.age, state.breed, state.email, state.topConcern, state.weight, step]);
 
   const nextStep = () => {
     if (!canContinue || step >= TOTAL_STEPS) return;
-    if (step === 1 && !hasTrackedQuizStarted) {
-      setHasTrackedQuizStarted(true);
-      void trackMetaCustomEvent("QuizStarted");
-    }
     setStep((current) => current + 1);
   };
 
@@ -114,11 +128,11 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: state.email,
-          dogName: normalizedDogName || "Your Dog",
+          dogName: "Your Dog",
           breed: state.breed,
           age: state.age,
           weight: state.weight,
-          concerns: state.concerns,
+          concerns: [selectedConcern?.payloadConcern ?? "general_longevity"],
         }),
       });
       const payload = await response.json();
@@ -134,7 +148,10 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         }
       );
       await trackMetaCustomEvent("QuizCompleted");
-      router.push(`/quiz/results/${payload.id}`);
+      setResult({
+        id: String(payload.id),
+        score: Number(payload.score),
+      });
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to submit quiz.");
     } finally {
@@ -142,9 +159,46 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
     }
   };
 
+  if (result) {
+    return (
+      <Card className="rounded-2xl border-border bg-card">
+        <CardHeader className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+            Your score is ready
+          </p>
+          <CardTitle className="font-display text-3xl text-foreground md:text-4xl">
+            Longevity Readiness Score: {result.score}/100
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            We sent this score to {state.email}. Create a free account to track your score over time.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button className="min-h-12 w-full bg-accent text-accent-foreground hover:brightness-110" asChild>
+            <Link
+              href={`/signup?email=${encodeURIComponent(state.email)}&breed=${encodeURIComponent(
+                state.breed
+              )}&age=${encodeURIComponent(String(state.age))}&weight=${encodeURIComponent(
+                String(state.weight)
+              )}&concerns=${encodeURIComponent(selectedConcern?.payloadConcern ?? "general_longevity")}`}
+            >
+              Create free account
+            </Link>
+          </Button>
+          <Button variant="outline" className="min-h-11 w-full" asChild>
+            <Link href={`/quiz/results/${result.id}`}>View full recommendations</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-white/15 bg-white/10 p-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/90">
+          Step {step} of {TOTAL_STEPS}
+        </p>
         <div className="h-2 rounded-full bg-white/15">
           <div
             className="h-full rounded-full bg-accent transition-all duration-300"
@@ -164,125 +218,129 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
           <Card className="rounded-2xl border-border bg-card">
             <CardHeader>
               <CardTitle className="font-display text-3xl text-foreground">
-                {step === 1 && "What breed is your dog?"}
-                {step === 2 && "How old is your dog?"}
-                {step === 3 && "How much does your dog weigh?"}
-                {step === 4 && "What are you most concerned about?"}
-                {step === 5 &&
-                  `Enter your email to see ${dogPossessive} personalized longevity readiness score.`}
+                {step === 1 && "Tell us your dog's breed and age"}
+                {step === 2 && "Weight and your top concern"}
+                {step === 3 && "Any supplements or medications?"}
+                {step === 4 && "Enter your email to get your score"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {step === 1 ? (
-                <div className="space-y-3">
-                  <Input
-                    placeholder="Search breed..."
-                    value={state.breed}
-                    inputMode="search"
-                    autoComplete="off"
-                    enterKeyHint="search"
-                    onChange={(event) =>
-                      setState((prev) => ({ ...prev, breed: event.target.value }))
-                    }
-                  />
-                  <div className="grid max-h-52 gap-2 overflow-y-auto rounded-xl border border-border p-2">
-                    {filteredBreeds.map((breed) => (
-                      <button
-                        key={breed}
-                        type="button"
-                        onClick={() => setState((prev) => ({ ...prev, breed }))}
-                        className={`rounded-lg px-3 py-2 text-left text-sm transition ${
-                          state.breed === breed
-                            ? "bg-primary/10 text-primary"
-                            : "hover:bg-muted"
-                        }`}
-                      >
-                        {breed}
-                      </button>
-                    ))}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Breed</label>
+                    <Input
+                      placeholder="Search breed..."
+                      value={state.breed}
+                      inputMode="search"
+                      autoComplete="off"
+                      enterKeyHint="search"
+                      onChange={(event) =>
+                        setState((prev) => ({ ...prev, breed: event.target.value }))
+                      }
+                    />
+                    <div className="grid max-h-48 gap-2 overflow-y-auto rounded-xl border border-border p-2">
+                      {filteredBreeds.map((breed) => (
+                        <button
+                          key={breed}
+                          type="button"
+                          onClick={() => setState((prev) => ({ ...prev, breed }))}
+                          className={`rounded-lg px-3 py-2 text-left text-sm transition ${
+                            state.breed === breed
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-muted"
+                          }`}
+                        >
+                          {breed}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Age (years)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={30}
+                      value={state.age}
+                      onChange={(event) =>
+                        setState((prev) => ({
+                          ...prev,
+                          age: Number(event.target.value || 1),
+                        }))
+                      }
+                    />
                   </div>
                 </div>
               ) : null}
 
               {step === 2 ? (
-                <div className="space-y-3">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={state.age}
-                    onChange={(event) =>
-                      setState((prev) => ({
-                        ...prev,
-                        age: Number(event.target.value || 1),
-                      }))
-                    }
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Weight (lbs)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={250}
+                      value={state.weight}
+                      onChange={(event) =>
+                        setState((prev) => ({
+                          ...prev,
+                          weight: Number(event.target.value || 1),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Top concern (pick one)</label>
+                    <div className="grid gap-2">
+                      {CONCERN_OPTIONS.map((option) => {
+                        const isSelected = state.topConcern === option.id;
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => setState((prev) => ({ ...prev, topConcern: option.id }))}
+                            className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                              isSelected
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border hover:bg-muted"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               ) : null}
 
               {step === 3 ? (
                 <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    Current supplements or medications (optional)
+                  </label>
                   <Input
-                    type="number"
-                    min={1}
-                    max={250}
-                    value={state.weight}
+                    placeholder="e.g. fish oil, glucosamine, gabapentin"
+                    value={state.supplementsOrMeds}
                     onChange={(event) =>
-                      setState((prev) => ({
-                        ...prev,
-                        weight: Number(event.target.value || 1),
-                      }))
+                      setState((prev) => ({ ...prev, supplementsOrMeds: event.target.value }))
                     }
                   />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-auto px-0 text-sm text-muted-foreground underline-offset-4 hover:underline"
+                    onClick={() => setStep(4)}
+                  >
+                    Skip this step
+                  </Button>
                 </div>
               ) : null}
 
               {step === 4 ? (
-                <div className="grid gap-2">
-                  {QUIZ_CONCERNS.map((concern) => {
-                    const isSelected = state.concerns.includes(concern.key);
-                    return (
-                      <button
-                        key={concern.key}
-                        type="button"
-                        onClick={() =>
-                          setState((prev) => ({
-                            ...prev,
-                            concerns: isSelected
-                              ? prev.concerns.filter((value) => value !== concern.key)
-                              : [...prev.concerns, concern.key],
-                          }))
-                        }
-                        className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                          isSelected
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border hover:bg-muted"
-                        }`}
-                      >
-                        {concern.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
-
-              {step === 5 ? (
                 <div className="space-y-3">
-                  <label className="text-sm text-muted-foreground">
-                    Dog name (optional)
-                  </label>
-                  <div className="relative">
-                    <PawPrint className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      className="pl-9"
-                      placeholder="Luna"
-                      value={state.dogName}
-                      onChange={(event) =>
-                        setState((prev) => ({ ...prev, dogName: event.target.value }))
-                      }
-                    />
-                  </div>
                   <Input
                     type="email"
                     placeholder="you@example.com"
@@ -292,8 +350,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
                     }
                   />
                   <p className="text-xs text-muted-foreground">
-                    We&apos;ll also send LOY-002 updates and senior dog health tips.
-                    Unsubscribe anytime.
+                    We&apos;ll email your score and occasional LOY-002 updates. Unsubscribe anytime.
                   </p>
                 </div>
               ) : null}
@@ -302,21 +359,29 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         </motion.div>
       </AnimatePresence>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="ghost"
-          className="min-h-11"
+          className="min-h-11 w-full sm:w-auto"
           disabled={step === 1 || submitting}
           onClick={previousStep}
         >
           Back
         </Button>
         {step < TOTAL_STEPS ? (
-          <Button className="min-h-11" disabled={!canContinue} onClick={nextStep}>
-            Continue
+          <Button
+            className="min-h-12 w-full bg-accent text-accent-foreground hover:brightness-110 sm:w-auto"
+            disabled={!canContinue}
+            onClick={nextStep}
+          >
+            Next
           </Button>
         ) : (
-          <Button className="min-h-11" disabled={!canContinue || submitting} onClick={submitQuiz}>
+          <Button
+            className="min-h-12 w-full bg-accent text-accent-foreground hover:brightness-110 sm:w-auto"
+            disabled={!canContinue || submitting}
+            onClick={submitQuiz}
+          >
             {submitting ? "Calculating..." : "Get My Score"}
           </Button>
         )}

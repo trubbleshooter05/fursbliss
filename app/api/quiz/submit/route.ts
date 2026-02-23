@@ -4,11 +4,9 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calculateLongevityScore } from "@/lib/quiz";
-import { sendEmail } from "@/lib/email";
-import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 
 const requestSchema = z.object({
-  email: z.string().trim().toLowerCase().email().max(320),
+  email: z.string().trim().toLowerCase().email().max(320).optional(),
   dogName: z.string().trim().min(1).max(64),
   breed: z.string().trim().min(2).max(80),
   age: z.number().int().min(1).max(30),
@@ -41,9 +39,12 @@ export async function POST(request: Request) {
   });
 
   try {
+    const fallbackEmail = `anon_${randomUUID()}@fursbliss.local`;
+    const normalizedEmail = parsed.data.email?.trim().toLowerCase() || fallbackEmail;
+
     const submission = await prisma.quizSubmission.create({
       data: {
-        email: parsed.data.email,
+        email: normalizedEmail,
         dogName: parsed.data.dogName,
         breed: parsed.data.breed,
         age: parsed.data.age,
@@ -53,31 +54,9 @@ export async function POST(request: Request) {
       },
     });
 
-    if (process.env.RESEND_API_KEY) {
-      await sendEmail({
-        to: parsed.data.email,
-        subject: `${parsed.data.dogName}'s Longevity Readiness Score: ${score}/100`,
-        text: `Your readiness score is ${score}/100.\n\nView full recommendations: ${process.env.NEXT_PUBLIC_APP_URL}/quiz/results/${submission.id}`,
-        html: `<div style="font-family: Arial, sans-serif; color: #111827;">
-          <h2>${parsed.data.dogName}'s Longevity Readiness Score: ${score}/100</h2>
-          <p>Thanks for taking the FursBliss quiz.</p>
-          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/quiz/results/${submission.id}" style="color:#0D6E6E;font-weight:600;">View your full results</a></p>
-        </div>`,
-      });
-    }
-
-    const metaEventId = randomUUID();
-    await sendMetaConversionEvent({
-      eventName: "Lead",
-      email: parsed.data.email,
-      request,
-      eventId: metaEventId,
-    });
-
     return NextResponse.json({
       id: submission.id,
       score: submission.score,
-      metaEventId,
     });
   } catch (error) {
     if (

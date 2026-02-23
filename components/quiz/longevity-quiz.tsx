@@ -38,8 +38,12 @@ const CONCERN_OPTIONS: Array<{ id: string; label: string; payloadConcern: string
 export function LongevityQuiz({ breeds }: LongevityQuizProps) {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [result, setResult] = useState<QuizResult | null>(null);
+  const [quizCompletedTracked, setQuizCompletedTracked] = useState(false);
   const [state, setState] = useState<QuizState>({
     breed: "",
     age: 10,
@@ -49,13 +53,12 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
     email: "",
   });
 
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = 3;
   const progress = (step / TOTAL_STEPS) * 100;
   const stepNameByNumber: Record<number, string> = {
     1: "breed_and_age",
     2: "weight_and_top_concern",
     3: "supplements_or_medications",
-    4: "email_gate",
   };
 
   const [quizSessionId] = useState(() => {
@@ -104,9 +107,8 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
   const canContinue = useMemo(() => {
     if (step === 1) return state.breed.trim().length > 0 && state.age > 0;
     if (step === 2) return state.weight > 0 && state.topConcern.trim().length > 0;
-    if (step === 4) return state.email.trim().length > 5 && state.email.includes("@");
     return true;
-  }, [state.age, state.breed, state.email, state.topConcern, state.weight, step]);
+  }, [state.age, state.breed, state.topConcern, state.weight, step]);
 
   const nextStep = () => {
     if (!canContinue || step >= TOTAL_STEPS) return;
@@ -127,7 +129,6 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: state.email,
           dogName: "Your Dog",
           breed: state.breed,
           age: state.age,
@@ -140,14 +141,6 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         throw new Error(payload.message ?? "Unable to submit quiz.");
       }
 
-      await trackMetaEvent(
-        "Lead",
-        { content_name: "quiz_email_captured" },
-        {
-          eventId: typeof payload?.metaEventId === "string" ? payload.metaEventId : undefined,
-        }
-      );
-      await trackMetaCustomEvent("QuizCompleted");
       setResult({
         id: String(payload.id),
         score: Number(payload.score),
@@ -159,7 +152,65 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
     }
   };
 
+  useEffect(() => {
+    if (!result || quizCompletedTracked) return;
+    void trackMetaCustomEvent("QuizCompleted");
+    setQuizCompletedTracked(true);
+  }, [quizCompletedTracked, result]);
+
+  const submitEmailCapture = async () => {
+    if (!result) return;
+    const normalizedEmail = state.email.trim().toLowerCase();
+    if (!normalizedEmail.includes("@") || normalizedEmail.length < 6) {
+      setEmailError("Please enter a valid email.");
+      return;
+    }
+
+    setEmailSubmitting(true);
+    setEmailError(null);
+    try {
+      const response = await fetch("/api/quiz/capture-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submissionId: result.id,
+          email: normalizedEmail,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message ?? "Unable to save your email.");
+      }
+
+      await trackMetaEvent(
+        "Lead",
+        { content_name: "quiz_email_captured" },
+        {
+          eventId: typeof payload?.metaEventId === "string" ? payload.metaEventId : undefined,
+        }
+      );
+      setEmailSubmitted(true);
+      setState((prev) => ({ ...prev, email: normalizedEmail }));
+    } catch (submitError) {
+      setEmailError(submitError instanceof Error ? submitError.message : "Unable to save your email.");
+    } finally {
+      setEmailSubmitting(false);
+    }
+  };
+
   if (result) {
+    const scoreSummary =
+      result.score >= 80
+        ? "Excellent readiness. Keep consistent daily tracking and stay vet-aligned."
+        : result.score >= 60
+          ? "Good foundation. A few targeted changes can materially improve readiness."
+          : "Early-stage readiness. Small habit changes now can create a stronger baseline.";
+    const keyRecommendations =
+      selectedConcern?.id === "loy-002"
+        ? "Track weight and energy weekly, and keep your dog's medical history organized for faster vet conversations when LOY-002 timing updates land."
+        : "Track appetite, mobility, and energy each day, then review trends with your vet monthly to prioritize the highest-impact longevity actions.";
+
     return (
       <Card className="rounded-2xl border-border bg-card">
         <CardHeader className="space-y-2">
@@ -167,22 +218,52 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
             Your score is ready
           </p>
           <CardTitle className="font-display text-3xl text-foreground md:text-4xl">
-            Longevity Readiness Score: {result.score}/100
+            Your Dog&apos;s Longevity Readiness Score: {result.score}/100
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            We sent this score to {state.email}. Create a free account to track your score over time.
-          </p>
+          <p className="text-sm text-muted-foreground">{scoreSummary}</p>
+          <p className="text-sm text-muted-foreground">{keyRecommendations}</p>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
+          <div className="rounded-xl border border-border bg-muted/30 p-4">
+            <p className="text-base font-semibold text-foreground">Get your full report + LOY-002 updates</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              We&apos;ll email your complete longevity report with personalized recommendations.
+            </p>
+            <div className="mt-3 space-y-2">
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={state.email}
+                onChange={(event) =>
+                  setState((prev) => ({ ...prev, email: event.target.value }))
+                }
+              />
+              <Button
+                className="min-h-12 w-full bg-accent text-accent-foreground hover:brightness-110"
+                onClick={submitEmailCapture}
+                disabled={emailSubmitting || emailSubmitted}
+              >
+                {emailSubmitted ? "Report Sent" : emailSubmitting ? "Sending..." : "Send My Report"}
+              </Button>
+              <p className="text-xs text-muted-foreground">No spam. Unsubscribe anytime.</p>
+              {emailSubmitted ? (
+                <p className="text-sm text-emerald-700">Check your inbox for your full report.</p>
+              ) : null}
+              {emailError ? <p className="text-sm text-destructive">{emailError}</p> : null}
+            </div>
+          </div>
+
           <Button className="min-h-12 w-full bg-accent text-accent-foreground hover:brightness-110" asChild>
             <Link
-              href={`/signup?email=${encodeURIComponent(state.email)}&breed=${encodeURIComponent(
-                state.breed
-              )}&age=${encodeURIComponent(String(state.age))}&weight=${encodeURIComponent(
-                String(state.weight)
-              )}&concerns=${encodeURIComponent(selectedConcern?.payloadConcern ?? "general_longevity")}`}
+              href={`/signup?${new URLSearchParams({
+                ...(state.email.trim() ? { email: state.email.trim().toLowerCase() } : {}),
+                breed: state.breed,
+                age: String(state.age),
+                weight: String(state.weight),
+                concerns: selectedConcern?.payloadConcern ?? "general_longevity",
+              }).toString()}`}
             >
-              Create free account
+              Create a free account to track your score over time
             </Link>
           </Button>
           <Button variant="outline" className="min-h-11 w-full" asChild>
@@ -221,7 +302,6 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
                 {step === 1 && "Tell us your dog's breed and age"}
                 {step === 2 && "Weight and your top concern"}
                 {step === 3 && "Any supplements or medications?"}
-                {step === 4 && "Enter your email to get your score"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -332,26 +412,11 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
                     type="button"
                     variant="ghost"
                     className="h-auto px-0 text-sm text-muted-foreground underline-offset-4 hover:underline"
-                    onClick={() => setStep(4)}
+                    onClick={submitQuiz}
+                    disabled={submitting}
                   >
                     Skip this step
                   </Button>
-                </div>
-              ) : null}
-
-              {step === 4 ? (
-                <div className="space-y-3">
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    value={state.email}
-                    onChange={(event) =>
-                      setState((prev) => ({ ...prev, email: event.target.value }))
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    We&apos;ll email your score and occasional LOY-002 updates. Unsubscribe anytime.
-                  </p>
                 </div>
               ) : null}
             </CardContent>
@@ -371,7 +436,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
         {step < TOTAL_STEPS ? (
           <Button
             className="min-h-12 w-full bg-accent text-accent-foreground hover:brightness-110 sm:w-auto"
-            disabled={!canContinue}
+            disabled={!canContinue || submitting}
             onClick={nextStep}
           >
             Next
@@ -382,7 +447,7 @@ export function LongevityQuiz({ breeds }: LongevityQuizProps) {
             disabled={!canContinue || submitting}
             onClick={submitQuiz}
           >
-            {submitting ? "Calculating..." : "Get My Score"}
+            {submitting ? "Calculating..." : "Show My Score"}
           </Button>
         )}
       </div>

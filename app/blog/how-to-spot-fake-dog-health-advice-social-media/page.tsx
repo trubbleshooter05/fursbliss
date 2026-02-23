@@ -5,6 +5,8 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
+const PUBLISHED_AT = "2026-02-08T00:00:00.000Z";
+const UPDATED_AT = "2026-02-08T00:00:00.000Z";
 
 export const metadata: Metadata = {
   title: "How to Spot Fake Dog Health Advice on Social Media | FursBliss Blog",
@@ -23,8 +25,30 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    title: "How to Spot Fake Dog Health Advice on Social Media | FursBliss Blog",
+    description:
+      "Learn a practical checklist for spotting fake dog health claims, including viral supplement scams, and use safer evidence-based checks.",
     images: [SHARE_IMAGE_URL],
   },
+};
+
+const ARTICLE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "How to Spot Fake Dog Health Advice on Social Media",
+  description:
+    "Learn a practical checklist for spotting fake dog health claims, including viral supplement scams, and use safer evidence-based checks.",
+  datePublished: PUBLISHED_AT,
+  dateModified: UPDATED_AT,
+  author: {
+    "@type": "Organization",
+    name: "FursBliss",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "FursBliss",
+  },
+  mainEntityOfPage: "https://fursbliss.com/blog/how-to-spot-fake-dog-health-advice-social-media",
 };
 
 const warningSigns = [
@@ -40,6 +64,12 @@ export default function FakeAdvicePostPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 md:py-14">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(ARTICLE_JSON_LD),
+          }}
+        />
         <article className="space-y-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
             Feb 8, 2026 · Consumer safety

@@ -1,2 +1,6 @@
-export { metadata, default } from "../loyal-series-c-funding-feb-2026/page";
+import { permanentRedirect } from "next/navigation";
+
+export default function LoyalSeriesCLegacySlugPage() {
+  permanentRedirect("/blog/loyal-series-c-funding-feb-2026");
+}
 

@@ -5,6 +5,8 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
+const PUBLISHED_AT = "2026-02-11T00:00:00.000Z";
+const UPDATED_AT = "2026-02-11T00:00:00.000Z";
 
 export const metadata: Metadata = {
   title: "Loyal Series C Funding News (Feb 2026) | FursBliss Blog",
@@ -23,8 +25,30 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    title: "Loyal Series C Funding News (Feb 2026) | FursBliss Blog",
+    description:
+      "Loyal raised $100M in a Feb 2026 Series C, bringing total funding to $250M+. What this means for LOY-001, LOY-002, and LOY-003 timelines.",
     images: [SHARE_IMAGE_URL],
   },
+};
+
+const ARTICLE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Loyal raises $100M Series C, bringing total funding to $250M+",
+  description:
+    "Loyal raised $100M in a Feb 2026 Series C, bringing total funding to $250M+. What this means for LOY-001, LOY-002, and LOY-003 timelines.",
+  datePublished: PUBLISHED_AT,
+  dateModified: UPDATED_AT,
+  author: {
+    "@type": "Organization",
+    name: "FursBliss",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "FursBliss",
+  },
+  mainEntityOfPage: "https://fursbliss.com/blog/loyal-series-c-funding-feb-2026",
 };
 
 export default function LoyalFundingPostPage() {
@@ -32,6 +56,12 @@ export default function LoyalFundingPostPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 md:py-14">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(ARTICLE_JSON_LD),
+          }}
+        />
         <article className="space-y-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
             Feb 11, 2026 · Breaking update

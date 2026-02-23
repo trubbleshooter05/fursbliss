@@ -8,9 +8,27 @@ import { breedPages } from "@/lib/breed-pages";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Breed Longevity Guides | FursBliss",
+  title: "Dog Breed Health & Longevity Profiles | FursBliss",
   description:
-    "Evidence-based longevity guides by dog breed with risk timelines, supplement planning, and preventive care guidance.",
+    "Explore breed-specific health risks, lifespan data, and longevity tips. Research-backed profiles for 200+ dog breeds.",
+  alternates: {
+    canonical: "/breeds",
+  },
+  openGraph: {
+    title: "Dog Breed Health & Longevity Profiles | FursBliss",
+    description:
+      "Explore breed-specific health risks, lifespan data, and longevity tips. Research-backed profiles for 200+ dog breeds.",
+    url: "/breeds",
+    type: "website",
+    images: ["/og-default.jpg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dog Breed Health & Longevity Profiles | FursBliss",
+    description:
+      "Explore breed-specific health risks, lifespan data, and longevity tips. Research-backed profiles for 200+ dog breeds.",
+    images: ["/og-default.jpg"],
+  },
 };
 
 export default async function BreedsPage() {
@@ -67,8 +85,8 @@ export default async function BreedsPage() {
                 <Link className="text-emerald-600 hover:underline" href={`/breeds/${item.slug}`}>
                   View guide →
                 </Link>
-                <Link className="text-slate-700 hover:underline" href="/signup">
-                  Create a personalized plan →
+                <Link className="text-slate-700 hover:underline" href="/quiz">
+                  Run the free longevity quiz →
                 </Link>
               </CardContent>
             </Card>

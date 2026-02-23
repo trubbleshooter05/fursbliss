@@ -142,12 +142,34 @@ const loyaltyTimeline = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: "FursBliss | Dog Longevity Intelligence Platform",
+  title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
   description:
-    "Track daily health signals, get AI-powered supplement guidance, and prepare for LOY-002. The longevity command center for your dog.",
+    "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
   alternates: {
     canonical: "/",
   },
+  openGraph: {
+    title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
+    description:
+      "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
+    url: "/",
+    type: "website",
+    images: ["/og-default.jpg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
+    description:
+      "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
+    images: ["/og-default.jpg"],
+  },
+};
+
+const WEBSITE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "FursBliss",
+  url: "https://fursbliss.com",
 };
 
 export default async function Home() {
@@ -161,6 +183,12 @@ export default async function Home() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-20 px-4 py-8 pb-28 sm:px-6 md:gap-24 md:py-16 md:pb-24">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(WEBSITE_JSON_LD),
+          }}
+        />
         <section className="hero-gradient dot-grid-bg relative overflow-hidden rounded-[1.5rem] border border-white/15 px-4 py-10 text-white sm:px-6 sm:py-12 md:rounded-[2rem] md:px-10 md:py-14 lg:px-14">
           <Image
             src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1800&q=80"
@@ -395,7 +423,7 @@ export default async function Home() {
                 </p>
               </div>
               <Button size="lg" className="bg-accent text-accent-foreground hover:scale-[1.02] transition-all duration-300" asChild>
-                <Link href="/longevity-drugs">Check Eligibility</Link>
+                <Link href="/loy-002">Check Eligibility</Link>
               </Button>
             </AnimateIn>
 

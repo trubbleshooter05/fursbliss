@@ -10,27 +10,75 @@ import { EligibilityChecker } from "@/components/longevity/eligibility-checker";
 import { LoyNotifyForm } from "@/components/longevity/loy-notify-form";
 import { AnimateIn } from "@/components/ui/animate-in";
 
-const SHARE_IMAGE_URL = "/opengraph-image";
+const FAQ_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is LOY-002?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "LOY-002 is an investigational daily oral therapy from Loyal designed for senior dogs and intended to support healthy aging pathways.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "When will LOY-002 be available?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Public updates indicate efficacy and safety sections have been accepted, with manufacturing still in review. Conditional approval could potentially arrive in late 2026 to 2027 depending on review timing.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is my dog eligible for LOY-002?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Current public criteria commonly referenced are senior dogs around 10+ years old and 14+ lbs, but final eligibility depends on regulatory labeling and veterinary guidance.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How much will LOY-002 cost?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Public pricing has not been announced yet.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is the STAY clinical study?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "STAY is Loyal's large-scale clinical program for LOY-002. Public reporting references about 1,300 dogs enrolled across around 70 clinics with longitudinal follow-up.",
+      },
+    },
+  ],
+};
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003, TRIAD Rapamycin) | FursBliss",
+  title: "LOY-002 FDA Timeline & Dog Longevity Drug Tracker | FursBliss",
   description:
-    "Track LOY-001, LOY-002, LOY-003, and TRIAD Rapamycin study updates, eligibility criteria, and readiness planning for longevity-focused pet owners.",
+    "Track LOY-002's path to FDA conditional approval. RXE accepted, TAS accepted, manufacturing in review. Get milestone alerts.",
   alternates: {
     canonical: "/longevity-drugs",
   },
   openGraph: {
-    title: "Dog Longevity Drug Hub (LOY-001, LOY-002, LOY-003, TRIAD Rapamycin) | FursBliss",
+    title: "LOY-002 FDA Timeline & Dog Longevity Drug Tracker | FursBliss",
     description:
-      "Track LOY-001, LOY-002, LOY-003, and TRIAD Rapamycin study updates, eligibility criteria, and readiness planning for longevity-focused pet owners.",
+      "Track LOY-002's path to FDA conditional approval. RXE accepted, TAS accepted, manufacturing in review. Get milestone alerts.",
     url: "/longevity-drugs",
     type: "website",
-    images: [SHARE_IMAGE_URL],
+    images: ["/og-default.jpg"],
   },
   twitter: {
     card: "summary_large_image",
-    images: [SHARE_IMAGE_URL],
+    title: "LOY-002 FDA Timeline & Dog Longevity Drug Tracker | FursBliss",
+    description:
+      "Track LOY-002's path to FDA conditional approval. RXE accepted, TAS accepted, manufacturing in review. Get milestone alerts.",
+    images: ["/og-default.jpg"],
   },
 };
 
@@ -70,6 +118,12 @@ export default async function LongevityDrugsPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl px-6 py-16 space-y-10">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(FAQ_JSON_LD),
+          }}
+        />
         <section className="section-molecule relative overflow-hidden rounded-3xl border border-border bg-[var(--color-section-alt)] p-8 md:p-10">
           <Image
             src="https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=1800&q=80"
@@ -355,6 +409,27 @@ export default async function LongevityDrugsPage() {
                 </AnimateIn>
               )})
             )}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <AnimateIn>
+            <h2 className="font-display text-3xl text-foreground">Keep learning</h2>
+          </AnimateIn>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" asChild>
+              <a href="/quiz">Take the free longevity quiz</a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href="/blog/loy-002-vs-rapamycin-triad-2026-update">
+                LOY-002 vs Rapamycin analysis
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href="/blog/loyal-series-c-funding-feb-2026">
+                Loyal funding timeline update
+              </a>
+            </Button>
           </div>
         </section>
 

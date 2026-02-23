@@ -5,6 +5,8 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
+const PUBLISHED_AT = "2026-02-14T00:00:00.000Z";
+const UPDATED_AT = "2026-02-14T00:00:00.000Z";
 
 export const metadata: Metadata = {
   title: "LOY-002 vs Rapamycin: Two Paths to Dog Longevity | FursBliss",
@@ -23,8 +25,30 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    title: "LOY-002 vs Rapamycin: Two Paths to Dog Longevity | FursBliss",
+    description:
+      "Compare LOY-002 and TRIAD rapamycin for dogs by mechanism, eligibility, trial size, timeline, and expected availability.",
     images: [SHARE_IMAGE_URL],
   },
+};
+
+const ARTICLE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "LOY-002 vs Rapamycin: Two Paths to Dog Longevity",
+  description:
+    "Compare LOY-002 and TRIAD rapamycin for dogs by mechanism, eligibility, trial size, timeline, and expected availability.",
+  datePublished: PUBLISHED_AT,
+  dateModified: UPDATED_AT,
+  author: {
+    "@type": "Organization",
+    name: "FursBliss",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "FursBliss",
+  },
+  mainEntityOfPage: "https://fursbliss.com/blog/loy-002-vs-rapamycin-triad-2026-update",
 };
 
 const rows = [
@@ -44,6 +68,12 @@ export default function LoyVsTriadPostPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 md:py-14">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(ARTICLE_JSON_LD),
+          }}
+        />
         <div className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
             Blog - Feb 14, 2026
@@ -118,6 +148,10 @@ export default function LoyVsTriadPostPage() {
             {" "}and run your dog through the{" "}
             <Link href="/longevity-drugs#eligibility" className="text-emerald-700 hover:underline">
               eligibility checker
+            </Link>
+            {" "}or start with the{" "}
+            <Link href="/quiz" className="text-emerald-700 hover:underline">
+              free longevity quiz
             </Link>
             .
           </p>

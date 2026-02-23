@@ -5,26 +5,27 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
 
-const SHARE_IMAGE_URL = "/opengraph-image";
-
 export const metadata: Metadata = {
-  title: "FursBliss Blog | Dog Longevity News",
+  title: "Dog Longevity Research & LOY-002 Updates | FursBliss Blog",
   description:
-    "Latest dog longevity research, LOY drug updates, and practical senior-dog health guidance.",
+    "Latest research on dog longevity drugs, LOY-002 FDA progress, senior dog health tips, and supplement safety guides.",
   alternates: {
     canonical: "/blog",
   },
   openGraph: {
-    title: "FursBliss Blog | Dog Longevity News",
+    title: "Dog Longevity Research & LOY-002 Updates | FursBliss Blog",
     description:
-      "Latest dog longevity research, LOY drug updates, and practical senior-dog health guidance.",
+      "Latest research on dog longevity drugs, LOY-002 FDA progress, senior dog health tips, and supplement safety guides.",
     url: "/blog",
     type: "website",
-    images: [SHARE_IMAGE_URL],
+    images: ["/og-default.jpg"],
   },
   twitter: {
     card: "summary_large_image",
-    images: [SHARE_IMAGE_URL],
+    title: "Dog Longevity Research & LOY-002 Updates | FursBliss Blog",
+    description:
+      "Latest research on dog longevity drugs, LOY-002 FDA progress, senior dog health tips, and supplement safety guides.",
+    images: ["/og-default.jpg"],
   },
 };
 

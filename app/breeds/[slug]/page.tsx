@@ -20,6 +20,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title: `${profile.seoTitle} | FursBliss`,
       description: profile.seoDescription,
+      alternates: {
+        canonical: `/breeds/${params.slug}`,
+      },
+      openGraph: {
+        title: `${profile.seoTitle} | FursBliss`,
+        description: profile.seoDescription,
+        url: `/breeds/${params.slug}`,
+        type: "article",
+        images: ["/og-default.jpg"],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${profile.seoTitle} | FursBliss`,
+        description: profile.seoDescription,
+        images: ["/og-default.jpg"],
+      },
     };
   }
   const fallback = breedPages.find((page) => page.slug === params.slug);
@@ -27,11 +43,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title: "Breed Guide | FursBliss",
       description: "Breed-specific longevity and supplement guidance.",
+      alternates: {
+        canonical: `/breeds/${params.slug}`,
+      },
     };
   }
   return {
     title: `${fallback.title} | FursBliss`,
     description: fallback.description,
+    alternates: {
+      canonical: `/breeds/${params.slug}`,
+    },
+    openGraph: {
+      title: `${fallback.title} | FursBliss`,
+      description: fallback.description,
+      url: `/breeds/${params.slug}`,
+      type: "article",
+      images: ["/og-default.jpg"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${fallback.title} | FursBliss`,
+      description: fallback.description,
+      images: ["/og-default.jpg"],
+    },
   };
 }
 
@@ -75,6 +110,11 @@ export default async function BreedDetailPage({ params }: PageProps) {
           <p className="text-xs text-muted-foreground">
             Informational guidance only. Always consult your veterinarian for diagnosis
             and treatment decisions.
+          </p>
+          <p className="text-sm">
+            <a href="/quiz" className="font-medium text-emerald-700 hover:underline">
+              Take the free longevity quiz for a personalized baseline
+            </a>
           </p>
         </main>
         <SiteFooter />
@@ -140,6 +180,11 @@ export default async function BreedDetailPage({ params }: PageProps) {
         <p className="text-xs text-muted-foreground">
           FursBliss AI and breed content supports owner education and is not a
           substitute for professional veterinary care.
+        </p>
+        <p className="text-sm">
+          <a href="/quiz" className="font-medium text-emerald-700 hover:underline">
+            Take the free longevity quiz for a personalized baseline
+          </a>
         </p>
       </main>
       <SiteFooter />

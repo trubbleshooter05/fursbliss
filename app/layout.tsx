@@ -22,25 +22,29 @@ const spaceMono = Space_Mono({
   weight: ["400", "700"],
 });
 
-const SHARE_IMAGE_URL = "/opengraph-image";
+const SHARE_IMAGE_URL = "/og-default.jpg";
 const ORGANIZATION_JSON_LD = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "FursBliss",
   description:
-    "Dog longevity intelligence platform - health tracking, supplement safety, and LOY-002 readiness",
-  url: "https://www.fursbliss.com",
+    "Dog longevity intelligence platform — health tracking, AI supplement guidance, and LOY-002 readiness tools.",
+  url: "https://fursbliss.com",
+  sameAs: [],
 };
 
 export const metadata: Metadata = {
-  title: "FursBliss | Dog Longevity Intelligence Platform",
+  title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
   description:
-    "Track daily health signals, get AI-powered supplement guidance, and prepare for LOY-002. The longevity command center for your dog.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"),
+    "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
+  metadataBase: new URL("https://fursbliss.com"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "FursBliss | The Longevity Command Center for Your Dog",
+    title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
     description:
-      "AI-powered health tracking and longevity intelligence for senior dogs.",
+      "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
     type: "website",
     url: "/",
     siteName: "FursBliss",
@@ -55,9 +59,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "FursBliss | Dog Longevity Intelligence Platform",
+    title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
     description:
-      "Track daily health signals, AI supplement guidance, and LOY-002 readiness for your dog.",
+      "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
     images: [SHARE_IMAGE_URL],
   },
 };

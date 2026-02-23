@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
 import { PricingPageClient } from "@/components/site/pricing-page-client";
 
-const SHARE_IMAGE_URL = "/opengraph-image";
-
 export const metadata: Metadata = {
-  title: "FursBliss Pricing | Free and Premium Dog Longevity Plans",
+  title: "FursBliss Pricing — Free & Premium Dog Longevity Plans",
   description:
-    "Compare Free vs Premium for LOY-002 launch readiness. Free users get notified. Premium users get prepared with vet-ready history and verification.",
+    "Track your dog's health free or get premium AI insights, vet-ready reports, and LOY-002 eligibility tracking for $9/month.",
   alternates: {
     canonical: "/pricing",
   },
   openGraph: {
-    title: "FursBliss Pricing | Free and Premium Dog Longevity Plans",
+    title: "FursBliss Pricing — Free & Premium Dog Longevity Plans",
     description:
-      "Compare Free vs Premium for LOY-002 launch readiness. Free users get notified. Premium users get prepared with vet-ready history and verification.",
+      "Track your dog's health free or get premium AI insights, vet-ready reports, and LOY-002 eligibility tracking for $9/month.",
     url: "/pricing",
     type: "website",
-    images: [SHARE_IMAGE_URL],
+    images: ["/og-default.jpg"],
   },
   twitter: {
     card: "summary_large_image",
-    images: [SHARE_IMAGE_URL],
+    title: "FursBliss Pricing — Free & Premium Dog Longevity Plans",
+    description:
+      "Track your dog's health free or get premium AI insights, vet-ready reports, and LOY-002 eligibility tracking for $9/month.",
+    images: ["/og-default.jpg"],
   },
 };
 

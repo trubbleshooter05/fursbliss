@@ -2,10 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-    },
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/dashboard", "/pets", "/account", "/api", "/admin"],
+      },
+    ],
     sitemap: "https://fursbliss.com/sitemap.xml",
   };
 }

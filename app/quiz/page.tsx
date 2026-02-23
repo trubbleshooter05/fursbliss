@@ -5,26 +5,27 @@ import { LongevityQuiz } from "@/components/quiz/longevity-quiz";
 import { prisma } from "@/lib/prisma";
 import { quizBreedOptions } from "@/lib/breed-pages";
 
-const SHARE_IMAGE_URL = "/opengraph-image";
-
 export const metadata: Metadata = {
-  title: "Free Dog Longevity Readiness Quiz | FursBliss",
+  title: "Free Dog Longevity Quiz — Get Your Dog's Readiness Score | FursBliss",
   description:
-    "Take the 60-second FursBliss quiz and get your dog's personalized longevity readiness score.",
+    "Take our free 2-minute quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
   alternates: {
     canonical: "/quiz",
   },
   openGraph: {
-    title: "Free Dog Longevity Readiness Quiz | FursBliss",
+    title: "Free Dog Longevity Quiz — Get Your Dog's Readiness Score | FursBliss",
     description:
-      "Take the 60-second FursBliss quiz and get your dog's personalized longevity readiness score.",
+      "Take our free 2-minute quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
     url: "/quiz",
     type: "website",
-    images: [SHARE_IMAGE_URL],
+    images: ["/og-default.jpg"],
   },
   twitter: {
     card: "summary_large_image",
-    images: [SHARE_IMAGE_URL],
+    title: "Free Dog Longevity Quiz — Get Your Dog's Readiness Score | FursBliss",
+    description:
+      "Take our free 2-minute quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
+    images: ["/og-default.jpg"],
   },
 };
 

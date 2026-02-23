@@ -4,7 +4,7 @@ import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
 import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = "https://fursbliss.com";
+  const base = "https://www.fursbliss.com";
   const now = new Date();
   const blogPosts = getBlogPostsSortedByDateDesc();
   let dbBreedSlugs: string[] = [];

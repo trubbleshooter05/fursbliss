@@ -169,7 +169,7 @@ const WEBSITE_JSON_LD = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "FursBliss",
-  url: "https://fursbliss.com",
+  url: "https://www.fursbliss.com",
 };
 
 export default async function Home() {

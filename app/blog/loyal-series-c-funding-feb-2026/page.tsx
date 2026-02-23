@@ -13,13 +13,13 @@ export const metadata: Metadata = {
   description:
     "Loyal raised $100M in a Feb 2026 Series C, bringing total funding to $250M+. What this means for LOY-001, LOY-002, and LOY-003 timelines.",
   alternates: {
-    canonical: "/blog/loyal-series-c-100m-loy-002-update",
+    canonical: "/blog/loyal-series-c-funding-feb-2026",
   },
   openGraph: {
     title: "Loyal Series C Funding News (Feb 2026) | FursBliss Blog",
     description:
       "Loyal raised $100M in a Feb 2026 Series C, bringing total funding to $250M+. What this means for LOY-001, LOY-002, and LOY-003 timelines.",
-    url: "/blog/loyal-series-c-100m-loy-002-update",
+    url: "/blog/loyal-series-c-funding-feb-2026",
     type: "article",
     images: [SHARE_IMAGE_URL],
   },
@@ -48,7 +48,7 @@ const ARTICLE_JSON_LD = {
     "@type": "Organization",
     name: "FursBliss",
   },
-  mainEntityOfPage: "https://fursbliss.com/blog/loyal-series-c-funding-feb-2026",
+  mainEntityOfPage: "https://www.fursbliss.com/blog/loyal-series-c-funding-feb-2026",
 };
 
 export default function LoyalFundingPostPage() {

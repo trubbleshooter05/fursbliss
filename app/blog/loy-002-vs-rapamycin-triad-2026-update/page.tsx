@@ -48,7 +48,7 @@ const ARTICLE_JSON_LD = {
     "@type": "Organization",
     name: "FursBliss",
   },
-  mainEntityOfPage: "https://fursbliss.com/blog/loy-002-vs-rapamycin-triad-2026-update",
+  mainEntityOfPage: "https://www.fursbliss.com/blog/loy-002-vs-rapamycin-triad-2026-update",
 };
 
 const rows = [

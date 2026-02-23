@@ -48,7 +48,7 @@ const ARTICLE_JSON_LD = {
     "@type": "Organization",
     name: "FursBliss",
   },
-  mainEntityOfPage: "https://fursbliss.com/blog/how-to-spot-fake-dog-health-advice-social-media",
+  mainEntityOfPage: "https://www.fursbliss.com/blog/how-to-spot-fake-dog-health-advice-social-media",
 };
 
 const warningSigns = [

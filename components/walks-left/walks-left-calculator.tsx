@@ -472,7 +472,11 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                   <Button className="min-h-11 w-full" variant="secondary" onClick={() => onShare("copy")}>
                     Copy Link
                   </Button>
-                  <Button className="min-h-11 w-full" variant="outline" onClick={() => onShare("download")}>
+                  <Button
+                    className="min-h-11 w-full border-white/35 bg-white text-[#2B134E] hover:bg-white/90"
+                    variant="outline"
+                    onClick={() => onShare("download")}
+                  >
                     Download Card
                   </Button>
                 </CardContent>

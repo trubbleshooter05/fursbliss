@@ -518,11 +518,19 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                     </div>
                   </div>
 
-                  <Button asChild className="min-h-11 w-full">
-                    <Link href="/quiz">Take the full longevity quiz → get {result.dogName}&apos;s readiness score</Link>
+                  <Button asChild className="h-auto min-h-11 w-full whitespace-normal px-4 py-3 text-center leading-snug">
+                    <Link href="/quiz">
+                      Take the full longevity quiz → get {result.dogName}&apos;s readiness score
+                    </Link>
                   </Button>
-                  <Button asChild variant="outline" className="min-h-11 w-full border-white/20 text-white hover:bg-white/10">
-                    <Link href="/signup">Create a free account to track {result.dogName}&apos;s health over time</Link>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-auto min-h-11 w-full whitespace-normal border-white/35 bg-white px-4 py-3 text-center leading-snug text-[#2B134E] hover:bg-white/90"
+                  >
+                    <Link href="/signup">
+                      Create a free account to track {result.dogName}&apos;s health over time
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>

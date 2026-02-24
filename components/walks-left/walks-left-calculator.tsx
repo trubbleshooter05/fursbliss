@@ -37,6 +37,14 @@ function ageLabel(years: number, months: number): string {
   return `${yearLabel}, ${monthLabel}`;
 }
 
+function fileSlug(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "") || "dog";
+}
+
 function drawGradientBackground(ctx: CanvasRenderingContext2D, width: number, height: number) {
   const gradient = ctx.createLinearGradient(0, 0, width, height);
   gradient.addColorStop(0, "#2B134E");
@@ -217,14 +225,14 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
 
     if (channel === "instagram") {
       const dataUrl = buildCardImageDataUrl(result, "story");
-      downloadDataUrl(dataUrl, `${result.dogName.toLowerCase().replace(/\s+/g, "-")}-walks-left-story.png`);
+      downloadDataUrl(dataUrl, `${fileSlug(result.dogName)}-walks-left-story.png`);
       setShareFeedback("Story image generated. If prompted, tap Download.");
       return;
     }
 
     if (channel === "download") {
       const dataUrl = buildCardImageDataUrl(result, "square");
-      const filename = `${result.dogName.toLowerCase().replace(/\s+/g, "-")}-walks-left-card.png`;
+      const filename = `${fileSlug(result.dogName)}-walks-left-feed.png`;
       try {
         const response = await fetch(dataUrl);
         const blob = await response.blob();
@@ -538,7 +546,7 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                 </CardHeader>
                 <CardContent className="grid gap-2">
                   <Button className="min-h-11 w-full" onClick={() => onShare("instagram")}>
-                    Share to Instagram Story
+                    Save Story Image (IG)
                   </Button>
                   <Button className="min-h-11 w-full" variant="secondary" onClick={() => onShare("facebook")}>
                     Share to Facebook
@@ -554,8 +562,11 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                     variant="outline"
                     onClick={() => onShare("download")}
                   >
-                    Download Card
+                    Save Feed Image
                   </Button>
+                  <p className="text-center text-xs text-white/70">
+                    iPhone: tap Save Image, then post from Instagram.
+                  </p>
                   {shareFeedback ? (
                     <p className="text-center text-sm text-emerald-300">{shareFeedback}</p>
                   ) : null}

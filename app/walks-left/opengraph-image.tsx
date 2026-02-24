@@ -45,9 +45,8 @@ export default function WalksLeftOgImage() {
           }}
         >
           <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.02 }}>
-            How Many Walks Left
-            <br />
-            With Your Dog?
+            <div style={{ display: "flex" }}>How Many Walks Left</div>
+            <div style={{ display: "flex" }}>With Your Dog?</div>
           </div>
           <div style={{ fontSize: 32, opacity: 0.95 }}>
             Find out at fursbliss.com/walks-left

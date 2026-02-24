@@ -6,7 +6,7 @@ import { sendEmail } from "@/lib/email";
 
 const requestSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(320),
-  source: z.enum(["loy001", "loy002", "loy003"]).optional(),
+  source: z.enum(["loy001", "loy002", "loy003", "walks-left"]).optional(),
 });
 
 function appUrl() {
@@ -27,12 +27,15 @@ function toDebugString(err: unknown) {
   }
 }
 
-async function maybeSendConfirmationEmail(email: string, source: "loy001" | "loy002" | "loy003") {
+async function maybeSendConfirmationEmail(
+  email: string,
+  source: "loy001" | "loy002" | "loy003" | "walks-left"
+) {
   if (!process.env.RESEND_API_KEY) {
     return;
   }
 
-  const sourceLabel = source.toUpperCase();
+  const sourceLabel = source === "walks-left" ? "WALKS-LEFT" : source.toUpperCase();
 
   try {
     await sendEmail({

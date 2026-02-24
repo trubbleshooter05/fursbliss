@@ -379,6 +379,28 @@ export default async function Home() {
           </section>
         </AnimateIn>
 
+        <AnimateIn>
+          <section className="rounded-3xl border border-white/20 bg-gradient-to-br from-[#2B134E] via-[#4A206D] to-[#D0643B] p-6 text-white md:p-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">
+                  Free Tool
+                </p>
+                <h2 className="font-display text-3xl tracking-[-0.03em] md:text-4xl">
+                  How many walks do you have left?
+                </h2>
+                <p className="max-w-2xl text-sm text-white/90">
+                  A beautiful emotional calculator that turns time together into walks, weekends,
+                  sunsets, and moments you can share.
+                </p>
+              </div>
+              <Button className="min-h-11 w-full bg-white text-[#2B134E] hover:bg-white/90 md:w-auto" asChild>
+                <Link href="/walks-left">Try the free Walks Left tool</Link>
+              </Button>
+            </div>
+          </section>
+        </AnimateIn>
+
         <section id="how-it-works" className="space-y-8 rounded-3xl border border-border bg-card px-4 py-8 sm:px-6 sm:py-10 md:px-10">
           <AnimateIn className="space-y-3">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">How it works</p>

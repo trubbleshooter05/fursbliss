@@ -153,7 +153,11 @@ export default function LoyVsTriadPostPage() {
             <Link href="/quiz" className="text-emerald-700 hover:underline">
               free longevity quiz
             </Link>
-            .
+            {" "}and try{" "}
+            <Link href="/walks-left" className="text-emerald-700 hover:underline">
+              How Many Walks Left
+            </Link>
+            {" "}to visualize the moments that matter most.
           </p>
         </section>
 

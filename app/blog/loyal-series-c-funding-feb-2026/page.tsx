@@ -107,6 +107,12 @@ export default function LoyalFundingPostPage() {
             >
               Take the longevity quiz
             </Link>
+            <Link
+              href="/walks-left"
+              className="inline-flex min-h-11 items-center rounded-xl border border-border px-5 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+            >
+              Try How Many Walks Left
+            </Link>
           </div>
         </article>
       </main>

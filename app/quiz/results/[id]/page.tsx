@@ -162,6 +162,23 @@ export default async function QuizResultsPage({ params }: PageProps) {
             />
           </div>
         </section>
+
+        <section className="mt-6 rounded-2xl border border-border bg-card p-5 md:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+            Also try
+          </p>
+          <h2 className="mt-2 font-display text-2xl text-foreground">
+            How many walks left with {submission.dogName}?
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Use our free emotional calculator to estimate walks, weekends, and sunsets left together.
+          </p>
+          <Button asChild className="mt-4 min-h-11">
+            <Link href={`/walks-left?name=${encodeURIComponent(submission.dogName)}&breed=${encodeURIComponent(submission.breed)}`}>
+              Open the Walks Left tool
+            </Link>
+          </Button>
+        </section>
       </main>
       <SiteFooter />
     </div>

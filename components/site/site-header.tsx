@@ -31,6 +31,7 @@ export function SiteHeader() {
       { href: "/pricing", label: "Pricing", active: pathname === "/pricing" },
       { href: "/breeds", label: "Breeds", active: pathname.startsWith("/breeds") },
       { href: "/trends", label: "Trends", active: pathname.startsWith("/trends") },
+      { href: "/walks-left", label: "Free Tools", active: pathname.startsWith("/walks-left") },
     ],
     [pathname]
   );

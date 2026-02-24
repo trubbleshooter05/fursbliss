@@ -272,11 +272,32 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
     }
 
     if (channel === "facebook") {
-      window.open(
-        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      const fbMobileUrl = `https://m.facebook.com/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+      const fbDesktopUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS && navigator.share) {
+        try {
+          await navigator.share({
+            title: "How Many Walks Left With Your Dog?",
+            url: shareUrl,
+          });
+          setShareFeedback("Opened share sheet. Select Facebook to post.");
+          return;
+        } catch {
+          // Continue to web fallback if user dismisses or app is unavailable.
+        }
+      }
+
+      const popup = window.open(
+        isIOS ? fbMobileUrl : fbDesktopUrl,
         "_blank",
         "noopener,noreferrer"
       );
+      if (!popup) {
+        window.location.href = isIOS ? fbMobileUrl : fbDesktopUrl;
+      }
+      setShareFeedback("If Facebook shows an error, close it and tap Share to Facebook again.");
       return;
     }
 

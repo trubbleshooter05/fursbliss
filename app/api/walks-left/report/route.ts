@@ -65,8 +65,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: "Invalid request" }, { status: 400 });
   }
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   try {
     await addToWaitlist(parsed.data.email);
+    let reportEmailQueued = false;
+    let reportMessageId: string | null = null;
 
     if (process.env.RESEND_API_KEY) {
       const reportUrl = `${appUrl()}/walks-left?name=${encodeURIComponent(
@@ -110,15 +114,29 @@ Open your card again: ${reportUrl}`;
         </p>
       </div>`;
 
-      await sendEmail({
+      const reportSendResult = await sendEmail({
         to: parsed.data.email,
         subject,
         text,
         html,
       });
+      reportEmailQueued = reportSendResult.queued;
+      reportMessageId = reportSendResult.messageId;
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(
+      isProduction
+        ? { ok: true }
+        : {
+            ok: true,
+            debug: {
+              reportEmailQueued,
+              reportMessageId,
+              resendConfigured: Boolean(process.env.RESEND_API_KEY),
+              sender: process.env.RESEND_FROM_EMAIL ?? "FursBliss <hello@fursbliss.com>",
+            },
+          }
+    );
   } catch (error) {
     console.error("walks-left report error", error);
     return NextResponse.json(

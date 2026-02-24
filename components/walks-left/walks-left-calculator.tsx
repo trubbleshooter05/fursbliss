@@ -136,6 +136,8 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
   const [waitlistSuccess, setWaitlistSuccess] = useState(false);
   const [waitlistError, setWaitlistError] = useState<string | null>(null);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState("https://www.fursbliss.com/walks-left");
+  const [shareUrlRefreshing, setShareUrlRefreshing] = useState(false);
   const [completedTracked, setCompletedTracked] = useState(false);
 
   const filteredBreeds = useMemo(() => {
@@ -155,6 +157,52 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
     });
     setCompletedTracked(true);
   }, [completedTracked, result]);
+
+  const createSignedShareUrl = async (
+    resultToShare: WalksLeftResult,
+    options?: { announceRefresh?: boolean }
+  ) => {
+    const fallbackParams = new URLSearchParams({
+      name: resultToShare.dogName,
+      breed: resultToShare.breed,
+      walks: String(resultToShare.metrics.walksLeft),
+    });
+    const fallbackUrl = `https://www.fursbliss.com/walks-left?${fallbackParams.toString()}`;
+    setShareUrl(fallbackUrl);
+
+    try {
+      const response = await fetch("/api/walks-left/share-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: resultToShare.dogName,
+          breed: resultToShare.breed,
+          walks: resultToShare.metrics.walksLeft,
+          weekends: resultToShare.metrics.weekendsLeft,
+          sunsets: resultToShare.metrics.sunsetsLeft,
+        }),
+      });
+      const payload = await response.json();
+      if (response.ok && payload?.ok === true && typeof payload.url === "string") {
+        setShareUrl(payload.url);
+        if (options?.announceRefresh) {
+          setShareFeedback("Share link refreshed.");
+        }
+      }
+    } catch {
+      if (options?.announceRefresh) {
+        setShareFeedback("Using fallback share link.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!result) {
+      setShareUrl("https://www.fursbliss.com/walks-left");
+      return;
+    }
+    void createSignedShareUrl(result);
+  }, [result]);
 
   const onCalculate = async () => {
     setError(null);
@@ -203,16 +251,6 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
       everyDayGift,
     });
   };
-
-  const shareUrl = useMemo(() => {
-    if (!result) return "https://www.fursbliss.com/walks-left";
-    const params = new URLSearchParams({
-      name: result.dogName,
-      breed: result.breed,
-      walks: String(result.metrics.walksLeft),
-    });
-    return `https://www.fursbliss.com/walks-left?${params.toString()}`;
-  }, [result]);
 
   const onShare = async (channel: "instagram" | "facebook" | "x" | "copy" | "download") => {
     if (!result) return;
@@ -272,15 +310,16 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
     }
 
     if (channel === "facebook") {
-      const fbMobileUrl = `https://m.facebook.com/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-      const fbDesktopUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+      const cacheBustedShareUrl = `${shareUrl}${shareUrl.includes("?") ? "&" : "?"}cb=${Date.now()}`;
+      const fbMobileUrl = `https://m.facebook.com/sharer.php?u=${encodeURIComponent(cacheBustedShareUrl)}`;
+      const fbDesktopUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(cacheBustedShareUrl)}`;
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
       if (isIOS && navigator.share) {
         try {
           await navigator.share({
             title: "How Many Walks Left With Your Dog?",
-            url: shareUrl,
+            url: cacheBustedShareUrl,
           });
           setShareFeedback("Opened share sheet. Select Facebook to post.");
           return;
@@ -579,6 +618,23 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                     Copy Link
                   </Button>
                   <Button
+                    className="min-h-11 w-full"
+                    variant="secondary"
+                    disabled={shareUrlRefreshing}
+                    onClick={async () => {
+                      if (!result) return;
+                      setShareFeedback(null);
+                      setShareUrlRefreshing(true);
+                      try {
+                        await createSignedShareUrl(result, { announceRefresh: true });
+                      } finally {
+                        setShareUrlRefreshing(false);
+                      }
+                    }}
+                  >
+                    {shareUrlRefreshing ? "Refreshing link..." : "Refresh Share Link"}
+                  </Button>
+                  <Button
                     className="min-h-11 w-full border-white/35 bg-white text-[#2B134E] hover:bg-white/90"
                     variant="outline"
                     onClick={() => onShare("download")}
@@ -587,6 +643,9 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                   </Button>
                   <p className="text-center text-xs text-white/70">
                     iPhone: tap Save Image, then post from Instagram.
+                  </p>
+                  <p className="text-center text-xs text-white/60">
+                    If Facebook preview is stale, tap Refresh Share Link and share again.
                   </p>
                   {shareFeedback ? (
                     <p className="text-center text-sm text-emerald-300">{shareFeedback}</p>

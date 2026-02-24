@@ -44,7 +44,15 @@ export default function WalksLeftOgImage() {
             width: "100%",
           }}
         >
-          <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.02 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              fontSize: 64,
+              fontWeight: 700,
+              lineHeight: 1.02,
+            }}
+          >
             <div style={{ display: "flex" }}>How Many Walks Left</div>
             <div style={{ display: "flex" }}>With Your Dog?</div>
           </div>

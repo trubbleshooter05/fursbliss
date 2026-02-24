@@ -127,6 +127,7 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
   const [waitlistSending, setWaitlistSending] = useState(false);
   const [waitlistSuccess, setWaitlistSuccess] = useState(false);
   const [waitlistError, setWaitlistError] = useState<string | null>(null);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
   const [completedTracked, setCompletedTracked] = useState(false);
 
   const filteredBreeds = useMemo(() => {
@@ -207,6 +208,7 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
 
   const onShare = async (channel: "instagram" | "facebook" | "x" | "copy" | "download") => {
     if (!result) return;
+    setShareFeedback(null);
     await trackMetaCustomEvent("WalksLeftShared", {
       channel,
       dog_name: result.dogName,
@@ -216,12 +218,48 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
     if (channel === "instagram") {
       const dataUrl = buildCardImageDataUrl(result, "story");
       downloadDataUrl(dataUrl, `${result.dogName.toLowerCase().replace(/\s+/g, "-")}-walks-left-story.png`);
+      setShareFeedback("Story image generated. If prompted, tap Download.");
       return;
     }
 
     if (channel === "download") {
       const dataUrl = buildCardImageDataUrl(result, "square");
-      downloadDataUrl(dataUrl, `${result.dogName.toLowerCase().replace(/\s+/g, "-")}-walks-left-card.png`);
+      const filename = `${result.dogName.toLowerCase().replace(/\s+/g, "-")}-walks-left-card.png`;
+      try {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        const file = new File([blob], filename, { type: "image/png" });
+        const canShareFiles =
+          typeof navigator !== "undefined" &&
+          "share" in navigator &&
+          "canShare" in navigator &&
+          typeof navigator.canShare === "function" &&
+          navigator.canShare({ files: [file] });
+
+        if (canShareFiles) {
+          await navigator.share({
+            files: [file],
+            title: `${result.dogName}'s Walks Left card`,
+            text: "Save or share this card.",
+          });
+          setShareFeedback("Opened share sheet. Choose Save Image.");
+          return;
+        }
+      } catch {
+        // Continue with fallback download/open flow.
+      }
+
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        const popup = window.open(dataUrl, "_blank", "noopener,noreferrer");
+        if (!popup) {
+          downloadDataUrl(dataUrl, filename);
+        }
+        setShareFeedback("Opened image preview. Long-press image to Save to Photos.");
+      } else {
+        downloadDataUrl(dataUrl, filename);
+        setShareFeedback("Card downloaded.");
+      }
       return;
     }
 
@@ -244,7 +282,37 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
       return;
     }
 
-    await navigator.clipboard.writeText(shareUrl);
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareFeedback("Link copied.");
+        return;
+      }
+      throw new Error("Clipboard API unavailable");
+    } catch {
+      const textArea = document.createElement("textarea");
+      textArea.value = shareUrl;
+      textArea.setAttribute("readonly", "");
+      textArea.style.position = "absolute";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.select();
+      const didCopy = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      if (didCopy) {
+        setShareFeedback("Link copied.");
+        return;
+      }
+
+      if (navigator.share) {
+        await navigator.share({ title: "Walks Left", url: shareUrl });
+        setShareFeedback("Opened share sheet.");
+        return;
+      }
+
+      window.prompt("Copy this link:", shareUrl);
+      setShareFeedback("Copy the link from the prompt.");
+    }
   };
 
   const onSubmitWaitlist = async () => {
@@ -258,10 +326,19 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
 
     setWaitlistSending(true);
     try {
-      const response = await fetch("/api/waitlist/loy002", {
+      const response = await fetch("/api/walks-left/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "walks-left" }),
+        body: JSON.stringify({
+          email,
+          source: "walks-left",
+          dogName: result.dogName,
+          breed: result.breed,
+          ageYears: result.ageYears,
+          ageMonths: result.ageMonths,
+          metrics: result.metrics,
+          expectancy: result.expectancy,
+        }),
       });
       const payload = await response.json();
       if (!response.ok || payload?.ok !== true) {
@@ -479,6 +556,9 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                   >
                     Download Card
                   </Button>
+                  {shareFeedback ? (
+                    <p className="text-center text-sm text-emerald-300">{shareFeedback}</p>
+                  ) : null}
                 </CardContent>
               </Card>
 

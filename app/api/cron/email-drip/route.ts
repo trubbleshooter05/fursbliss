@@ -14,6 +14,8 @@ import { buildWelcomeEmailTwo } from "@/lib/email/templates/welcome-2";
 import { buildWelcomeEmailThree } from "@/lib/email/templates/welcome-3";
 
 export const runtime = "nodejs";
+const MAX_STEPS_PER_RUN = 50;
+const MAX_RUNTIME_MS = 20_000;
 
 function isAuthorized(request: Request) {
   const vercelCronHeader = request.headers.get("x-vercel-cron");
@@ -38,13 +40,21 @@ export async function GET(request: Request) {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
-  const dueSteps = await getDueEmailSequenceSteps(200);
+  const startedAt = Date.now();
+  const dueSteps = await getDueEmailSequenceSteps(MAX_STEPS_PER_RUN);
 
   let sent = 0;
   let failed = 0;
   let skipped = 0;
+  let deferred = 0;
 
-  for (const dueStep of dueSteps) {
+  for (let index = 0; index < dueSteps.length; index += 1) {
+    if (Date.now() - startedAt >= MAX_RUNTIME_MS) {
+      deferred = dueSteps.length - index;
+      break;
+    }
+
+    const dueStep = dueSteps[index];
     const { enrollment } = dueStep;
     const user = enrollment.user;
 
@@ -163,5 +173,7 @@ export async function GET(request: Request) {
     sent,
     failed,
     skipped,
+    deferred,
+    runtimeMs: Date.now() - startedAt,
   });
 }

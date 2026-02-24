@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { breedPages } from "@/lib/breed-pages";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Dog Breed Health & Longevity Profiles | FursBliss",
   description:

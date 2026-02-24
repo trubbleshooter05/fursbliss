@@ -35,7 +35,7 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
   const pet = await prisma.pet.findFirst({
     where: { id: params.id, userId },
     include: {
-      healthLogs: { orderBy: { date: "desc" } },
+      healthLogs: { orderBy: { date: "desc" }, take: 50 },
       weightLogs: { orderBy: { date: "desc" } },
       photoLogs: { orderBy: { createdAt: "desc" }, take: 6 },
       medications: { where: { active: true }, orderBy: { createdAt: "desc" } },

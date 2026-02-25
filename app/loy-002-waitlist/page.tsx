@@ -8,7 +8,37 @@ import { Button } from "@/components/ui/button";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { LoyWaitlistCta } from "@/components/loy-waitlist/loy-waitlist-cta";
 
-const SHARE_IMAGE_URL = "/opengraph-image";
+const SHARE_IMAGE_URL = "/og-default.jpg";
+const FAQ_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is LOY-002?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "LOY-002 is a dog longevity candidate being developed as a daily pill focused on metabolic aging pathways in senior dogs.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "When could LOY-002 become available?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Public guidance currently points to a potential conditional approval window in late 2026 or early 2027, pending FDA review milestones.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How can I know if my dog may be eligible?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "FursBliss provides a quick readiness check and waitlist flow using publicly shared study criteria, then sends launch updates as milestones are announced.",
+      },
+    },
+  ],
+};
 
 export const metadata: Metadata = {
   title: "LOY-002 Waitlist - Is Your Dog Eligible? | FursBliss",
@@ -23,10 +53,20 @@ export const metadata: Metadata = {
       "Join the LOY-002 readiness waitlist and check if your dog may qualify. Get prepared before launch day.",
     url: "/loy-002-waitlist",
     type: "website",
-    images: [SHARE_IMAGE_URL],
+    images: [
+      {
+        url: SHARE_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: "LOY-002 waitlist and readiness checker on FursBliss",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
+    title: "LOY-002 Waitlist - Is Your Dog Eligible? | FursBliss",
+    description:
+      "Check LOY-002 eligibility and join the waitlist for launch milestones, readiness guidance, and next steps for your dog.",
     images: [SHARE_IMAGE_URL],
   },
 };
@@ -34,6 +74,10 @@ export const metadata: Metadata = {
 export default function LoyWaitlistPage() {
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+      />
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 md:py-14">
         <section className="space-y-8 rounded-3xl border border-border bg-card px-5 py-8 md:px-8 md:py-10">

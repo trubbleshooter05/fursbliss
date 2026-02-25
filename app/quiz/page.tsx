@@ -67,7 +67,7 @@ export default async function QuizPage() {
             How ready is your dog for the longevity revolution?
           </h1>
           <p className="relative mt-3 max-w-2xl text-slate-700">
-            Answer 4 quick questions and get a personalized readiness score with
+            Answer 3 quick questions and get a personalized readiness score with
             practical next steps.
           </p>
         </section>

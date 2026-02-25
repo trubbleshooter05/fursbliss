@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PricingPageClient } from "@/components/site/pricing-page-client";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "FursBliss Pricing — Free & Premium Dog Longevity Plans",
@@ -25,6 +26,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PricingPage() {
-  return <PricingPageClient />;
+type PricingPageProps = {
+  searchParams?: {
+    plan?: string;
+  };
+};
+
+export default async function PricingPage({ searchParams }: PricingPageProps) {
+  const userCount = await prisma.user.count();
+  const initialPlan = searchParams?.plan === "yearly" ? "yearly" : "monthly";
+  return <PricingPageClient initialPlan={initialPlan} userCount={userCount} />;
 }

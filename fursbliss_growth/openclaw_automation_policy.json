@@ -1,0 +1,125 @@
+{
+  "version": "1.0",
+  "owner": "FursBliss",
+  "objective": "Support senior-dog group conversations with transparent, helpful replies and optional disclosed CTA to fursbliss.com/quiz.",
+  "identity_rules": {
+    "required_disclosure_for_links": true,
+    "disclosure_text_options": [
+      "Disclosure: I work on FursBliss.",
+      "Transparency: I help build FursBliss."
+    ],
+    "never_impersonate_member": true
+  },
+  "safety_rules": {
+    "never_promote_on_loss_or_grief_posts": true,
+    "never_offer_medical_diagnosis": true,
+    "never_pressure_or_hard_sell": true,
+    "no_private_health_data_collection": true
+  },
+  "thread_classification": {
+    "loss_or_grief": {
+      "link_allowed": false,
+      "promotion_allowed": false
+    },
+    "photo_only": {
+      "link_allowed": false,
+      "promotion_allowed": false
+    },
+    "diagnosis_or_crisis": {
+      "link_allowed": false,
+      "promotion_allowed": false
+    },
+    "aging_slowing_down": {
+      "link_allowed": true,
+      "promotion_allowed": true
+    },
+    "supplements_question": {
+      "link_allowed": true,
+      "promotion_allowed": true
+    },
+    "vet_update_non_crisis": {
+      "link_allowed": true,
+      "promotion_allowed": true
+    },
+    "longevity_question": {
+      "link_allowed": true,
+      "promotion_allowed": true
+    },
+    "loy002_mention": {
+      "link_allowed": true,
+      "promotion_allowed": true
+    }
+  },
+  "cadence_limits": {
+    "max_replies_per_day": 4,
+    "min_replies_per_day": 3,
+    "max_replies_per_group_per_day": 1,
+    "weekly_target_total": 20,
+    "weekly_target_linked": 12,
+    "weekly_target_no_link": 8
+  },
+  "approval_workflow": {
+    "mode": "human_approval_required",
+    "auto_post_allowed": false,
+    "approval_timeout_minutes": 180,
+    "require_thread_url": true,
+    "require_reply_type": true
+  },
+  "target_groups": [
+    "https://facebook.com/groups/ourhealthyseniordogs",
+    "https://facebook.com/groups/seniordogcareclub",
+    "https://facebook.com/groups/191616766218998",
+    "https://facebook.com/groups/seniorpaws",
+    "https://facebook.com/groups/682454455106203",
+    "https://facebook.com/groups/187866571811814",
+    "https://facebook.com/groups/213063868418335",
+    "https://facebook.com/groups/210118748883",
+    "https://facebook.com/groups/TopDogSupport",
+    "https://facebook.com/groups/iHeartSeniorDogs"
+  ],
+  "watch_pages": [
+    "https://facebook.com/OldFriendsSeniorDogSanctuary",
+    "https://facebook.com/dogagingproject",
+    "https://facebook.com/LoyalForDogs"
+  ],
+  "search_keywords": [
+    "slowing down",
+    "arthritis",
+    "supplements",
+    "how long",
+    "longevity",
+    "quality of life",
+    "senior dog food",
+    "joint pain",
+    "mobility",
+    "LOY-002",
+    "Loyal",
+    "vet visit",
+    "bloodwork",
+    "aging",
+    "lifespan",
+    "keeping healthy"
+  ],
+  "logging": {
+    "output_file": "fursbliss_growth/openclaw_reply_log.csv",
+    "required_fields": [
+      "timestamp_utc",
+      "group_url",
+      "thread_url",
+      "thread_type",
+      "template_id",
+      "contains_link",
+      "contains_disclosure",
+      "approval_status",
+      "posted_status",
+      "notes"
+    ]
+  },
+  "quality_checks": [
+    "Reply starts by addressing the post directly.",
+    "If link is included, disclosure is present.",
+    "Tone is empathetic and non-promotional.",
+    "No claims that exceed publicly available LOY-002 information.",
+    "No CTA in loss, grief, diagnosis, or photo-only threads."
+  ]
+}

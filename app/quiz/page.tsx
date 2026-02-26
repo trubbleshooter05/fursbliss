@@ -9,14 +9,14 @@ import { quizBreedOptions } from "@/lib/breed-pages";
 export const metadata: Metadata = {
   title: "Free Dog Longevity Quiz — Get Your Dog's Readiness Score | FursBliss",
   description:
-    "Take our free 2-minute quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
+    "Take our free 30-second quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
   alternates: {
     canonical: "/quiz",
   },
   openGraph: {
     title: "Free Dog Longevity Quiz — Get Your Dog's Readiness Score | FursBliss",
     description:
-      "Take our free 2-minute quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
+      "Take our free 30-second quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
     url: "/quiz",
     type: "website",
     images: ["/og-default.jpg"],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Free Dog Longevity Quiz — Get Your Dog's Readiness Score | FursBliss",
     description:
-      "Take our free 2-minute quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
+      "Take our free 30-second quiz to get your dog's longevity readiness score. Personalized for your dog's breed, age, and health concerns.",
     images: ["/og-default.jpg"],
   },
 };

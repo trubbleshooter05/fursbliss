@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trackMetaCustomEvent, trackMetaEvent } from "@/lib/meta-events";
+import { ProgressBar } from "@/components/quiz/progress-bar";
+import { BreedSelector } from "@/components/quiz/breed-selector";
+import { AgeSizeCards } from "@/components/quiz/age-size-cards";
+import { HealthConcerns } from "@/components/quiz/health-concerns";
+import { QuizLoading } from "@/components/quiz/quiz-loading";
 import { ScoreGauge } from "@/components/quiz/score-gauge";
 import { LongevityPlanCard } from "@/components/quiz/longevity-plan-card";
 import { UpgradeCta } from "@/components/quiz/upgrade-cta";
@@ -38,11 +43,11 @@ type LongevityQuizProps = {
 };
 
 type QuizState = {
+  dogName: string;
   breed: string;
-  age: number;
-  weight: number;
-  topConcern: string;
-  supplementsOrMeds: string;
+  ageRange: "under_3" | "3_6" | "7_10" | "11_plus" | "";
+  sizeRange: "small" | "medium" | "large" | "xl" | "";
+  concerns: string[];
   email: string;
 };
 
@@ -56,14 +61,21 @@ type QuizResult = {
   concern: string;
 };
 
-const CONCERN_OPTIONS: Array<{ id: string; label: string; payloadConcern: string }> = [
-  { id: "longevity", label: "Longevity", payloadConcern: "general_longevity" },
-  { id: "mobility", label: "Mobility", payloadConcern: "joint_mobility" },
-  { id: "energy", label: "Energy", payloadConcern: "energy" },
-  { id: "weight", label: "Weight", payloadConcern: "weight" },
-  { id: "supplements", label: "Supplements", payloadConcern: "supplements" },
-  { id: "loy-002", label: "LOY-002", payloadConcern: "loy002" },
-];
+const AGE_TO_VALUE: Record<NonNullable<QuizState["ageRange"]>, number> = {
+  under_3: 2,
+  "3_6": 4.5,
+  "7_10": 8.5,
+  "11_plus": 12,
+  "": 4.5,
+};
+
+const SIZE_TO_WEIGHT: Record<NonNullable<QuizState["sizeRange"]>, number> = {
+  small: 15,
+  medium: 37,
+  large: 70,
+  xl: 100,
+  "": 37,
+};
 
 export function LongevityQuiz({
   breeds,
@@ -72,8 +84,11 @@ export function LongevityQuiz({
   userCount,
   initialResult,
 }: LongevityQuizProps) {
-  const [step, setStep] = useState(1);
+  const [screen, setScreen] = useState<0 | 1 | 2 | 3>(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [showIdentityDone, setShowIdentityDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingScore, setLoadingScore] = useState(false);
   const [emailSubmitting, setEmailSubmitting] = useState(false);
   const [emailSubmitted, setEmailSubmitted] = useState(Boolean(initialResult?.email));
   const [error, setError] = useState<string | null>(null);
@@ -92,98 +107,124 @@ export function LongevityQuiz({
       : null
   );
   const [quizCompletedTracked, setQuizCompletedTracked] = useState(false);
+  const autoAdvanceTimerRef = useRef<number | null>(null);
   const [state, setState] = useState<QuizState>({
+    dogName: initialResult?.dogName ?? "",
     breed: initialResult?.breed ?? "",
-    age: initialResult?.age ?? 10,
-    weight: initialResult?.weight ?? 40,
-    topConcern: initialResult?.concern ?? "",
-    supplementsOrMeds: "",
+    ageRange: "",
+    sizeRange: "",
+    concerns: initialResult?.concern ? [initialResult.concern] : [],
     email: initialResult?.email ?? "",
   });
-
-  const TOTAL_STEPS = 3;
-  const progress = (step / TOTAL_STEPS) * 100;
-  const stepNameByNumber: Record<number, string> = {
-    1: "breed_and_age",
-    2: "weight_and_top_concern",
-    3: "supplements_or_medications",
-  };
-
-  const [quizSessionId] = useState(() => {
-    if (typeof window !== "undefined") {
-      const existing = window.sessionStorage.getItem("quiz_session_id");
-      if (existing) return existing;
-      const created = `quiz_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-      window.sessionStorage.setItem("quiz_session_id", created);
-      return created;
+  const concernPayload = useMemo(() => {
+    if (state.concerns.length === 0 || state.concerns.includes("none")) {
+      return ["general_longevity"];
     }
-    return `quiz_${Date.now()}`;
-  });
+    return state.concerns;
+  }, [state.concerns]);
+
+  const mappedAge = AGE_TO_VALUE[state.ageRange];
+  const mappedWeight = SIZE_TO_WEIGHT[state.sizeRange];
+  const dogName = state.dogName.trim() || "Your Dog";
 
   useEffect(() => {
-    void trackMetaCustomEvent("QuizStarted");
-  }, []);
+    if (screen === 2) {
+      void trackMetaCustomEvent("QuizScreen2");
+    }
+    if (screen === 3) {
+      void trackMetaCustomEvent("QuizScreen3");
+    }
+  }, [screen]);
 
   useEffect(() => {
-    if (result) return;
-    const stepName = stepNameByNumber[step];
-    if (!stepName) return;
-    void fetch("/api/quiz/step-event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: quizSessionId,
-        stepNumber: step,
-        stepName,
-      }),
-    }).catch(() => {
-      // Non-blocking analytics write
-    });
-  }, [quizSessionId, step]);
+    if (screen !== 1 || !state.dogName.trim() || !state.breed.trim()) return;
+    if (autoAdvanceTimerRef.current) window.clearTimeout(autoAdvanceTimerRef.current);
+    setShowIdentityDone(true);
+    autoAdvanceTimerRef.current = window.setTimeout(() => {
+      if (typeof document !== "undefined") {
+        (document.activeElement as HTMLElement | null)?.blur();
+      }
+      setDirection(1);
+      setScreen(2);
+      setShowIdentityDone(false);
+    }, 400);
+    return () => {
+      if (autoAdvanceTimerRef.current) window.clearTimeout(autoAdvanceTimerRef.current);
+    };
+  }, [screen, state.breed, state.dogName]);
 
-  const filteredBreeds = useMemo(() => {
-    if (!state.breed) return breeds.slice(0, 20);
-    const query = state.breed.toLowerCase();
-    return breeds.filter((breed) => breed.toLowerCase().includes(query)).slice(0, 20);
-  }, [breeds, state.breed]);
+  useEffect(() => {
+    if (screen !== 2 || !state.ageRange || !state.sizeRange) return;
+    if (autoAdvanceTimerRef.current) window.clearTimeout(autoAdvanceTimerRef.current);
+    autoAdvanceTimerRef.current = window.setTimeout(() => {
+      setDirection(1);
+      setScreen(3);
+    }, 400);
+    return () => {
+      if (autoAdvanceTimerRef.current) window.clearTimeout(autoAdvanceTimerRef.current);
+    };
+  }, [screen, state.ageRange, state.sizeRange]);
 
-  const selectedConcern = useMemo(
-    () => CONCERN_OPTIONS.find((option) => option.id === state.topConcern),
-    [state.topConcern]
-  );
-
-  const canContinue = useMemo(() => {
-    if (step === 1) return state.breed.trim().length > 0 && state.age > 0;
-    if (step === 2) return state.weight > 0 && state.topConcern.trim().length > 0;
-    return true;
-  }, [state.age, state.breed, state.topConcern, state.weight, step]);
-
-  const nextStep = () => {
-    if (!canContinue || step >= TOTAL_STEPS) return;
-    setStep((current) => current + 1);
+  const goBack = () => {
+    if (autoAdvanceTimerRef.current) window.clearTimeout(autoAdvanceTimerRef.current);
+    if (screen === 3) {
+      setDirection(-1);
+      setScreen(2);
+      return;
+    }
+    if (screen === 2) {
+      setDirection(-1);
+      setScreen(1);
+    }
   };
 
-  const previousStep = () => {
-    if (step <= 1) return;
-    setStep((current) => current - 1);
+  const handleStart = async () => {
+    await trackMetaCustomEvent("QuizStarted");
+    setDirection(1);
+    setScreen(1);
+  };
+
+  const toggleConcern = (concern: string) => {
+    setState((prev) => {
+      if (concern === "none") {
+        return { ...prev, concerns: ["none"] };
+      }
+      const withoutNone = prev.concerns.filter((item) => item !== "none");
+      const exists = withoutNone.includes(concern);
+      return {
+        ...prev,
+        concerns: exists
+          ? withoutNone.filter((item) => item !== concern)
+          : [...withoutNone, concern],
+      };
+    });
   };
 
   const submitQuiz = async () => {
-    if (!canContinue) return;
+    if (!state.breed || !state.dogName.trim() || !state.ageRange || !state.sizeRange) return;
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement | null)?.blur();
+    }
+
     setSubmitting(true);
+    setLoadingScore(true);
     setError(null);
+
     try {
-      const response = await fetch("/api/quiz/submit", {
+      const delay = new Promise((resolve) => setTimeout(resolve, 3000));
+      const request = fetch("/api/quiz/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          dogName: "Your Dog",
+          dogName,
           breed: state.breed,
-          age: state.age,
-          weight: state.weight,
-          concerns: [selectedConcern?.payloadConcern ?? "general_longevity"],
+          age: Math.round(mappedAge),
+          weight: mappedWeight,
+          concerns: concernPayload,
         }),
       });
+
+      const [response] = await Promise.all([request, delay]);
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload.message ?? "Unable to submit quiz.");
@@ -192,14 +233,17 @@ export function LongevityQuiz({
       setResult({
         id: String(payload.id),
         score: Number(payload.score),
-        dogName: "Your Dog",
+        dogName,
         breed: state.breed,
-        age: state.age,
-        weight: state.weight,
-        concern: selectedConcern?.payloadConcern ?? "general_longevity",
+        age: Math.round(mappedAge),
+        weight: mappedWeight,
+        concern: concernPayload[0] ?? "general_longevity",
       });
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to submit quiz.");
+      setLoadingScore(false);
+      setDirection(-1);
+      setScreen(3);
     } finally {
       setSubmitting(false);
     }
@@ -425,184 +469,138 @@ export function LongevityQuiz({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-white/15 bg-white/10 p-3">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/90">
-          Step {step} of {TOTAL_STEPS}
-        </p>
-        <div className="h-2 rounded-full bg-white/15">
-          <div
-            className="h-full rounded-full bg-accent transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={loadingScore ? "loading" : `screen-${screen}`}
+        initial={{ opacity: 0, x: direction > 0 ? 24 : -24 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: direction > 0 ? -24 : 24 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="space-y-4"
+      >
+        {loadingScore ? (
+          <QuizLoading dogName={dogName} />
+        ) : null}
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 24 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -24 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
+        {!loadingScore && screen === 0 ? (
           <Card className="rounded-2xl border-border bg-card">
-            <CardHeader>
-              <CardTitle className="font-display text-3xl text-foreground">
-                {step === 1 && "Tell us your dog's breed and age"}
-                {step === 2 && "Weight and your top concern"}
-                {step === 3 && "Any supplements or medications?"}
+            <CardHeader className="space-y-3">
+              <CardTitle className="font-display text-3xl tracking-[-0.02em] text-foreground md:text-4xl">
+                How Ready Is Your Dog for the Longevity Revolution?
+              </CardTitle>
+              <p className="text-base text-muted-foreground">
+                Answer 3 quick questions. Get your dog&apos;s personalized Longevity Readiness
+                Score.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button
+                onClick={handleStart}
+                className="min-h-12 w-full bg-accent text-base font-semibold text-accent-foreground hover:brightness-110"
+              >
+                Start Free Quiz →
+              </Button>
+              <p className="text-center text-sm text-muted-foreground">
+                Takes 30 seconds • {userCount.toLocaleString()}+ dogs scored
+              </p>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {!loadingScore && screen >= 1 ? (
+          <Card className="rounded-2xl border-border bg-card">
+            <CardHeader className="space-y-3">
+              <ProgressBar
+                step={screen}
+                totalSteps={3}
+                label={screen === 3 ? "Step 3 of 3 — Almost done!" : `Step ${screen} of 3`}
+              />
+              <CardTitle className="font-display text-3xl tracking-[-0.02em] text-foreground">
+                {screen === 1 ? "Tell us about your dog" : null}
+                {screen === 2 ? "Quick health context" : null}
+                {screen === 3 ? `Any concerns about ${dogName}?` : null}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {step === 1 ? (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Breed</label>
-                    <Input
-                      placeholder="Search breed..."
-                      value={state.breed}
-                      inputMode="search"
-                      autoComplete="off"
-                      enterKeyHint="search"
-                      onChange={(event) =>
-                        setState((prev) => ({ ...prev, breed: event.target.value }))
-                      }
-                    />
-                    <div className="grid max-h-48 gap-2 overflow-y-auto rounded-xl border border-border p-2">
-                      {filteredBreeds.map((breed) => (
-                        <button
-                          key={breed}
-                          type="button"
-                          onClick={() => setState((prev) => ({ ...prev, breed }))}
-                          className={`rounded-lg px-3 py-2 text-left text-sm transition ${
-                            state.breed === breed
-                              ? "bg-primary/10 text-primary"
-                              : "hover:bg-muted"
-                          }`}
-                        >
-                          {breed}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Age (years)</label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={30}
-                      value={state.age}
-                      onChange={(event) =>
-                        setState((prev) => ({
-                          ...prev,
-                          age: Number(event.target.value || 1),
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              {step === 2 ? (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Weight (lbs)</label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={250}
-                      value={state.weight}
-                      onChange={(event) =>
-                        setState((prev) => ({
-                          ...prev,
-                          weight: Number(event.target.value || 1),
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Top concern (pick one)</label>
-                    <div className="grid gap-2">
-                      {CONCERN_OPTIONS.map((option) => {
-                        const isSelected = state.topConcern === option.id;
-                        return (
-                          <button
-                            key={option.id}
-                            type="button"
-                            onClick={() => setState((prev) => ({ ...prev, topConcern: option.id }))}
-                            className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                              isSelected
-                                ? "border-primary bg-primary/10 text-primary"
-                                : "border-border hover:bg-muted"
-                            }`}
-                          >
-                            {option.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              {step === 3 ? (
+              {screen === 1 ? (
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-foreground">
-                    Current supplements or medications (optional)
-                  </label>
-                  <Input
-                    placeholder="e.g. fish oil, glucosamine, gabapentin"
-                    value={state.supplementsOrMeds}
-                    onChange={(event) =>
-                      setState((prev) => ({ ...prev, supplementsOrMeds: event.target.value }))
-                    }
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-auto px-0 text-sm text-muted-foreground underline-offset-4 hover:underline"
-                    onClick={submitQuiz}
-                    disabled={submitting}
-                  >
-                    Skip this step
-                  </Button>
+                  <div className="space-y-2">
+                    <label className="text-base font-semibold text-foreground">Dog&apos;s name</label>
+                    <Input
+                      autoFocus
+                      className="min-h-12 text-base"
+                      placeholder="Your dog's name"
+                      value={state.dogName}
+                      onChange={(event) =>
+                        setState((prev) => ({ ...prev, dogName: event.target.value }))
+                      }
+                    />
+                    {state.dogName.trim().length > 0 ? (
+                      <p className="text-sm font-medium text-primary">Next: choose breed below</p>
+                    ) : null}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-base font-semibold text-foreground">Breed</label>
+                    <BreedSelector
+                      breeds={breeds}
+                      selectedBreed={state.breed}
+                      onSelect={(breed) => setState((prev) => ({ ...prev, breed }))}
+                    />
+                  </div>
+                  {showIdentityDone ? (
+                    <p className="text-sm font-medium text-emerald-700">✅ Great, let&apos;s personalize.</p>
+                  ) : null}
                 </div>
+              ) : null}
+
+              {screen === 2 ? (
+                <AgeSizeCards
+                  dogName={dogName}
+                  ageValue={state.ageRange}
+                  sizeValue={state.sizeRange}
+                  onSelectAge={(value) =>
+                    setState((prev) => ({
+                      ...prev,
+                      ageRange: value as QuizState["ageRange"],
+                    }))
+                  }
+                  onSelectSize={(value) =>
+                    setState((prev) => ({
+                      ...prev,
+                      sizeRange: value as QuizState["sizeRange"],
+                    }))
+                  }
+                />
+              ) : null}
+
+              {screen === 3 ? (
+                <HealthConcerns
+                  dogName={dogName}
+                  selected={state.concerns}
+                  onToggle={toggleConcern}
+                  onSubmit={submitQuiz}
+                  submitting={submitting}
+                />
+              ) : null}
+
+              {(screen === 2 || screen === 3) && !loadingScore ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="min-h-11 w-full"
+                  onClick={goBack}
+                  disabled={submitting}
+                >
+                  Back
+                </Button>
               ) : null}
             </CardContent>
           </Card>
-        </motion.div>
-      </AnimatePresence>
+        ) : null}
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Button
-          variant="ghost"
-          className="min-h-11 w-full sm:w-auto"
-          disabled={step === 1 || submitting}
-          onClick={previousStep}
-        >
-          Back
-        </Button>
-        {step < TOTAL_STEPS ? (
-          <Button
-            className="min-h-12 w-full bg-accent text-accent-foreground hover:brightness-110 sm:w-auto"
-            disabled={!canContinue || submitting}
-            onClick={nextStep}
-          >
-            Next
-          </Button>
-        ) : (
-          <Button
-            className="min-h-12 w-full bg-accent text-accent-foreground hover:brightness-110 sm:w-auto"
-            disabled={!canContinue || submitting}
-            onClick={submitQuiz}
-          >
-            {submitting ? "Calculating..." : "Show My Score"}
-          </Button>
-        )}
-      </div>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

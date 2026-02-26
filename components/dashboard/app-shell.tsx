@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/dashboard/user-menu";
 import { PetSwitcher } from "@/components/dashboard/pet-switcher";
+import { GlobalSearch } from "@/components/site/global-search";
 import {
   Sheet,
   SheetClose,
@@ -163,7 +164,10 @@ export function AppShell({ children, user, pets = [] }: AppShellProps) {
                   : "Free plan - launch notifications"}
               </p>
             </div>
-            <UserMenu name={user.name} email={user.email} />
+            <div className="flex items-center gap-3">
+              <GlobalSearch className="hidden w-72 md:block" placeholder="Search pages and tools..." />
+              <UserMenu name={user.name} email={user.email} />
+            </div>
           </header>
           <main className="flex-1 px-6 py-10 pb-24 lg:pb-10">
             <div className="mx-auto w-full max-w-6xl space-y-8">{children}</div>

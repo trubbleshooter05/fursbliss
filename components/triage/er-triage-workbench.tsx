@@ -208,6 +208,11 @@ export function ErTriageWorkbench({ pets, isPremium }: TriageWorkbenchProps) {
           <Button onClick={runTriage} disabled={loading} className="min-h-12">
             {loading ? "Analyzing..." : "Run ER Triage"}
           </Button>
+          {!isPremium ? (
+            <p className="text-xs text-muted-foreground">
+              Premium users unlock detailed likely-category analysis, home-care guidance, and vet-prep checklist.
+            </p>
+          ) : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </CardContent>
       </Card>
@@ -229,7 +234,7 @@ export function ErTriageWorkbench({ pets, isPremium }: TriageWorkbenchProps) {
         </Card>
       ) : null}
 
-      {result?.premiumRequired && !isPremium ? (
+      {result?.premiumRequired ? (
         <Card className="rounded-2xl border border-amber-200 bg-amber-50/60">
           <CardHeader>
             <CardTitle className="font-display text-2xl">Unlock full triage report</CardTitle>

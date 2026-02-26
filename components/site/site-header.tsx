@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, PawPrint } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/site/global-search";
 import {
   Sheet,
   SheetClose,
@@ -42,7 +43,7 @@ export function SiteHeader() {
         isScrolled ? "bg-background/95 shadow-sm" : "bg-background/75"
       }`}
     >
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <PawPrint className="h-5 w-5" />
@@ -65,6 +66,7 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
+        <GlobalSearch className="hidden w-full max-w-xs md:block" />
         <div className="flex items-center gap-3">
           <div className="md:hidden">
             <Sheet>
@@ -78,6 +80,7 @@ export function SiteHeader() {
                   <SheetTitle>FursBliss</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 flex flex-col gap-4 text-sm">
+                  <GlobalSearch className="mb-2" />
                   {links.map((link) => (
                     <SheetClose asChild key={link.href}>
                       <Link href={link.href} className="text-muted-foreground">

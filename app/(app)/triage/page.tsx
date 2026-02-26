@@ -3,17 +3,27 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { ErTriageWorkbench } from "@/components/triage/er-triage-workbench";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { isSubscriptionActive } from "@/lib/subscription";
 
 export const metadata: Metadata = {
   title: "Pet ER Triage Assistant | FursBliss",
   description:
     "Run AI-assisted symptom triage to help decide if your dog needs emergency, same-day, or scheduled vet care.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function TriagePage() {
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return null;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
+  });
+  const isPremium = user ? isSubscriptionActive(user) : false;
 
   const pets = await prisma.pet.findMany({
     where: { userId },
@@ -37,7 +47,7 @@ export default async function TriagePage() {
       <AnimateIn delay={0.08}>
         <ErTriageWorkbench
           pets={pets}
-          isPremium={session.user.subscriptionStatus === "premium"}
+          isPremium={isPremium}
         />
       </AnimateIn>
     </div>

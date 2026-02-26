@@ -26,6 +26,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoUploader } from "@/components/pets/photo-uploader";
 
+function sanitizeDecimalInput(value: string) {
+  const cleaned = value.replace(/[^\d.]/g, "");
+  const firstDot = cleaned.indexOf(".");
+  if (firstDot === -1) return cleaned;
+  return `${cleaned.slice(0, firstDot + 1)}${cleaned.slice(firstDot + 1).replace(/\./g, "")}`;
+}
+
+function stripLeadingZeros(value: string) {
+  if (value === "") return "";
+  if (value.includes(".")) {
+    const [whole, fraction] = value.split(".");
+    const normalizedWhole = whole.replace(/^0+(?=\d)/, "");
+    return `${normalizedWhole || "0"}.${fraction ?? ""}`;
+  }
+  return value.replace(/^0+(?=\d)/, "");
+}
+
 const logSchema = z.object({
   petId: z.string().min(1, "Select a pet."),
   date: z.string().min(1, "Select a date."),
@@ -163,24 +180,23 @@ export function HealthLogForm({ pets, defaultPetId }: HealthLogFormProps) {
                 <FormLabel>Weight (lbs)</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min={0}
-                    step="0.1"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.]?[0-9]*"
                     name={field.name}
                     ref={field.ref}
-                    onBlur={field.onBlur}
+                    onBlur={(event) => {
+                      field.onChange(stripLeadingZeros(event.target.value));
+                      field.onBlur();
+                    }}
                     value={
                       typeof field.value === "number"
-                        ? field.value
+                        ? String(field.value)
                         : field.value
-                          ? Number(field.value)
+                          ? String(field.value)
                           : ""
                     }
-                    onChange={(event) =>
-                      field.onChange(
-                        event.target.value === "" ? undefined : Number(event.target.value)
-                      )
-                    }
+                    onChange={(event) => field.onChange(sanitizeDecimalInput(event.target.value))}
                   />
                 </FormControl>
                 <FormMessage />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ActivitySquare,
   FlaskConical,
   Gift,
   LayoutDashboard,
@@ -43,6 +44,7 @@ const navLinks = [
   { href: "/dashboard/longevity-drugs", label: "Longevity Hub", icon: FlaskConical },
   { href: "/dashboard/doses", label: "Doses", icon: Pill },
   { href: "/interaction-checker", label: "Interactions", icon: ShieldAlert },
+  { href: "/triage", label: "ER Triage", icon: ActivitySquare },
   { href: "/referrals", label: "Referrals", icon: Gift },
   { href: "/logs/new", label: "Log Health", icon: PlusCircle },
   { href: "/insights", label: "Insights", icon: Sparkles },

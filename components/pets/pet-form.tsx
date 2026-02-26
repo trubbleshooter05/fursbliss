@@ -32,6 +32,27 @@ const symptomsOptions = [
   "Restlessness",
 ];
 
+function sanitizeWholeNumberInput(value: string) {
+  return value.replace(/[^\d]/g, "");
+}
+
+function sanitizeDecimalInput(value: string) {
+  const cleaned = value.replace(/[^\d.]/g, "");
+  const firstDot = cleaned.indexOf(".");
+  if (firstDot === -1) return cleaned;
+  return `${cleaned.slice(0, firstDot + 1)}${cleaned.slice(firstDot + 1).replace(/\./g, "")}`;
+}
+
+function stripLeadingZeros(value: string) {
+  if (value === "") return "";
+  if (value.includes(".")) {
+    const [whole, fraction] = value.split(".");
+    const normalizedWhole = whole.replace(/^0+(?=\d)/, "");
+    return `${normalizedWhole || "0"}.${fraction ?? ""}`;
+  }
+  return value.replace(/^0+(?=\d)/, "");
+}
+
 const petSchema = z.object({
   name: z.string().min(1, "Pet name is required."),
   breed: z.string().min(1, "Breed is required."),
@@ -138,23 +159,23 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
                 <FormLabel>Age (years)</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min={0}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     name={field.name}
                     ref={field.ref}
-                    onBlur={field.onBlur}
+                    onBlur={(event) => {
+                      field.onChange(stripLeadingZeros(event.target.value));
+                      field.onBlur();
+                    }}
                     value={
                       typeof field.value === "number"
-                        ? field.value
+                        ? String(field.value)
                         : field.value
-                          ? Number(field.value)
+                          ? String(field.value)
                           : ""
                     }
-                    onChange={(event) =>
-                      field.onChange(
-                        event.target.value === "" ? undefined : Number(event.target.value)
-                      )
-                    }
+                    onChange={(event) => field.onChange(sanitizeWholeNumberInput(event.target.value))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -169,24 +190,23 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
                 <FormLabel>Weight (lbs)</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min={0}
-                    step="0.1"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.]?[0-9]*"
                     name={field.name}
                     ref={field.ref}
-                    onBlur={field.onBlur}
+                    onBlur={(event) => {
+                      field.onChange(stripLeadingZeros(event.target.value));
+                      field.onBlur();
+                    }}
                     value={
                       typeof field.value === "number"
-                        ? field.value
+                        ? String(field.value)
                         : field.value
-                          ? Number(field.value)
+                          ? String(field.value)
                           : ""
                     }
-                    onChange={(event) =>
-                      field.onChange(
-                        event.target.value === "" ? undefined : Number(event.target.value)
-                      )
-                    }
+                    onChange={(event) => field.onChange(sanitizeDecimalInput(event.target.value))}
                   />
                 </FormControl>
                 <FormMessage />

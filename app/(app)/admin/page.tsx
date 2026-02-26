@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -49,6 +51,11 @@ export default async function AdminPage() {
       <div>
         <h1 className="text-3xl font-semibold text-slate-900">Admin</h1>
         <p className="text-muted-foreground">Overview of platform activity.</p>
+        <div className="mt-3">
+          <Button asChild variant="outline">
+            <Link href="/admin/ai-costs">Open AI Cost Dashboard</Link>
+          </Button>
+        </div>
       </div>
 
       <Card>

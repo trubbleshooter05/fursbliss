@@ -96,6 +96,9 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
             <Link href={`/pets/${pet.id}/photos`}>Photos</Link>
           </Button>
           <Button variant="outline" asChild>
+            <Link href={`/pets/${pet.id}/vaccines`}>Vaccine Hub</Link>
+          </Button>
+          <Button variant="outline" asChild>
             <Link href={`/pets/${pet.id}/vet-share`}>Vet Share</Link>
           </Button>
           <Button variant="outline" asChild>

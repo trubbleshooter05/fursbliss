@@ -132,6 +132,12 @@ const publicPreviewItems = [
     href: "/longevity-drugs",
     cta: "Open drug hub",
   },
+  {
+    title: "Use dog ER triage before urgent visits",
+    description: "Get safety-first urgency guidance before deciding on emergency care.",
+    href: "/er-triage-for-dogs",
+    cta: "View ER triage guide",
+  },
 ];
 
 const loyaltyTimeline = [

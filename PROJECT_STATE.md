@@ -81,11 +81,11 @@
 1. **Weekly check-in cron manual trigger fails with 401** - This is expected, Vercel's cron system handles auth differently. Will work automatically on Sunday.
 2. **Prisma migration drift warnings** - Ignore for now, production DB is up to date
 3. **Meta CAPI events not showing in Events Manager** - Tracking implemented but may have delay
-4. ~~**3-day check-in has no backend logic**~~ - FIXED: Removed fake promise, now just links to dashboard
-5. ~~**Email consolidation needed**~~ - FIXED: Weekly check-ins now premium-only (prevents spam)
-6. **No subscription management UI** - Users can't cancel/change plans from dashboard (must go to Stripe portal)
+4. ~~**3-day check-in has no backend logic**~~ - ✅ FIXED: Removed fake promise, now just links to dashboard
+5. ~~**Email consolidation needed**~~ - ✅ FIXED: Weekly check-ins now premium-only (prevents spam)
+6. ~~**No subscription management UI**~~ - ✅ VERIFIED: Already exists at `/api/stripe/portal`
 7. **Weekly check-ins not used in alert calculation** - WeeklyCheckIn table exists but alerts only read HealthLog
-8. **Missing database index on HealthLog** - Need (petId, date) index for alert performance
+8. ~~**Missing database index on HealthLog**~~ - ✅ FIXED: Added (petId, date DESC) index for performance
 
 ## KEY FILES LOCATIONS
 
@@ -186,6 +186,8 @@
 8. **Radio button component missing** - Created components/ui/radio-group.tsx
 9. **CRITICAL: Weekly check-ins going to free users** - Added premium-only filter to cron job
 10. **CRITICAL: 3-day check-in fake promise** - Removed fake "Set My 3-Day Check-In" CTA, replaced with honest "Go to Dashboard"
+11. **PRODUCTION: Added HealthLog database index** - Composite index on (petId, date DESC) for alert performance
+12. **PRODUCTION: Confirmed Stripe Customer Portal** - Already exists at `/api/stripe/portal`, users can self-manage subscriptions
 
 ## ENVIRONMENT VARIABLES (Production)
 - `RESEND_API_KEY` - Email sending

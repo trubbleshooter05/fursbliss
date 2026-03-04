@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { trackMetaCustomEvent } from "@/lib/meta-events";
+import { trackCheckoutAndRedirect, trackMetaCustomEvent } from "@/lib/meta-events";
 
 type StickyUpgradeBarProps = {
   dogName: string;
@@ -32,11 +32,17 @@ export function StickyUpgradeBar({ dogName, ctaHref, targetId }: StickyUpgradeBa
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 shadow-[0_-8px_30px_-20px_rgba(0,0,0,0.5)] backdrop-blur md:hidden">
       <Button
-        asChild
         className="min-h-12 w-full bg-accent text-accent-foreground"
-        onClick={() => void trackMetaCustomEvent("ClickedUpgrade", { source: "sticky_upgrade_bar" })}
+        onClick={async () => {
+          void trackMetaCustomEvent("ClickedUpgrade", { source: "sticky_upgrade_bar" });
+          await trackCheckoutAndRedirect(ctaHref, {
+            source: "sticky_upgrade_bar",
+            value: 9,
+            contentName: "FursBliss Premium Monthly",
+          });
+        }}
       >
-        <a href={ctaHref}>Start {dogName}&apos;s Plan — 7-day trial</a>
+        Start {dogName}&apos;s Plan — 7-day trial
       </Button>
     </div>
   );

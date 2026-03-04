@@ -1,0 +1,129 @@
+{
+  "generated_at_utc": "2026-02-26T03:27:25.350834+00:00",
+  "openclaw_root": "/Users/gp/fursbliss_new",
+  "output_dir": "/Users/gp/fursbliss_new/fursbliss_growth/openclaw_social",
+  "source_asset_dirs": [
+    "/Users/gp/fursbliss_new/docs/marketing/videos"
+  ],
+  "item_count": 7,
+  "items": [
+    {
+      "day_index": 1,
+      "day_title": "Day 1 - Problem Hook",
+      "content_type": "reel",
+      "platforms": "TikTok,Instagram Reels,Facebook Reels",
+      "hook_text": "Before you rush to pet ER, do this first.",
+      "caption": "Pet emergencies are stressful. Our new safety-first ER Triage Assistant helps dog owners decide: ER now, vet today, or monitor at home. Link in bio.",
+      "hashtags": "#DogParents #PetHealth #DogMom #DogDad #VetVisit #DogWellness #FursBliss",
+      "cta_text": "Link in bio",
+      "destination_url": "https://www.fursbliss.com/er-triage-for-dogs",
+      "scheduled_local": "2026-02-25 10:30",
+      "assets": [
+        "new-features-demo-reel.mp4",
+        "er-triage-demo-story.mp4"
+      ],
+      "status": "pending_human_approval"
+    },
+    {
+      "day_index": 2,
+      "day_title": "Day 2 - Feature Spotlight",
+      "content_type": "carousel",
+      "platforms": "Instagram,Facebook",
+      "hook_text": "New: Dog ER Triage Assistant",
+      "caption": "Fast urgency guidance when you're not sure what to do next.",
+      "hashtags": "#DogHealthTips #PetCare #SeniorDog #DogCommunity #PetOwner",
+      "cta_text": "Try now",
+      "destination_url": "https://www.fursbliss.com/triage",
+      "scheduled_local": "2026-02-26 10:30",
+      "assets": [
+        "new-features-demo-feed.mp4",
+        "new-features-demo-reel.mp4"
+      ],
+      "status": "pending_human_approval"
+    },
+    {
+      "day_index": 3,
+      "day_title": "Day 3 - Vaccine Hub Reveal",
+      "content_type": "carousel",
+      "platforms": "Instagram,Facebook",
+      "hook_text": "Stop losing vaccine records.",
+      "caption": "Vaccine Hub is now live in FursBliss. Store dates, due reminders, clinic notes, and record links for every pet.",
+      "hashtags": "#PetRecords #DogCare #PuppyCare #DogHealth #PetParents",
+      "cta_text": "Open vaccine hub",
+      "destination_url": "https://www.fursbliss.com/pets",
+      "scheduled_local": "2026-02-27 10:30",
+      "assets": [
+        "vaccine-hub-demo-story.mp4",
+        "new-features-demo-feed.mp4"
+      ],
+      "status": "pending_human_approval"
+    },
+    {
+      "day_index": 4,
+      "day_title": "Day 4 - User Outcome Post",
+      "content_type": "feed",
+      "platforms": "Instagram,Facebook,LinkedIn",
+      "hook_text": "Better prep, calmer vet visits.",
+      "caption": "Organized records and triage prep can save time, stress, and unnecessary ER costs.",
+      "hashtags": "#VetPrep #DogOwners #PetParentLife #DogWellness",
+      "cta_text": "See how it works",
+      "destination_url": "https://www.fursbliss.com/er-triage-for-dogs",
+      "scheduled_local": "2026-02-28 10:30",
+      "assets": [
+        "new-features-demo-feed.mp4"
+      ],
+      "status": "pending_human_approval"
+    },
+    {
+      "day_index": 5,
+      "day_title": "Day 5 - Story Sequence",
+      "content_type": "stories",
+      "platforms": "Instagram Stories,Facebook Stories",
+      "hook_text": "Not sure if it's urgent? Run ER Triage in 60 seconds.",
+      "caption": "Story CTA sticker text: Try now",
+      "hashtags": "#DogStories #PetTips #DogHealth",
+      "cta_text": "Try now",
+      "destination_url": "https://www.fursbliss.com/triage",
+      "scheduled_local": "2026-03-01 10:30",
+      "assets": [
+        "er-triage-demo-story.mp4",
+        "vaccine-hub-demo-story.mp4"
+      ],
+      "status": "pending_human_approval"
+    },
+    {
+      "day_index": 6,
+      "day_title": "Day 6 - Educational Short",
+      "content_type": "reel",
+      "platforms": "TikTok,Instagram Reels,YouTube Shorts",
+      "hook_text": "Red flags you should never ignore.",
+      "caption": "If your dog has breathing trouble, collapse, seizure, or heavy bleeding, skip triage and go ER now.",
+      "hashtags": "#PetEmergency #DogSafety #DogParents",
+      "cta_text": "Save this post",
+      "destination_url": "https://www.fursbliss.com/er-triage-for-dogs",
+      "scheduled_local": "2026-03-02 10:30",
+      "assets": [
+        "er-triage-demo-story.mp4",
+        "new-features-demo-reel.mp4"
+      ],
+      "status": "pending_human_approval"
+    },
+    {
+      "day_index": 7,
+      "day_title": "Day 7 - Conversion Push",
+      "content_type": "feed+story",
+      "platforms": "Instagram,Facebook",
+      "hook_text": "Premium unlock this week.",
+      "caption": "Unlock full ER triage analysis, home-care guidance, and vet-prep checklists with Premium.",
+      "hashtags": "#PetTech #DogCareApp #FursBliss #DogHealth",
+      "cta_text": "Start free trial",
+      "destination_url": "https://www.fursbliss.com/pricing?from=er-triage-social",
+      "scheduled_local": "2026-03-03 10:30",
+      "assets": [
+        "new-features-demo-feed.mp4",
+        "er-triage-demo-story.mp4"
+      ],
+      "status": "pending_human_approval"
+    }
+  ]
+}

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { PricingPageClient } from "@/components/site/pricing-page-client";
-import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "FursBliss Pricing — Free & Premium Dog Longevity Plans",
@@ -26,14 +25,26 @@ export const metadata: Metadata = {
   },
 };
 
+export const revalidate = 3600;
+
 type PricingPageProps = {
   searchParams?: {
     plan?: string;
+    from?: string;
+    resultId?: string;
   };
 };
 
-export default async function PricingPage({ searchParams }: PricingPageProps) {
-  const userCount = await prisma.user.count();
-  const initialPlan = searchParams?.plan === "yearly" ? "yearly" : "monthly";
-  return <PricingPageClient initialPlan={initialPlan} userCount={userCount} />;
+export default function PricingPage({ searchParams }: PricingPageProps) {
+  const userCount = Number(process.env.NEXT_PUBLIC_SOCIAL_PROOF_DOG_COUNT ?? "1300");
+  const initialPlan =
+    searchParams?.plan === "yearly" || searchParams?.plan === "premium" ? "yearly" : "monthly";
+  return (
+    <PricingPageClient
+      initialPlan={initialPlan}
+      userCount={userCount}
+      source={searchParams?.from}
+      resultId={searchParams?.resultId}
+    />
+  );
 }

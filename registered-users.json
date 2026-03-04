@@ -1,0 +1,20 @@
+[
+  {
+    "email": "emailgregp@gmail.com",
+    "firstName": "max",
+    "fullName": "max e' pad",
+    "dogName": "your dog",
+    "dogBreed": "",
+    "registeredDate": "2026-02-08",
+    "hasPet": false
+  },
+  {
+    "email": "trubbleshooter05@gmail.com",
+    "firstName": "greg",
+    "fullName": "greg pandolfi",
+    "dogName": "your dog",
+    "dogBreed": "",
+    "registeredDate": "2026-02-08",
+    "hasPet": false
+  }
+]

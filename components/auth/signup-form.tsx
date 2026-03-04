@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getProviders, signIn } from "next-auth/react";
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { trackMetaEvent } from "@/lib/meta-events";
+import { trackMetaEvent, trackPurchaseCompleted } from "@/lib/meta-events";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name."),
@@ -37,6 +38,7 @@ type QuizSnapshot = {
 };
 
 export function SignupForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
@@ -44,6 +46,14 @@ export function SignupForm() {
   const [resendingVerification, setResendingVerification] = useState(false);
   const [quizSnapshot, setQuizSnapshot] = useState<QuizSnapshot | null>(null);
   const [googleEnabled, setGoogleEnabled] = useState(true);
+  const [checkoutPurchaseTracked, setCheckoutPurchaseTracked] = useState(false);
+  const redirectParam = searchParams.get("redirect");
+  const checkoutSessionId = searchParams.get("session_id");
+  const checkoutSuccess = searchParams.get("checkout") === "success";
+  const redirectTarget =
+    redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : null;
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -92,6 +102,24 @@ export function SignupForm() {
   }, [searchParams, form]);
 
   useEffect(() => {
+    if (!checkoutSessionId) return;
+    let cancelled = false;
+    void fetch(`/api/stripe/checkout-session?session_id=${encodeURIComponent(checkoutSessionId)}`)
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return (await response.json()) as { email?: string };
+      })
+      .then((data) => {
+        if (cancelled || !data?.email) return;
+        form.setValue("email", data.email);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutSessionId, form]);
+
+  useEffect(() => {
     let isMounted = true;
     void getProviders()
       .then((providers) => {
@@ -107,6 +135,16 @@ export function SignupForm() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!checkoutSuccess || checkoutPurchaseTracked) return;
+    void trackPurchaseCompleted({
+      source: "signup_post_checkout",
+      value: 9,
+      eventIdBase: checkoutSessionId ?? undefined,
+    });
+    setCheckoutPurchaseTracked(true);
+  }, [checkoutSuccess, checkoutPurchaseTracked, checkoutSessionId]);
+
   const onSubmit = async (values: FormValues) => {
     const response = await fetch("/api/auth/register", {
       method: "POST",
@@ -114,6 +152,7 @@ export function SignupForm() {
       body: JSON.stringify({
         ...values,
         ...(quizSnapshot ? { quizSnapshot } : {}),
+        ...(checkoutSessionId ? { checkoutSessionId } : {}),
       }),
     });
 
@@ -137,6 +176,19 @@ export function SignupForm() {
       }
     );
 
+    if (redirectTarget) {
+      const signInResponse = await signIn("credentials", {
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+        redirect: false,
+        callbackUrl: redirectTarget,
+      });
+      if (signInResponse?.ok) {
+        router.push(redirectTarget);
+        return;
+      }
+    }
+
     setVerificationEmail(values.email);
     setVerificationUrl(typeof data?.verificationUrl === "string" ? data.verificationUrl : null);
     toast({
@@ -146,6 +198,14 @@ export function SignupForm() {
   };
 
   const onGoogleSignUp = async () => {
+    if (checkoutSessionId) {
+      toast({
+        title: "Use email signup for this checkout",
+        description: "Use the same email from checkout so we can activate Premium immediately.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!googleEnabled) {
       toast({
         title: "Google sign-in unavailable",
@@ -155,7 +215,7 @@ export function SignupForm() {
       });
       return;
     }
-    await signIn("google", { callbackUrl: "/dashboard" });
+    await signIn("google", { callbackUrl: redirectTarget ?? "/dashboard" });
   };
 
   const resendVerificationEmail = async () => {
@@ -208,7 +268,9 @@ export function SignupForm() {
             {resendingVerification ? "Resending..." : "Resend verification email"}
           </Button>
           <Button type="button" variant="outline" className="w-full" asChild>
-            <Link href="/login">Go to sign in</Link>
+            <Link href={redirectTarget ? `/login?redirect=${encodeURIComponent(redirectTarget)}` : "/login"}>
+              Go to sign in
+            </Link>
           </Button>
           <Button
             type="button"
@@ -236,6 +298,11 @@ export function SignupForm() {
 
   return (
     <>
+      {checkoutSuccess ? (
+        <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+          Payment received. Create your account with the same email used at checkout to unlock Premium.
+        </div>
+      ) : null}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {quizSnapshot ? (

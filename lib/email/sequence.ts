@@ -11,6 +11,7 @@ function addDays(base: Date, days: number) {
 }
 
 export async function enrollUserInWelcomeSequence(userId: string) {
+  const stepDays = [0, 1, 3, 5, 7, 10];
   const existing = await prisma.emailSequenceEnrollment.findFirst({
     where: {
       userId,
@@ -24,8 +25,35 @@ export async function enrollUserInWelcomeSequence(userId: string) {
     },
   });
 
-  // Idempotency: do not enroll if the active sequence already exists.
   if (existing) {
+    await prisma.$transaction(
+      stepDays.map((step) =>
+        prisma.emailSequenceStep.updateMany({
+          where: {
+            enrollmentId: existing.id,
+            step,
+            status: EmailSequenceStepStatus.pending,
+          },
+          data: {
+            scheduledAt: addDays(existing.startedAt, step),
+          },
+        })
+      )
+    );
+
+    const existingSteps = new Set(existing.steps.map((step) => step.step));
+    const missingSteps = stepDays.filter((step) => !existingSteps.has(step));
+    if (missingSteps.length > 0) {
+      await prisma.emailSequenceStep.createMany({
+        data: missingSteps.map((step) => ({
+          enrollmentId: existing.id,
+          step,
+          scheduledAt: addDays(existing.startedAt, step),
+          status: EmailSequenceStepStatus.pending,
+        })),
+      });
+      await updateEnrollmentNextSendAt(existing.id);
+    }
     return existing;
   }
 
@@ -40,18 +68,33 @@ export async function enrollUserInWelcomeSequence(userId: string) {
       steps: {
         create: [
           {
-            step: 1,
+            step: 0,
             scheduledAt: startedAt,
             status: EmailSequenceStepStatus.pending,
           },
           {
-            step: 2,
-            scheduledAt: addDays(startedAt, 2),
+            step: 1,
+            scheduledAt: addDays(startedAt, 1),
             status: EmailSequenceStepStatus.pending,
           },
           {
             step: 3,
+            scheduledAt: addDays(startedAt, 3),
+            status: EmailSequenceStepStatus.pending,
+          },
+          {
+            step: 5,
             scheduledAt: addDays(startedAt, 5),
+            status: EmailSequenceStepStatus.pending,
+          },
+          {
+            step: 7,
+            scheduledAt: addDays(startedAt, 7),
+            status: EmailSequenceStepStatus.pending,
+          },
+          {
+            step: 10,
+            scheduledAt: addDays(startedAt, 10),
             status: EmailSequenceStepStatus.pending,
           },
         ],
@@ -109,6 +152,15 @@ export async function markEmailSequenceStepFailed(stepId: string) {
   });
 }
 
+export async function markEmailSequenceStepSkipped(stepId: string) {
+  await prisma.emailSequenceStep.update({
+    where: { id: stepId },
+    data: {
+      status: EmailSequenceStepStatus.skipped,
+    },
+  });
+}
+
 export async function updateEnrollmentNextSendAt(enrollmentId: string) {
   const nextPending = await prisma.emailSequenceStep.findFirst({
     where: {
@@ -143,6 +195,28 @@ export async function pauseEnrollmentById(enrollmentId: string) {
     where: { id: enrollmentId },
     data: { status: EmailSequenceEnrollmentStatus.paused },
   });
+}
+
+export async function completeEnrollmentById(enrollmentId: string) {
+  await prisma.$transaction([
+    prisma.emailSequenceEnrollment.update({
+      where: { id: enrollmentId },
+      data: {
+        status: EmailSequenceEnrollmentStatus.completed,
+        completedAt: new Date(),
+        nextSendAt: null,
+      },
+    }),
+    prisma.emailSequenceStep.updateMany({
+      where: {
+        enrollmentId,
+        status: EmailSequenceStepStatus.pending,
+      },
+      data: {
+        status: EmailSequenceStepStatus.skipped,
+      },
+    }),
+  ]);
 }
 
 export async function unsubscribeEnrollmentById(enrollmentId: string) {

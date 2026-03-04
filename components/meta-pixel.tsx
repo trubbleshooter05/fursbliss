@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import Script from "next/script";
-import { trackMetaEvent } from "@/lib/meta-events";
+import { trackMetaEvent, trackPurchaseCompleted } from "@/lib/meta-events";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
@@ -12,6 +12,26 @@ export function MetaPixel() {
 
   useEffect(() => {
     void trackMetaEvent("PageView");
+  }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    const checkoutSuccess = params.get("checkout") === "success";
+    const upgraded = params.get("upgraded") === "true";
+    if (!sessionId || (!checkoutSuccess && !upgraded)) return;
+
+    const dedupeKey = `fb:purchase-tracked:${sessionId}`;
+    if (window.sessionStorage.getItem(dedupeKey) === "1") return;
+    window.sessionStorage.setItem(dedupeKey, "1");
+
+    void trackPurchaseCompleted({
+      source: pathname || "post_checkout",
+      value: 9,
+      contentName: "FursBliss Premium Monthly",
+      eventIdBase: sessionId,
+    });
   }, [pathname]);
 
   if (!PIXEL_ID) {

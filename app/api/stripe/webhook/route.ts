@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { sendMetaServerEvent } from "@/lib/meta-capi";
 
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
@@ -38,6 +39,39 @@ export async function POST(request: Request) {
           },
         });
       }
+      const purchaseValue =
+        typeof session.amount_total === "number"
+          ? Math.round((session.amount_total / 100) * 100) / 100
+          : plan === "yearly"
+            ? 59
+            : 9;
+      const email = session.customer_details?.email ?? session.customer_email ?? null;
+      const sourcePath =
+        session.metadata?.source === "triage"
+          ? "/triage"
+          : session.metadata?.source === "quiz-results"
+            ? "/quiz"
+            : "/pricing";
+      const eventSourceUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}${sourcePath}`;
+
+      await Promise.allSettled([
+        sendMetaServerEvent({
+          eventName: "Purchase",
+          eventSourceUrl,
+          value: purchaseValue,
+          contentName: "FursBliss Premium",
+          email,
+          eventId: `${session.id}:purchase`,
+        }),
+        sendMetaServerEvent({
+          eventName: "CompletedPurchase",
+          eventSourceUrl,
+          value: purchaseValue,
+          contentName: "FursBliss Premium",
+          email,
+          eventId: `${session.id}:completed`,
+        }),
+      ]);
       break;
     }
     case "customer.subscription.created":

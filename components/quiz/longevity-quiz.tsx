@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { trackMetaCustomEvent, trackMetaEvent } from "@/lib/meta-events";
+import { trackMetaCustomEvent, trackMetaEvent, trackPurchaseCompleted } from "@/lib/meta-events";
 import { ProgressBar } from "@/components/quiz/progress-bar";
 import { BreedSelector } from "@/components/quiz/breed-selector";
 import { AgeSizeCards } from "@/components/quiz/age-size-cards";
@@ -28,8 +28,8 @@ import {
 type LongevityQuizProps = {
   breeds: string[];
   isPremium: boolean;
-  isSignedIn: boolean;
   userCount: number;
+  checkoutSuccess?: boolean;
   initialResult?: {
     id: string;
     score: number;
@@ -80,10 +80,11 @@ const SIZE_TO_WEIGHT: Record<NonNullable<QuizState["sizeRange"]>, number> = {
 export function LongevityQuiz({
   breeds,
   isPremium,
-  isSignedIn,
   userCount,
+  checkoutSuccess = false,
   initialResult,
 }: LongevityQuizProps) {
+  const [isPremiumUser, setIsPremiumUser] = useState(isPremium);
   const [screen, setScreen] = useState<0 | 1 | 2 | 3>(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [showIdentityDone, setShowIdentityDone] = useState(false);
@@ -107,6 +108,7 @@ export function LongevityQuiz({
       : null
   );
   const [quizCompletedTracked, setQuizCompletedTracked] = useState(false);
+  const [purchaseTracked, setPurchaseTracked] = useState(false);
   const autoAdvanceTimerRef = useRef<number | null>(null);
   const [state, setState] = useState<QuizState>({
     dogName: initialResult?.dogName ?? "",
@@ -178,8 +180,8 @@ export function LongevityQuiz({
     }
   };
 
-  const handleStart = async () => {
-    await trackMetaCustomEvent("QuizStarted");
+  const handleStart = () => {
+    void trackMetaCustomEvent("QuizStarted");
     setDirection(1);
     setScreen(1);
   };
@@ -255,6 +257,35 @@ export function LongevityQuiz({
     setQuizCompletedTracked(true);
   }, [quizCompletedTracked, result]);
 
+  useEffect(() => {
+    if (!checkoutSuccess || purchaseTracked) return;
+    const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const sessionId = params?.get("session_id") ?? undefined;
+    void trackPurchaseCompleted({ source: "quiz_results", value: 9, eventIdBase: sessionId });
+    setPurchaseTracked(true);
+  }, [checkoutSuccess, purchaseTracked]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadSession = async () => {
+      try {
+        const response = await fetch("/api/auth/session", { credentials: "same-origin" });
+        if (!response.ok) return;
+        const session = await response.json();
+        const premium = session?.user?.subscriptionStatus === "premium";
+        if (!cancelled) {
+          setIsPremiumUser(Boolean(premium));
+        }
+      } catch {
+        // Keep server-provided premium default if session fetch fails.
+      }
+    };
+    void loadSession();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const submitEmailCapture = async () => {
     if (!result) return;
     const normalizedEmail = state.email.trim().toLowerCase();
@@ -305,9 +336,10 @@ export function LongevityQuiz({
     const risks = getBreedRiskCount(breed);
     const supplements = getSupplementCount(result.age, result.concern);
     const lifespanRange = getBreedLifespanRange(breed, result.weight);
-    const premiumHref = isSignedIn
-      ? "/pricing?plan=yearly&from=quiz-results"
-      : "/signup?plan=premium&trial=7&redirect=/dashboard&from=quiz-results";
+    const checkoutHref = `/api/stripe/checkout?plan=monthly&source=quiz-results&returnTo=${encodeURIComponent(
+      `/quiz?resultId=${result.id}&upgraded=true&checkout=success`
+    )}&cancelTo=${encodeURIComponent(`/quiz?resultId=${result.id}`)}`;
+    const premiumHref = checkoutHref;
     const testimonials = [
       "\"The timeline and weekly score alerts helped me bring a much better update to my vet visit.\"",
       "\"I finally knew what to track daily instead of guessing if my dog was improving.\"",
@@ -318,6 +350,11 @@ export function LongevityQuiz({
       <div className="space-y-6 pb-20 md:pb-0">
         <Card className="rounded-2xl border-border bg-card">
           <CardHeader className="space-y-4">
+            {checkoutSuccess ? (
+              <p className="rounded-lg border border-emerald-300 bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-800">
+                Premium activated! Your full longevity plan is now unlocked.
+              </p>
+            ) : null}
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
               Your score is ready
             </p>
@@ -382,7 +419,7 @@ export function LongevityQuiz({
               summary={`LOY-002 eligibility: ${loyalty.status}`}
               freeLabel="Free"
               freeValue={`${dogName}'s breed (${breed}) is ${loyalty.breedStatus}.`}
-              premiumUnlocked={isPremium}
+              premiumUnlocked={isPremiumUser}
               lockedItems={[
                 "Your personalized LOY-002 action plan",
                 `Estimated timeline for ${breed}`,
@@ -394,7 +431,7 @@ export function LongevityQuiz({
               summary={`${dogName}'s breed has ${risks} common health risks to watch.`}
               freeLabel="Free"
               freeValue={`${risks} key risks identified for ${breed}.`}
-              premiumUnlocked={isPremium}
+              premiumUnlocked={isPremiumUser}
               lockedItems={[
                 "Track daily appetite, mobility, energy, and weight",
                 "AI-powered health trend alerts",
@@ -407,7 +444,7 @@ export function LongevityQuiz({
               summary={`Based on ${dogName}'s age and breed, ${supplements} supplements may help.`}
               freeLabel="Free"
               freeValue={`${supplements} potential supplements flagged.`}
-              premiumUnlocked={isPremium}
+              premiumUnlocked={isPremiumUser}
               lockedItems={[
                 "Personalized supplement recommendations with dosages",
                 "Interaction warnings for current medications",
@@ -419,7 +456,7 @@ export function LongevityQuiz({
               summary={`${breed} average lifespan: ${lifespanRange} years.`}
               freeLabel="Free"
               freeValue={`Baseline lifespan insight unlocked for ${breed}.`}
-              premiumUnlocked={isPremium}
+              premiumUnlocked={isPremiumUser}
               lockedItems={[
                 "Breed-specific health risk timeline",
                 `Optimal vet visit schedule for ${breed}`,
@@ -429,7 +466,7 @@ export function LongevityQuiz({
           </div>
         </section>
 
-        {!isPremium ? (
+        {!isPremiumUser ? (
           <>
             <UpgradeCta dogName={dogName} ctaHref={premiumHref} userCount={userCount} sectionId="upgrade-top" />
 
@@ -489,8 +526,7 @@ export function LongevityQuiz({
                 How Ready Is Your Dog for the Longevity Revolution?
               </CardTitle>
               <p className="text-base text-muted-foreground">
-                Answer 3 quick questions. Get your dog&apos;s personalized Longevity Readiness
-                Score.
+                3 quick questions. Get your dog&apos;s personalized Longevity Readiness Score in 90 seconds.
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -513,7 +549,7 @@ export function LongevityQuiz({
               <ProgressBar
                 step={screen}
                 totalSteps={3}
-                label={screen === 3 ? "Step 3 of 3 — Almost done!" : `Step ${screen} of 3`}
+                label={screen === 3 ? "Question 3 of 3" : `Question ${screen} of 3`}
               />
               <CardTitle className="font-display text-3xl tracking-[-0.02em] text-foreground">
                 {screen === 1 ? "Tell us about your dog" : null}

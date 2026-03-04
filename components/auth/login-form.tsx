@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getProviders, signIn } from "next-auth/react";
 import { z } from "zod";
@@ -27,6 +27,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [googleEnabled, setGoogleEnabled] = useState(true);
   const form = useForm<FormValues>({
@@ -37,12 +38,19 @@ export function LoginForm() {
     },
   });
 
+  const redirectParam = searchParams.get("redirect");
+  const redirectTarget =
+    redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : "/dashboard";
+
   const onSubmit = async (values: FormValues) => {
     try {
       const response = await signIn("credentials", {
         email: values.email.trim().toLowerCase(),
         password: values.password,
         redirect: false,
+        callbackUrl: redirectTarget,
       });
 
       if (!response) {
@@ -76,7 +84,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(redirectTarget);
     } catch (error) {
       toast({
         title: "Unable to sign in",
@@ -97,7 +105,7 @@ export function LoginForm() {
       });
       return;
     }
-    await signIn("google", { callbackUrl: "/dashboard" });
+    await signIn("google", { callbackUrl: redirectTarget });
   };
 
   useEffect(() => {

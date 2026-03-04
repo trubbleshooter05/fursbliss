@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { trackMetaCustomEvent } from "@/lib/meta-events";
+import { trackCheckoutAndRedirect, trackMetaCustomEvent } from "@/lib/meta-events";
 
 type UpgradeCtaProps = {
   dogName: string;
@@ -22,6 +22,7 @@ const FEATURES = [
 ];
 
 export function UpgradeCta({ dogName, ctaHref, userCount, sectionId }: UpgradeCtaProps) {
+  const yearlyHref = ctaHref.replace("plan=monthly", "plan=yearly");
   const ref = useRef<HTMLElement | null>(null);
   const [viewTracked, setViewTracked] = useState(false);
 
@@ -80,13 +81,36 @@ export function UpgradeCta({ dogName, ctaHref, userCount, sectionId }: UpgradeCt
 
       <div className="mt-5">
         <Button
-          asChild
           className="min-h-12 w-full bg-white text-[#2B134E] hover:bg-white/90"
-          onClick={() => void trackMetaCustomEvent("ClickedUpgrade", { source: sectionId ?? "upgrade_cta" })}
+          onClick={async () => {
+            void trackMetaCustomEvent("ClickedUpgrade", { source: sectionId ?? "upgrade_cta" });
+            await trackCheckoutAndRedirect(ctaHref, {
+              source: sectionId ?? "upgrade_cta",
+              value: 9,
+              contentName: "FursBliss Premium Monthly",
+            });
+          }}
         >
-          <a href={ctaHref}>Start {dogName}&apos;s Plan — Try Free for 7 Days</a>
+          Start {dogName}&apos;s Plan — Try Free for 7 Days
         </Button>
         <p className="mt-2 text-center text-xs text-white/80">Cancel anytime. No questions asked.</p>
+        <p className="mt-1 text-center text-xs text-white/85">
+          Prefer yearly?{" "}
+          <a
+            className="underline"
+            href={yearlyHref}
+            onClick={(event) => {
+              event.preventDefault();
+              void trackCheckoutAndRedirect(yearlyHref, {
+                source: `${sectionId ?? "upgrade_cta"}_yearly`,
+                value: 59,
+                contentName: "FursBliss Premium Yearly",
+              });
+            }}
+          >
+            Save 45% with annual billing
+          </a>
+        </p>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/85">

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { MetaPixel } from "@/components/meta-pixel";
 import { MetaEventDebug } from "@/components/meta-event-debug";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import { ExitIntentPopup } from "@/components/site/exit-intent-popup";
 
 const fraunces = Fraunces({
@@ -82,6 +83,7 @@ export default function RootLayout({
             __html: JSON.stringify(ORGANIZATION_JSON_LD),
           }}
         />
+        <GoogleAnalytics />
         <MetaPixel />
         <MetaEventDebug />
         {children}

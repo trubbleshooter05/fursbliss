@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InsightsPanel } from "@/components/insights/insights-panel";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { getMonthlyRecommendationCount, getTrackingDaysByPet } from "@/lib/user-engagement";
 
 type InsightsPageProps = {
   searchParams?: { petId?: string };
@@ -39,11 +40,15 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     );
   }
 
-  const recommendations = await prisma.recommendation.findMany({
-    where: { pet: { userId } },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
+  const [recommendations, trackingDaysByPet, monthlyFreeUsage] = await Promise.all([
+    prisma.recommendation.findMany({
+      where: { pet: { userId } },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+    getTrackingDaysByPet(userId),
+    getMonthlyRecommendationCount(userId),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -70,6 +75,8 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           }))}
           subscriptionStatus={session.user.subscriptionStatus ?? "free"}
           defaultPetId={searchParams?.petId}
+          trackingDaysByPet={trackingDaysByPet}
+          monthlyFreeUsage={monthlyFreeUsage}
         />
       </AnimateIn>
     </div>

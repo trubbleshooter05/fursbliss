@@ -1,0 +1,13 @@
+file 'frame01-walks-landing.png'
+duration 2.8
+file 'frame02-walks-filled.png'
+duration 2.8
+file 'frame03-walks-action.png'
+duration 3.2
+file 'frame04-er-hero.png'
+duration 2.8
+file 'frame05-er-scroll.png'
+duration 2.8
+file 'frame06-review.png'
+duration 3.4
+file 'frame06-review.png'

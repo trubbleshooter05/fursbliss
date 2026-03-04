@@ -1,0 +1,35 @@
+[
+  {
+    "email": "emailgregp@gmail.com",
+    "name": "Spam Score",
+    "signupDate": "2026-02-14",
+    "subscriptionStatus": "free",
+    "plan": null,
+    "petsCount": 0,
+    "logsCount": 0,
+    "lastLogDate": null,
+    "pets": []
+  },
+  {
+    "email": "downloadthis10@gmail.com",
+    "name": "Jon Doe",
+    "signupDate": "2026-02-12",
+    "subscriptionStatus": "free",
+    "plan": null,
+    "petsCount": 0,
+    "logsCount": 0,
+    "lastLogDate": null,
+    "pets": []
+  },
+  {
+    "email": "trubbleshooter05@icloud.com",
+    "name": "haywood jablowme",
+    "signupDate": "2026-02-09",
+    "subscriptionStatus": "free",
+    "plan": null,
+    "petsCount": 0,
+    "logsCount": 0,
+    "lastLogDate": null,
+    "pets": []
+  }
+]

@@ -17,6 +17,11 @@ import {
 import { EnergyTrendChart } from "@/components/dashboard/energy-trend-chart";
 import { ReminderPanel } from "@/components/dashboard/reminder-panel";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { MilestoneUpgradeCard } from "@/components/dashboard/milestone-upgrade-card";
+import { HealthScorePanel } from "@/components/dashboard/health-score-panel";
+import { MissedAlertsPreview } from "@/components/dashboard/missed-alerts-preview";
+import { calculateHealthScore, getHealthFlags } from "@/lib/health-score";
+import type { HealthLogEntry } from "@/lib/health-score";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -26,7 +31,7 @@ export default async function DashboardPage() {
     return null;
   }
 
-  const [pets, healthLogs, healthLogsThisWeek, notifications] = await Promise.all([
+  const [pets, healthLogs, healthLogsThisWeek, notifications, allLogs] = await Promise.all([
     prisma.pet.findMany({
       where: { userId },
       include: { healthLogs: { orderBy: { date: "desc" }, take: 1 } },
@@ -48,7 +53,103 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
+    prisma.healthLog.findMany({
+      where: { pet: { userId } },
+      orderBy: { date: "desc" },
+      select: {
+        date: true,
+        energyLevel: true,
+        appetite: true,
+        appetiteLevel: true,
+        mobilityLevel: true,
+        weight: true,
+        symptoms: true,
+        petId: true,
+        pet: {
+          select: {
+            name: true,
+            breed: true,
+          },
+        },
+      },
+      take: 500,
+    }),
   ]);
+
+  const isPremiumUser = session.user.subscriptionStatus === "premium";
+  const latestLogDate = allLogs[0]?.date ?? null;
+  const daysSinceLastLog = latestLogDate
+    ? Math.floor((Date.now() - latestLogDate.getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  type AggregatedPetLogData = {
+    days: Set<string>;
+    petName: string;
+    breed: string;
+    logs: {
+      date: Date;
+      energyLevel: number;
+      appetite: string | null;
+    }[];
+  };
+  const trackingDaysByPet = new Map<string, AggregatedPetLogData>();
+  for (const log of allLogs) {
+    const existing = trackingDaysByPet.get(log.petId) ?? {
+      days: new Set<string>(),
+      petName: log.pet.name,
+      breed: log.pet.breed,
+      logs: [],
+    };
+    existing.days.add(log.date.toISOString().slice(0, 10));
+    existing.logs.push(log);
+    trackingDaysByPet.set(log.petId, existing);
+  }
+
+  let milestoneCardData: {
+    dogName: string;
+    breed: string;
+    daysTracked: number;
+    appetitePreview: string;
+    energyPreview: string;
+  } | null = null;
+
+  for (const data of Array.from(trackingDaysByPet.values())) {
+    const trackedDays = data.days.size;
+    if (trackedDays < 30) continue;
+
+    const appetiteKnown = data.logs.filter((petLog) => (petLog.appetite ?? "").trim().length > 0);
+    const appetiteValues = appetiteKnown.map((petLog) => petLog.appetite?.toLowerCase() ?? "");
+    const appetitePreview =
+      appetiteValues.length < 3
+        ? "building baseline"
+        : appetiteValues.every((appetiteValue) => appetiteValue === appetiteValues[0])
+          ? "stable"
+          : "varied slightly";
+
+    const recentEnergy = data.logs.slice(0, 7).map((petLog) => petLog.energyLevel);
+    const olderEnergy = data.logs.slice(7, 14).map((petLog) => petLog.energyLevel);
+    const avgRecent =
+      recentEnergy.length === 0
+        ? 0
+        : recentEnergy.reduce((sum, energyValue) => sum + energyValue, 0) / recentEnergy.length;
+    const avgOlder =
+      olderEnergy.length === 0
+        ? avgRecent
+        : olderEnergy.reduce((sum, energyValue) => sum + energyValue, 0) / olderEnergy.length;
+
+    const delta = avgRecent - avgOlder;
+    const energyPreview =
+      Math.abs(delta) < 0.4 ? "stable" : delta > 0 ? "trending up" : "trending down slightly";
+
+    milestoneCardData = {
+      dogName: data.petName,
+      breed: data.breed,
+      daysTracked: trackedDays,
+      appetitePreview,
+      energyPreview,
+    };
+    break;
+  }
 
   const averageEnergy =
     healthLogs.length === 0
@@ -66,6 +167,57 @@ export default async function DashboardPage() {
       date: format(log.date, "MMM d"),
       energy: log.energyLevel,
     }));
+
+  // Calculate missed alerts for free users
+  let missedAlertsData: {
+    petName: string;
+    scoreChange: number;
+    flags: Array<{ id: string; type: "red" | "yellow" | "green"; title: string; description: string }>;
+    daysTracked: number;
+  } | null = null;
+
+  if (!isPremiumUser && pets[0]) {
+    const primaryPet = pets[0];
+    const primaryPetLogs = allLogs
+      .filter((log) => log.petId === primaryPet.id)
+      .map((log) => ({
+        id: primaryPet.id,
+        date: log.date,
+        energyLevel: log.energyLevel,
+        appetite: log.appetite,
+        appetiteLevel: log.appetiteLevel,
+        mobilityLevel: log.mobilityLevel,
+        weight: log.weight,
+        symptoms: log.symptoms,
+      })) as HealthLogEntry[];
+
+    if (primaryPetLogs.length >= 7) {
+      const currentScore = calculateHealthScore(primaryPetLogs);
+      const previousScore = calculateHealthScore(primaryPetLogs.slice(1));
+      const flags = getHealthFlags(primaryPetLogs, primaryPet);
+
+      if (currentScore && previousScore) {
+        const scoreChange = currentScore.score - previousScore.score;
+        const daysTracked = new Set(
+          primaryPetLogs.map((log) => log.date.toISOString().slice(0, 10))
+        ).size;
+
+        // Only show if there are meaningful alerts
+        const hasRedFlags = flags.some((f) => f.type === "red");
+        const hasYellowFlags = flags.some((f) => f.type === "yellow");
+        const significantChange = Math.abs(scoreChange) >= 10;
+
+        if (hasRedFlags || hasYellowFlags || significantChange) {
+          missedAlertsData = {
+            petName: primaryPet.name,
+            scoreChange,
+            flags: flags.map(f => ({ id: `${primaryPet.id}-${f.title}`, type: f.type, title: f.title, description: f.description })),
+            daysTracked,
+          };
+        }
+      }
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -85,6 +237,39 @@ export default async function DashboardPage() {
           </Button>
         </div>
       </AnimateIn>
+
+      {/* Health Score Panel - Shows for primary pet if they have tracking data */}
+      {pets[0] && allLogs.length > 0 ? (
+        <AnimateIn delay={0.1}>
+          <HealthScorePanel
+            pet={pets[0]}
+            healthLogs={allLogs
+              .filter((log) => log.petId === pets[0].id)
+              .map((log) => ({
+                id: log.petId,
+                date: log.date,
+                energyLevel: log.energyLevel,
+                appetite: log.appetite,
+                appetiteLevel: log.appetiteLevel,
+                mobilityLevel: log.mobilityLevel,
+                weight: log.weight,
+                symptoms: log.symptoms,
+              }))}
+          />
+        </AnimateIn>
+      ) : null}
+
+      {/* Missed Alerts Preview - Shows for free users when there are health alerts */}
+      {missedAlertsData ? (
+        <AnimateIn delay={0.15}>
+          <MissedAlertsPreview
+            petName={missedAlertsData.petName}
+            scoreChange={missedAlertsData.scoreChange}
+            flags={missedAlertsData.flags}
+            daysTracked={missedAlertsData.daysTracked}
+          />
+        </AnimateIn>
+      ) : null}
 
       <div className="grid gap-6 md:grid-cols-3">
         <AnimateIn>
@@ -118,6 +303,32 @@ export default async function DashboardPage() {
         </Card>
         </AnimateIn>
       </div>
+
+      {!isPremiumUser && milestoneCardData && (
+        <AnimateIn>
+          <MilestoneUpgradeCard {...milestoneCardData} />
+        </AnimateIn>
+      )}
+
+      {!isPremiumUser && daysSinceLastLog !== null && daysSinceLastLog >= 7 && pets[0] && (
+        <AnimateIn>
+          <Card className="rounded-2xl border-emerald-200 bg-emerald-50/50">
+            <CardContent className="flex flex-col gap-3 p-6 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <p className="font-medium text-emerald-900">
+                  {pets[0].name} missed you! You haven&apos;t logged in {daysSinceLastLog} days.
+                </p>
+                <p className="text-sm text-emerald-800/80">
+                  Pick up where you left off — your tracking data is safe.
+                </p>
+              </div>
+              <Button asChild>
+                <Link href="/logs/new">Log Today&apos;s Health Check</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </AnimateIn>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <AnimateIn>

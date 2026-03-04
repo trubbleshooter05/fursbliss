@@ -3,14 +3,39 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
+import { sendServerMetaEvent } from "@/lib/meta-capi";
+
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
+}
+
+function sanitizePath(pathValue: string | null, fallback: string): string {
+  if (!pathValue) return fallback;
+  if (!pathValue.startsWith("/") || pathValue.startsWith("//")) return fallback;
+  return pathValue;
+}
+
+function appendQuery(pathValue: string, key: string, value: string): string {
+  const joiner = pathValue.includes("?") ? "&" : "?";
+  return `${pathValue}${joiner}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+}
 
 export async function GET(request: Request) {
+  const requestUrl = new URL(request.url);
+  const { searchParams } = requestUrl;
+  const requestedPlan = searchParams.get("plan");
+  const requestedPriceId = searchParams.get("priceId");
+  const source = searchParams.get("source") ?? "pricing";
+  const returnTo = sanitizePath(searchParams.get("returnTo"), "/account?success=true");
+  const cancelTo = sanitizePath(searchParams.get("cancelTo"), "/pricing");
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_APP_URL));
-  }
+  const userId = session?.user?.id ?? null;
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip")?.trim() ??
+    "anon";
 
-  const limiter = rateLimit(request, `stripe-checkout:${session.user.id}`, {
+  const limiter = rateLimit(request, userId ? `stripe-checkout:${userId}` : `stripe-checkout:guest:${ip}`, {
     limit: 10,
     windowMs: 60 * 60 * 1000,
   });
@@ -26,15 +51,13 @@ export async function GET(request: Request) {
     );
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-  });
+  const user = userId
+    ? await prisma.user.findUnique({
+        where: { id: userId },
+      })
+    : null;
 
-  if (!user) {
-    return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_APP_URL));
-  }
-
-  let customerId = user.stripeCustomerId ?? null;
+  let customerId = user?.stripeCustomerId ?? null;
 
   if (customerId) {
     try {
@@ -47,7 +70,7 @@ export async function GET(request: Request) {
     }
   }
 
-  if (!customerId) {
+  if (user && !customerId) {
     customerId = (
       await stripe.customers.create({
         email: user.email,
@@ -61,9 +84,6 @@ export async function GET(request: Request) {
     });
   }
 
-  const { searchParams } = new URL(request.url);
-  const requestedPlan = searchParams.get("plan");
-  const requestedPriceId = searchParams.get("priceId");
   const monthlyPriceId =
     process.env.STRIPE_PRICE_ID_MONTHLY ??
     process.env.STRIPE_PRICE_MONTHLY ??
@@ -88,15 +108,35 @@ export async function GET(request: Request) {
   }
 
   const selectedPlan = priceId === annualPriceId ? "yearly" : "monthly";
+  const successPath = appendQuery(returnTo, "session_id", "{CHECKOUT_SESSION_ID}");
+  const guestSuccessPath = `/signup?checkout=success&session_id={CHECKOUT_SESSION_ID}&redirect=${encodeURIComponent(
+    returnTo
+  )}`;
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
-    customer: customerId,
+    customer: customerId ?? undefined,
     line_items: [{ price: priceId, quantity: 1 }],
-    metadata: { plan: selectedPlan },
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?success=true&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+    metadata: { plan: selectedPlan, source },
+    success_url: `${appUrl()}${user ? successPath : guestSuccessPath}`,
+    cancel_url: `${appUrl()}${cancelTo}`,
   });
+
+  // Send server-side Meta CAPI event for triage/quiz upgrade clicks
+  if (source && (source.includes("triage") || source.includes("quiz"))) {
+    void sendServerMetaEvent("TriageClickedUpgrade", {
+      email: user?.email,
+      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+          request.headers.get("x-real-ip")?.trim() || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+      customData: {
+        source,
+        plan: selectedPlan,
+        value: selectedPlan === "yearly" ? 59 : 9,
+      },
+      sourceUrl: `${appUrl()}${source.includes("triage") ? "/triage" : "/quiz"}`,
+    });
+  }
 
   if (!checkoutSession.url) {
     return NextResponse.json({ message: "Unable to create checkout session" }, { status: 500 });

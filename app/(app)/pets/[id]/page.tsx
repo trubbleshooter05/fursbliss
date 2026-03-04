@@ -19,6 +19,8 @@ import { WeightTrendChart } from "@/components/pets/weight-trend-chart";
 import { DeletePetDialog } from "@/components/pets/delete-pet-dialog";
 import { MedicationForm } from "@/components/pets/medication-form";
 import { DoseScheduleForm } from "@/components/pets/dose-schedule-form";
+import { VetReportExportButton } from "@/components/pets/vet-report-export-button";
+import { HealthLogHistory } from "@/components/pets/health-log-history";
 
 type PetDetailPageProps = {
   params: { id: string };
@@ -31,6 +33,7 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
   if (!userId) {
     return null;
   }
+  const isPremiumUser = session.user.subscriptionStatus === "premium";
 
   const pet = await prisma.pet.findFirst({
     where: { id: params.id, userId },
@@ -64,6 +67,9 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
       date: format(log.date, "MMM d"),
       weight: log.weight,
     }));
+  const uniqueTrackingDays = new Set(
+    pet.healthLogs.map((log) => log.date.toISOString().slice(0, 10))
+  ).size;
 
   return (
     <div className="space-y-8">
@@ -101,11 +107,12 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
           <Button variant="outline" asChild>
             <Link href={`/pets/${pet.id}/vet-share`}>Vet Share</Link>
           </Button>
-          <Button variant="outline" asChild>
-            <a href={`/api/exports/pet-report?petId=${pet.id}`} target="_blank" rel="noreferrer">
-              Export Vet Report
-            </a>
-          </Button>
+          <VetReportExportButton
+            petId={pet.id}
+            petName={pet.name}
+            daysTracked={uniqueTrackingDays}
+            isPremium={isPremiumUser}
+          />
           <Button variant="secondary" asChild>
             <Link href={`/pets/${pet.id}/edit`}>Edit</Link>
           </Button>
@@ -152,34 +159,11 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
             <CardTitle>Health log history</CardTitle>
           </CardHeader>
           <CardContent>
-            {pet.healthLogs.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-muted-foreground">
-                No logs yet. Capture the first health check today.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Energy</TableHead>
-                    <TableHead>Mood</TableHead>
-                    <TableHead>Notes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pet.healthLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell>{format(log.date, "MMM d, yyyy")}</TableCell>
-                      <TableCell>{log.energyLevel}</TableCell>
-                      <TableCell>{log.mood ?? "—"}</TableCell>
-                      <TableCell className="max-w-[220px] truncate">
-                        {log.notes ?? "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <HealthLogHistory
+              logs={pet.healthLogs}
+              isPremium={isPremiumUser}
+              petName={pet.name}
+            />
           </CardContent>
         </Card>
         <Card>

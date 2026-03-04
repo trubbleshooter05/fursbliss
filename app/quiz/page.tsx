@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { LongevityQuiz } from "@/components/quiz/longevity-quiz";
@@ -30,30 +29,25 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 type QuizPageProps = {
   searchParams?: {
     resultId?: string;
+    checkout?: string;
+    upgraded?: string;
   };
 };
 
 export default async function QuizPage({ searchParams }: QuizPageProps) {
-  const session = await auth();
-  const breedRows = await prisma.breedProfile.findMany({
-    select: { breed: true },
-    orderBy: { breed: "asc" },
-    take: 250,
-  });
-  const userCount = await prisma.user.count();
-  const breeds = Array.from(
-    new Set([...breedRows.map((row) => row.breed), ...quizBreedOptions])
-  ).sort((a, b) => a.localeCompare(b));
   const breedOptions = [
     "Mixed Breed / Not Sure",
-    ...breeds.filter((breed) => breed !== "Mixed Breed / Not Sure"),
+    ...quizBreedOptions.filter((breed) => breed !== "Mixed Breed / Not Sure"),
   ];
+  const userCount = Number(process.env.NEXT_PUBLIC_SOCIAL_PROOF_DOG_COUNT ?? "1300");
   const resultId = searchParams?.resultId?.trim();
+  const checkoutSuccess =
+    searchParams?.checkout === "success" || searchParams?.upgraded === "true";
   const initialSubmission = resultId
     ? await prisma.quizSubmission.findUnique({
         where: { id: resultId },
@@ -83,9 +77,6 @@ export default async function QuizPage({ searchParams }: QuizPageProps) {
           : initialSubmission.email,
       }
     : null;
-  const isSignedIn = Boolean(session?.user?.id);
-  const isPremium = session?.user?.subscriptionStatus === "premium";
-
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -114,9 +105,9 @@ export default async function QuizPage({ searchParams }: QuizPageProps) {
 
         <LongevityQuiz
           breeds={breedOptions}
-          isPremium={isPremium}
-          isSignedIn={isSignedIn}
+          isPremium={false}
           userCount={userCount}
+          checkoutSuccess={checkoutSuccess}
           initialResult={initialResult}
         />
       </main>

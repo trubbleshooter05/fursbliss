@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 import { createVerificationToken, generateReferralCode } from "@/lib/auth-tokens";
 import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
@@ -24,6 +25,7 @@ const registerSchema = z.object({
     })
     .nullable()
     .optional(),
+  checkoutSessionId: z.string().trim().min(1).optional(),
 });
 
 export async function POST(request: Request) {
@@ -67,6 +69,48 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(parsed.data.password, 10);
 
+    let checkoutSessionData:
+      | {
+          customerId: string | null;
+          subscriptionId: string | null;
+          subscriptionPlan: "monthly" | "yearly";
+        }
+      | null = null;
+
+    if (parsed.data.checkoutSessionId) {
+      const session = await stripe.checkout.sessions.retrieve(parsed.data.checkoutSessionId, {
+        expand: ["subscription"],
+      });
+      const checkoutEmail = session.customer_details?.email?.trim().toLowerCase();
+      if (!checkoutEmail || checkoutEmail !== parsed.data.email) {
+        return NextResponse.json(
+          {
+            message:
+              "Please use the same email used during checkout so we can activate your premium plan.",
+          },
+          { status: 400 }
+        );
+      }
+      if (session.status !== "complete") {
+        return NextResponse.json(
+          { message: "Checkout is not complete yet. Please complete payment first." },
+          { status: 400 }
+        );
+      }
+
+      const subscription =
+        typeof session.subscription === "string"
+          ? await stripe.subscriptions.retrieve(session.subscription)
+          : session.subscription;
+      const interval = subscription?.items.data[0]?.price?.recurring?.interval;
+      checkoutSessionData = {
+        customerId:
+          typeof session.customer === "string" ? session.customer : session.customer?.id ?? null,
+        subscriptionId: subscription?.id ?? null,
+        subscriptionPlan: interval === "year" ? "yearly" : "monthly",
+      };
+    }
+
     const referralCode = parsed.data.referralCode?.trim() ?? "";
     const resolvedReferralOwner = referralCode
       ? await prisma.user.findUnique({
@@ -89,6 +133,15 @@ export async function POST(request: Request) {
               subscriptionStatus: "premium",
               subscriptionPlan: "referral",
               subscriptionEndsAt: referralRewardEndsAt,
+            }
+          : {}),
+        ...(checkoutSessionData
+          ? {
+              stripeCustomerId: checkoutSessionData.customerId ?? undefined,
+              subscriptionStatus: "premium",
+              subscriptionPlan: checkoutSessionData.subscriptionPlan,
+              subscriptionId: checkoutSessionData.subscriptionId ?? undefined,
+              subscriptionEndsAt: null,
             }
           : {}),
       },

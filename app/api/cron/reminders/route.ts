@@ -16,6 +16,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  // DEPRECATED: This route has been replaced by /api/cron/email-drip with personalized
+  // nurture sequences. Returning early to prevent duplicate emails.
+  return NextResponse.json({
+    deprecated: true,
+    message: "This cron route is deprecated. Use /api/cron/email-drip instead.",
+    usersProcessed: 0,
+    notificationsCreated: 0,
+    emailsQueued: 0,
+  });
+
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

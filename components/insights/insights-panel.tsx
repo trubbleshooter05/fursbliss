@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { trackCheckoutAndRedirect, trackMetaCustomEvent } from "@/lib/meta-events";
 
 type PetSummary = {
   id: string;
@@ -36,6 +37,8 @@ type InsightsPanelProps = {
   recommendations: RecommendationSummary[];
   subscriptionStatus: string;
   defaultPetId?: string;
+  trackingDaysByPet: Record<string, number>;
+  monthlyFreeUsage: number;
 };
 
 export function InsightsPanel({
@@ -43,6 +46,8 @@ export function InsightsPanel({
   recommendations,
   subscriptionStatus,
   defaultPetId,
+  trackingDaysByPet,
+  monthlyFreeUsage,
 }: InsightsPanelProps) {
   const { toast } = useToast();
   const [selectedPetId, setSelectedPetId] = useState(
@@ -55,11 +60,27 @@ export function InsightsPanel({
   >(null);
   const [range, setRange] = useState("30");
   const [query, setQuery] = useState("");
+  const [freeUsageCount, setFreeUsageCount] = useState(monthlyFreeUsage);
+  const [showLimitPrompt, setShowLimitPrompt] = useState(false);
+  const [limitResetAt, setLimitResetAt] = useState<string | null>(null);
 
   const selectedPet = useMemo(
     () => pets.find((pet) => pet.id === selectedPetId),
     [pets, selectedPetId]
   );
+  const selectedPetTrackingDays = selectedPet ? trackingDaysByPet[selectedPet.id] ?? 0 : 0;
+  const isPremium = subscriptionStatus === "premium";
+  const needsTrackingGate = !isPremium && selectedPetTrackingDays < 7;
+  const hasFreeQuota = isPremium || freeUsageCount < 3;
+  const trackingDaysRemaining = Math.max(0, 7 - selectedPetTrackingDays);
+  const nextResetLabel = useMemo(() => {
+    if (!limitResetAt) return null;
+    return new Date(limitResetAt).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }, [limitResetAt]);
 
   const filteredHistory = history.filter((recommendation) => {
     if (recommendation.petId !== selectedPetId) return false;
@@ -78,6 +99,19 @@ export function InsightsPanel({
 
   const handleGenerate = async () => {
     if (!selectedPet) return;
+    if (needsTrackingGate) {
+      toast({
+        title: "Keep tracking to unlock AI insights",
+        description: `Track ${selectedPet.name}'s health for ${trackingDaysRemaining} more day${trackingDaysRemaining === 1 ? "" : "s"} to unlock recommendations.`,
+      });
+      return;
+    }
+    if (!isPremium && !hasFreeQuota) {
+      setShowLimitPrompt(true);
+      await trackMetaCustomEvent("HitFreeAILimit", { petName: selectedPet.name });
+      return;
+    }
+
     setIsLoading(true);
     setLatestRecommendation(null);
 
@@ -95,9 +129,22 @@ export function InsightsPanel({
     setIsLoading(false);
 
     if (!response.ok) {
+      let errorMessage = "Please try again in a moment.";
+      try {
+        const errorData = await response.json();
+        if (errorData?.code === "MONTHLY_LIMIT_REACHED") {
+          setShowLimitPrompt(true);
+          setLimitResetAt(errorData.nextResetAt ?? null);
+          await trackMetaCustomEvent("HitFreeAILimit", { petName: selectedPet.name });
+        } else if (typeof errorData?.message === "string") {
+          errorMessage = errorData.message;
+        }
+      } catch {
+        // no-op
+      }
       toast({
         title: "Unable to generate recommendation",
-        description: "Please try again in a moment.",
+        description: errorMessage,
         variant: "destructive",
       });
       return;
@@ -105,6 +152,16 @@ export function InsightsPanel({
 
     const data = await response.json();
     setLatestRecommendation(data.response);
+    if (typeof data.nextResetAt === "string") {
+      setLimitResetAt(data.nextResetAt);
+    }
+    if (!isPremium) {
+      if (typeof data.monthlyCount === "number") {
+        setFreeUsageCount(Math.min(3, data.monthlyCount));
+      } else {
+        setFreeUsageCount((current) => Math.min(3, current + 1));
+      }
+    }
     setHistory((prev) => [
       {
         id: `temp-${Date.now()}`,
@@ -130,9 +187,7 @@ export function InsightsPanel({
             AI suggestions are educational and should be reviewed with your veterinarian.
           </p>
         </div>
-        {subscriptionStatus !== "premium" && (
-          <Badge variant="secondary">Premium feature</Badge>
-        )}
+        {!isPremium && <Badge variant="secondary">Free plan: 3 AI insights / month</Badge>}
       </div>
 
       <Card>
@@ -184,20 +239,106 @@ export function InsightsPanel({
               </div>
             </div>
           )}
-          <Button
-            onClick={handleGenerate}
-            disabled={subscriptionStatus !== "premium" || isLoading}
-          >
+          {!isPremium && needsTrackingGate && selectedPet && (
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-sm">
+              <p className="font-medium text-emerald-900">
+                Track {selectedPet.name}&apos;s health for {trackingDaysRemaining} more day
+                {trackingDaysRemaining === 1 ? "" : "s"} to unlock your first AI insight
+              </p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-emerald-100">
+                <div
+                  className="h-full rounded-full bg-emerald-600 transition-all"
+                  style={{
+                    width: `${Math.min(100, Math.round((selectedPetTrackingDays / 7) * 100))}%`,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-emerald-800">
+                Progress: {selectedPetTrackingDays}/7 days completed.
+              </p>
+              <p className="mt-1 text-xs text-emerald-900/80">
+                We need at least 7 days of data to give meaningful, personalized recommendations for{" "}
+                {selectedPet.name}.
+              </p>
+            </div>
+          )}
+
+          {!isPremium && !needsTrackingGate && selectedPet && (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+              <p className="font-medium text-slate-900">
+                You&apos;ve unlocked AI insights! You have {Math.max(0, 3 - freeUsageCount)} of 3 free recommendations remaining this month.
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {freeUsageCount} of 3 free AI insights used this month.
+              </p>
+            </div>
+          )}
+
+          <Button onClick={handleGenerate} disabled={isLoading || (!isPremium && needsTrackingGate)}>
             {isLoading ? "Generating..." : "Get AI Recommendations"}
             <Sparkles className="ml-2 h-4 w-4" />
           </Button>
-          {subscriptionStatus !== "premium" && (
-            <p className="text-sm text-muted-foreground">
-              Upgrade to premium to unlock unlimited AI recommendations.
-            </p>
+          {!isPremium && (
+            <p className="text-xs text-muted-foreground">{freeUsageCount} of 3 free AI insights used this month.</p>
           )}
         </CardContent>
       </Card>
+
+      {!isPremium && showLimitPrompt && selectedPet && (
+        <Card className="border-amber-200 bg-amber-50/60">
+          <CardHeader>
+            <CardTitle>You&apos;ve used all 3 free AI insights this month.</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-amber-950/90">
+            <p>Premium members get unlimited recommendations for {selectedPet.name}.</p>
+            <p>
+              Your next free insights reset on{" "}
+              {nextResetLabel ??
+                new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString()}.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={async () => {
+                  const href = `/api/stripe/checkout?plan=monthly&source=hit-free-ai-limit&returnTo=${encodeURIComponent(
+                    `/insights?petId=${selectedPet.id}&upgraded=true`
+                  )}&cancelTo=${encodeURIComponent(`/insights?petId=${selectedPet.id}`)}`;
+                  await trackCheckoutAndRedirect(href, {
+                    source: "hit_free_ai_limit",
+                    value: 9,
+                    contentName: "FursBliss Premium Monthly",
+                  });
+                }}
+              >
+                Upgrade to Unlimited — $9/mo
+              </Button>
+              <Button variant="ghost" onClick={() => setShowLimitPrompt(false)}>
+                I&apos;ll wait for next month
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Prefer yearly?{" "}
+              <a
+                className="underline"
+                href={`/api/stripe/checkout?plan=yearly&source=hit-free-ai-limit-yearly&returnTo=${encodeURIComponent(
+                  `/insights?petId=${selectedPet.id}&upgraded=true`
+                )}&cancelTo=${encodeURIComponent(`/insights?petId=${selectedPet.id}`)}`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  const href = event.currentTarget.getAttribute("href");
+                  if (!href) return;
+                  void trackCheckoutAndRedirect(href, {
+                    source: "hit_free_ai_limit_yearly",
+                    value: 59,
+                    contentName: "FursBliss Premium Yearly",
+                  });
+                }}
+              >
+                Save 45% with annual billing
+              </a>
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {latestRecommendation && (
         <Card className="border-emerald-200 bg-emerald-50/50">

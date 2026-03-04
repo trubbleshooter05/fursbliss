@@ -9,7 +9,19 @@ import { AnimateIn } from "@/components/ui/animate-in";
 
 export const dynamic = "force-dynamic";
 
-export default function SignupPage() {
+type SignupPageProps = {
+  searchParams?: {
+    redirect?: string;
+  };
+};
+
+export default function SignupPage({ searchParams }: SignupPageProps) {
+  const redirect = searchParams?.redirect;
+  const loginHref =
+    redirect && redirect.startsWith("/") && !redirect.startsWith("//")
+      ? `/login?redirect=${encodeURIComponent(redirect)}`
+      : "/login";
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -49,7 +61,7 @@ export default function SignupPage() {
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link
-                href="/login"
+                href={loginHref}
                 className="font-semibold text-primary hover:text-primary/80"
               >
                 Sign in

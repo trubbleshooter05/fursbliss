@@ -134,6 +134,12 @@ export default function FakeAdvicePostPage() {
             >
               Try How Many Walks Left
             </Link>
+            <Link
+              href="/symptoms"
+              className="inline-flex min-h-11 items-center rounded-xl border border-border px-5 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+            >
+              Open symptom guide
+            </Link>
           </div>
 
           <p className="text-xs text-muted-foreground">

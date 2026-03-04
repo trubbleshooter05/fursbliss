@@ -6,7 +6,19 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { AnimateIn } from "@/components/ui/animate-in";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: {
+    redirect?: string;
+  };
+};
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  const redirect = searchParams?.redirect;
+  const signupHref =
+    redirect && redirect.startsWith("/") && !redirect.startsWith("//")
+      ? `/signup?redirect=${encodeURIComponent(redirect)}`
+      : "/signup";
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -50,7 +62,7 @@ export default function LoginPage() {
             <p className="text-center text-sm text-muted-foreground">
               New to FursBliss?{" "}
               <Link
-                href="/signup"
+                href={signupHref}
                 className="font-semibold text-primary hover:text-primary/80"
               >
                 Create an account

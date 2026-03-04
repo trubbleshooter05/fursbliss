@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { trackMetaCustomEvent } from "@/lib/meta-events";
+import { trackCheckoutAndRedirect, trackMetaCustomEvent } from "@/lib/meta-events";
 
 const comparisonRows = [
   { feature: "Daily health tracking dashboard", free: "Basic view", premium: "Full dashboard + history" },
@@ -28,32 +28,58 @@ const comparisonRows = [
 ];
 
 type PricingPageClientProps = {
-  initialPlan: "monthly" | "yearly";
+  initialPlan?: "monthly" | "yearly";
   userCount: number;
+  source?: string;
+  resultId?: string;
 };
 
-export function PricingPageClient({ initialPlan, userCount }: PricingPageClientProps) {
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(initialPlan);
+export function PricingPageClient({
+  initialPlan = "monthly",
+  userCount,
+  source,
+  resultId,
+}: PricingPageClientProps) {
+  const computedInitialPlan = initialPlan;
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(computedInitialPlan);
+  useEffect(() => {
+    setBillingPeriod(computedInitialPlan);
+  }, [computedInitialPlan]);
 
   useEffect(() => {
     void trackMetaCustomEvent("ViewedPricing");
   }, []);
 
   const premiumPricing = useMemo(() => {
+    const checkoutParams = new URLSearchParams();
+    checkoutParams.set("plan", billingPeriod === "yearly" ? "yearly" : "monthly");
+    checkoutParams.set("source", source ?? "pricing");
+
+    if (source === "triage") {
+      checkoutParams.set("returnTo", "/triage?upgraded=true&checkout=success");
+      checkoutParams.set("cancelTo", "/triage");
+    } else if (source === "quiz-results" && resultId) {
+      checkoutParams.set("returnTo", `/quiz?resultId=${resultId}&upgraded=true&checkout=success`);
+      checkoutParams.set("cancelTo", `/quiz?resultId=${resultId}`);
+    }
+
+    const checkoutHref = `/api/stripe/checkout?${checkoutParams.toString()}`;
+    const ctaHref = checkoutHref;
+
     if (billingPeriod === "yearly") {
       return {
         planLabel: "yearly",
         cta: "Start your premium plan — Try Free for 7 Days",
-        href: "/api/stripe/checkout?plan=yearly",
+        href: ctaHref,
       };
     }
 
     return {
       planLabel: "monthly",
       cta: "Start your premium plan — Try Free for 7 Days",
-      href: "/api/stripe/checkout?plan=monthly",
+      href: ctaHref,
     };
-  }, [billingPeriod]);
+  }, [billingPeriod, resultId, source]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,7 +88,9 @@ export function PricingPageClient({ initialPlan, userCount }: PricingPageClientP
         <AnimateIn className="space-y-4 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Pricing</p>
           <h1 className="font-display text-4xl tracking-[-0.03em] text-foreground sm:text-5xl md:text-6xl">
-            Choose the plan that gives your dog a longer, healthier life
+            {source === "triage"
+              ? "Complete your triage upgrade"
+              : "Choose the plan that gives your dog a longer, healthier life"}
           </h1>
           <p className="mx-auto max-w-3xl text-muted-foreground">
             Transparent pricing. No surprises. Upgrade when you are ready for personalized longevity guidance.
@@ -130,11 +158,20 @@ export function PricingPageClient({ initialPlan, userCount }: PricingPageClientP
               </div>
 
               <Button
-                asChild
                 className="min-h-12 w-full bg-white text-[#2B134E] hover:bg-white/90"
-                onClick={() => void trackMetaCustomEvent("ClickedUpgrade", { source: "pricing_page" })}
+                onClick={async () => {
+                  void trackMetaCustomEvent("ClickedUpgrade", { source: "pricing_page" });
+                  await trackCheckoutAndRedirect(premiumPricing.href, {
+                    source: "pricing_page",
+                    value: billingPeriod === "yearly" ? 59 : 9,
+                    contentName:
+                      billingPeriod === "yearly"
+                        ? "FursBliss Premium Yearly"
+                        : "FursBliss Premium Monthly",
+                  });
+                }}
               >
-                <a href={premiumPricing.href}>{premiumPricing.cta} ({premiumPricing.planLabel})</a>
+                {premiumPricing.cta} ({premiumPricing.planLabel})
               </Button>
               <p className="text-center text-xs text-white/80">Cancel anytime. No questions asked.</p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/85">

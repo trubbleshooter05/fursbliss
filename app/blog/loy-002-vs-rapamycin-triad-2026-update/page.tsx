@@ -157,7 +157,15 @@ export default function LoyVsTriadPostPage() {
             <Link href="/walks-left" className="text-emerald-700 hover:underline">
               How Many Walks Left
             </Link>
-            {" "}to visualize the moments that matter most.
+            {" "}to visualize the moments that matter most. For urgent signs today, start with the{" "}
+            <Link href="/symptoms" className="text-emerald-700 hover:underline">
+              symptom guide
+            </Link>
+            {" "}and run the{" "}
+            <Link href="/er-triage-for-dogs" className="text-emerald-700 hover:underline">
+              free ER triage tool
+            </Link>
+            .
           </p>
         </section>
 

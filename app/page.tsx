@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import {
   CheckCircle2,
   ChevronRight,
@@ -115,6 +113,12 @@ const howItWorks = [
 
 const publicPreviewItems = [
   {
+    title: "Read urgent symptom guides",
+    description: "Get fast, plain-English answers for common panic symptoms and next-step urgency.",
+    href: "/symptoms",
+    cta: "Open symptom guide",
+  },
+  {
     title: "Run the 60-second quiz",
     description: "Get a real readiness score and recommendations before creating an account.",
     href: "/quiz",
@@ -179,10 +183,6 @@ const WEBSITE_JSON_LD = {
 };
 
 export default async function Home() {
-  const session = await auth();
-  if (session?.user) {
-    redirect("/dashboard");
-  }
   const latestResearchPosts = getBlogPostsSortedByDateDesc().slice(0, 3);
 
   return (
@@ -208,14 +208,14 @@ export default async function Home() {
           <div className="relative z-10 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <AnimateIn className="space-y-6">
               <Badge className="border border-white/25 bg-white/10 text-white">
-                Premium science meets warmth
+                <TriangleAlert className="mr-1 h-3.5 w-3.5" />
+                Early warning system for senior dogs
               </Badge>
               <h1 className="max-w-3xl font-display text-[2rem] leading-[1.04] tracking-[-0.035em] text-white sm:text-4xl md:text-6xl">
-                The longevity command center for your dog.
+                Catch Health Problems 3 Months Before They Become ER Visits
               </h1>
-              <p className="max-w-2xl text-base text-white/80 sm:text-lg">
-                Track health trends, surface supplement risks, and prepare confidently for LOY-002
-                with a platform designed for people who love their dogs like family.
+              <p className="max-w-2xl text-base text-white/90 sm:text-lg">
+                Daily health tracking for senior dogs. Spot decline early, save thousands in vet bills.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button
@@ -223,7 +223,7 @@ export default async function Home() {
                   className="shimmer-cta w-full bg-accent text-accent-foreground hover:scale-[1.02] hover:brightness-110 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/quiz">Take the 2-Min Quiz</Link>
+                  <Link href="/quiz">Check Your Dog Now</Link>
                 </Button>
                 <Button
                   size="lg"
@@ -231,11 +231,11 @@ export default async function Home() {
                   className="w-full border-white/35 bg-white/5 text-white hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/quiz">Take the Free Longevity Quiz</Link>
+                  <Link href="/er-triage-for-dogs">Free ER Triage Tool</Link>
                 </Button>
               </div>
               <p className="text-sm text-white/85">
-                Join dog owners preparing for LOY-002 with clear, practical readiness steps.
+                Join 1,200+ dog owners tracking subtle changes before they become emergencies.
               </p>
             </AnimateIn>
 

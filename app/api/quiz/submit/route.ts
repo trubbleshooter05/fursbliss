@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calculateLongevityScore } from "@/lib/quiz";
+import { sendServerMetaEvent } from "@/lib/meta-capi";
 
 const requestSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(320).optional(),
@@ -52,6 +53,21 @@ export async function POST(request: Request) {
         concerns: parsed.data.concerns,
         score,
       },
+    });
+
+    // Send server-side Meta CAPI event
+    void sendServerMetaEvent("QuizCompleted", {
+      email: parsed.data.email, // Only if provided
+      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+          request.headers.get("x-real-ip")?.trim() || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+      customData: {
+        dog_name: parsed.data.dogName,
+        breed: parsed.data.breed,
+        age: parsed.data.age,
+        score,
+      },
+      sourceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/quiz`,
     });
 
     return NextResponse.json({

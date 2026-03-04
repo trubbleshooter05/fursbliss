@@ -1,0 +1,102 @@
+[
+  {
+    "email": "maryanneguzman2@gmail.com",
+    "firstName": "M",
+    "fullName": "M G",
+    "dogName": "Daisy",
+    "dogBreed": "cockapoo",
+    "dogAge": 19,
+    "registeredDate": "2026-02-24",
+    "hasPet": true
+  },
+  {
+    "email": "drjoy2001@verizon.net",
+    "firstName": "Joyce",
+    "fullName": "Joyce Montalbano",
+    "dogName": "Your Dog",
+    "dogBreed": "Toy Poodle",
+    "dogAge": 10,
+    "registeredDate": "2026-02-22",
+    "hasPet": true
+  },
+  {
+    "email": "garypandas@yahoo.com",
+    "firstName": "G",
+    "fullName": "G",
+    "dogName": "your dog",
+    "dogBreed": "",
+    "dogAge": null,
+    "registeredDate": "2026-02-22",
+    "hasPet": false
+  },
+  {
+    "email": "debug_1771789756251@example.net",
+    "firstName": "Debug",
+    "fullName": "Debug User",
+    "dogName": "your dog",
+    "dogBreed": "",
+    "dogAge": null,
+    "registeredDate": "2026-02-22",
+    "hasPet": false
+  },
+  {
+    "email": "garyj9232@gmail.com",
+    "firstName": "gary",
+    "fullName": "gary j",
+    "dogName": "your dog",
+    "dogBreed": "",
+    "dogAge": null,
+    "registeredDate": "2026-02-22",
+    "hasPet": false
+  },
+  {
+    "email": "support@totalgoodsmarket.com",
+    "firstName": "g",
+    "fullName": "g",
+    "dogName": "your dog",
+    "dogBreed": "",
+    "dogAge": null,
+    "registeredDate": "2026-02-19",
+    "hasPet": false
+  },
+  {
+    "email": "907redes@gmail.com",
+    "firstName": "Donna",
+    "fullName": "Donna Armey",
+    "dogName": "Jasper",
+    "dogBreed": "Parson Russell Terrier ",
+    "dogAge": 5,
+    "registeredDate": "2026-02-17",
+    "hasPet": true
+  },
+  {
+    "email": "fluffsandscruffs@aol.com",
+    "firstName": "Fluffs",
+    "fullName": "Fluffs & Scruffs A Dog Rescue",
+    "dogName": "Basil",
+    "dogBreed": "Poodle",
+    "dogAge": 10,
+    "registeredDate": "2026-02-16",
+    "hasPet": true
+  },
+  {
+    "email": "Dtienkris@gmail.com",
+    "firstName": "DTK",
+    "fullName": "DTK",
+    "dogName": "your dog",
+    "dogBreed": "",
+    "dogAge": null,
+    "registeredDate": "2026-02-16",
+    "hasPet": false
+  },
+  {
+    "email": "Maryanneguzman2@gmail.com",
+    "firstName": "Daisy",
+    "fullName": "Daisy ",
+    "dogName": "Daisy",
+    "dogBreed": "Cockerpoo ",
+    "dogAge": 19,
+    "registeredDate": "2026-02-10",
+    "hasPet": true
+  }
+]

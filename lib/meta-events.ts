@@ -154,3 +154,122 @@ export function trackMetaCustomEvent(
 }
 
 export const META_DEBUG_CHANNEL = META_DEBUG_EVENT_NAME;
+
+type CheckoutTrackingInput = {
+  source: string;
+  value?: number;
+  contentName?: string;
+  eventIdBase?: string;
+};
+
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function sendServerCheckoutStart(input: CheckoutTrackingInput, href: string) {
+  const payload = JSON.stringify({
+    source: input.source,
+    value: input.value ?? 9,
+    contentName: input.contentName ?? "FursBliss Premium Monthly",
+    href,
+    eventIdBase: input.eventIdBase,
+  });
+  if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+    const blob = new Blob([payload], { type: "application/json" });
+    navigator.sendBeacon("/api/meta/checkout-start", blob);
+    return;
+  }
+  try {
+    await fetch("/api/meta/checkout-start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true,
+    });
+  } catch {
+    // no-op
+  }
+}
+
+export async function trackCheckoutStarted({
+  source,
+  value = 9,
+  contentName = "FursBliss Premium Monthly",
+  eventIdBase,
+}: CheckoutTrackingInput) {
+  const payload = {
+    currency: "USD",
+    value,
+    content_name: contentName,
+    source,
+  };
+  const base = eventIdBase ?? `checkout-${Date.now()}`;
+  const fbq = (typeof window !== "undefined"
+    ? (window as Window & { fbq?: (...args: unknown[]) => void }).fbq
+    : undefined);
+  if (fbq) {
+    // Explicit direct fire before redirect for checkout intent.
+    fbq("track", "InitiateCheckout", payload, { eventID: `${base}:initiate` });
+    fbq("trackCustom", "StartedCheckout", payload, { eventID: `${base}:started` });
+  }
+  await Promise.allSettled([
+    trackMetaEvent("InitiateCheckout", payload, { eventId: `${base}:initiate` }),
+    trackMetaCustomEvent("StartedCheckout", payload, { eventId: `${base}:started` }),
+  ]);
+}
+
+export async function trackPurchaseCompleted({
+  source,
+  value = 9,
+  contentName = "FursBliss Premium Monthly",
+  eventIdBase,
+}: CheckoutTrackingInput) {
+  const payload = {
+    currency: "USD",
+    value,
+    content_name: contentName,
+    source,
+  };
+  const base = eventIdBase ?? `purchase-${Date.now()}`;
+  const fbq = (typeof window !== "undefined"
+    ? (window as Window & { fbq?: (...args: unknown[]) => void }).fbq
+    : undefined);
+  if (fbq) {
+    // Explicit direct fire on Stripe success landing.
+    fbq("track", "Purchase", payload, { eventID: `${base}:purchase` });
+    fbq("trackCustom", "CompletedPurchase", payload, { eventID: `${base}:completed` });
+  }
+  await Promise.allSettled([
+    trackMetaEvent("Purchase", payload, { eventId: `${base}:purchase` }),
+    trackMetaCustomEvent("CompletedPurchase", payload, { eventId: `${base}:completed` }),
+  ]);
+}
+
+export async function trackCheckoutAndRedirect(href: string, input: CheckoutTrackingInput) {
+  const eventIdBase =
+    input.eventIdBase ??
+    (typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `checkout-${Date.now()}`);
+  const mergedInput = { ...input, eventIdBase };
+  
+  const isMobile = typeof navigator !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  // CRITICAL: For mobile, fire everything synchronously and wait for ALL promises
+  if (isMobile) {
+    // Fire both client and server tracking in parallel
+    const serverPromise = sendServerCheckoutStart(mergedInput, href);
+    const clientPromise = trackCheckoutStarted(mergedInput);
+    // Wait for BOTH to complete (not void)
+    await Promise.allSettled([serverPromise, clientPromise]);
+    // Extra safety buffer for mobile
+    await wait(800);
+  } else {
+    // Desktop: fire and minimal wait
+    void trackCheckoutStarted(mergedInput);
+    void sendServerCheckoutStart(mergedInput, href);
+    await wait(300);
+  }
+  
+  window.location.assign(href);
+}

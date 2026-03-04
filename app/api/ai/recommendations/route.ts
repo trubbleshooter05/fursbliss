@@ -5,6 +5,11 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
+import {
+  getMonthlyRecommendationCount,
+  getTrackingDaysForPet,
+  nextMonthlyResetDate,
+} from "@/lib/user-engagement";
 
 const requestSchema = z.object({
   petId: z.string().min(1),
@@ -48,26 +53,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    if (!isSubscriptionActive(user)) {
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
-
-      const monthlyCount = await prisma.recommendation.count({
-        where: {
-          pet: { userId: session.user.id },
-          createdAt: { gte: monthStart },
-        },
-      });
-
-      if (monthlyCount >= 3) {
-        return NextResponse.json(
-          { message: "Free tier includes 3 AI recommendations per month." },
-          { status: 403 }
-        );
-      }
-    }
-
     const body = await request.json();
     const parsed = requestSchema.safeParse(body);
 
@@ -84,6 +69,38 @@ export async function POST(request: Request) {
 
     if (!pet) {
       return NextResponse.json({ message: "Pet not found" }, { status: 404 });
+    }
+
+    const isPremium = isSubscriptionActive(user);
+    if (!isPremium) {
+      const [trackingDays, monthlyCount] = await Promise.all([
+        getTrackingDaysForPet(session.user.id, parsed.data.petId),
+        getMonthlyRecommendationCount(session.user.id),
+      ]);
+
+      if (trackingDays < 7) {
+        return NextResponse.json(
+          {
+            message: "Complete 7 days of tracking to unlock AI recommendations",
+            code: "TRACKING_GATE",
+            trackingDays,
+          },
+          { status: 403 }
+        );
+      }
+
+      if (monthlyCount >= 3) {
+        return NextResponse.json(
+          {
+            message: "Monthly free limit reached",
+            code: "MONTHLY_LIMIT_REACHED",
+            monthlyCount,
+            monthlyLimit: 3,
+            nextResetAt: nextMonthlyResetDate().toISOString(),
+          },
+          { status: 403 }
+        );
+      }
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -118,7 +135,16 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ response: responseText });
+    const monthlyCount = isPremium
+      ? null
+      : await getMonthlyRecommendationCount(session.user.id);
+
+    return NextResponse.json({
+      response: responseText,
+      monthlyCount,
+      monthlyLimit: isPremium ? null : 3,
+      nextResetAt: isPremium ? null : nextMonthlyResetDate().toISOString(),
+    });
   } catch (error) {
     console.error("AI recommendation error", error);
     return NextResponse.json(

@@ -13,6 +13,13 @@ export function calculateHealthAlert(
   entries: HealthLogEntry[],
   petName: string
 ): HealthAlert {
+  // URGENT CHECK: Even with 1 entry, check for urgent symptoms
+  if (entries.length > 0) {
+    const urgentCheck = checkUrgentSymptomsAnyTime(entries, petName);
+    if (urgentCheck) return urgentCheck;
+  }
+
+  // For other patterns, need at least 3 days of data
   if (entries.length < 3) {
     return {
       level: "green",
@@ -48,6 +55,38 @@ export function calculateHealthAlert(
     reason: `All Clear: ${petName} looking stable`,
     actionable: "Keep up the tracking!",
   };
+}
+
+/**
+ * URGENT: Check for urgent symptoms in ANY entry (even just 1 log)
+ */
+function checkUrgentSymptomsAnyTime(
+  allEntries: HealthLogEntry[],
+  petName: string
+): HealthAlert | null {
+  const urgentSymptoms = ["vomiting", "not eating", "seizure", "difficulty breathing", "collapse", "blood"];
+  
+  // Check last 7 days only
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentEntries = allEntries.filter((e) => e.date >= sevenDaysAgo);
+
+  for (const entry of recentEntries) {
+    const symptoms = extractSymptomsFromEntry(entry);
+    for (const symptom of symptoms) {
+      const normalized = symptom.toLowerCase();
+      const matchedUrgent = urgentSymptoms.find((urgent) => normalized.includes(urgent));
+      if (matchedUrgent) {
+        return {
+          level: "red",
+          reason: `🔴 URGENT: ${petName} showing concerning patterns`,
+          actionable: `${capitalize(symptom)} logged this week. Consider calling your vet today.`,
+        };
+      }
+    }
+  }
+
+  return null;
 }
 
 /**

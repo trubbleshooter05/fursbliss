@@ -26,6 +26,7 @@ export async function POST(request: Request) {
 
     const users = await prisma.user.findMany({
       where: {
+        subscriptionStatus: "premium", // ONLY PREMIUM - Weekly check-ins are a retention feature
         updatedAt: {
           gte: thirtyDaysAgo,
         },

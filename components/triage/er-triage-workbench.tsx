@@ -581,23 +581,22 @@ export function ErTriageWorkbench({
         <Card className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50">
           <CardHeader>
             <CardTitle className="font-display text-xl leading-tight text-foreground">
-              Save This Baseline & Track Changes
+              Track Changes Over Time
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              We&apos;ll check back in 3 days to see if{" "}
-              <span className="font-medium text-foreground">{symptomSnippet}</span> is improving or getting
-              worse
+              Log <span className="font-medium text-foreground">{symptomSnippet}</span> in your dashboard to
+              see if it&apos;s improving or getting worse
             </p>
             <Button
               asChild
               className="min-h-12 w-full bg-blue-600 text-base font-semibold hover:bg-blue-700"
             >
-              <Link href="/dashboard">Set My 3-Day Check-In</Link>
+              <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              We&apos;ll send you a reminder email and track progress in your dashboard
+              Daily logging helps you spot patterns and share data with your vet
             </p>
           </CardContent>
         </Card>

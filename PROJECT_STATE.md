@@ -4,31 +4,69 @@
 **Current Focus:** Health Alert System + Weekly Check-In Habit Loop  
 **Target Completion:** March 9, 2026 (first weekly check-in email sends Sunday 9am UTC)
 
-## COMPLETED THIS WEEK
-- [x] Tier restructuring (free vs paid) - 1 dog limit, 30-day history, no alerts for free
-- [x] Enhanced pattern detection (weight trends + dangerous symptom combinations)
-- [x] Weekly check-in system (Sunday 9am emails)
-- [x] Week-over-week comparison logic
-- [x] Red/yellow/green health alert dashboard card
-- [x] Urgent symptom detection (vomiting, seizure, etc.) - triggers immediate red alert
-- [x] Fixed alert system to check both symptoms AND notes fields
-- [x] HealthAlert database table
-- [x] AlertCard component with tier gating
-- [x] Migration applied to production
+## COMPLETED THIS WEEK (March 4, 2026)
+
+### Feature 1: Quiz + Triage + Homepage Improvements
+- [x] Quiz progress bar enhanced (Question X of Y, time remaining, encouragement)
+- [x] Quiz reduced to 3 questions (90 seconds total)
+- [x] Post-triage 3-day check-in CTA added
+- [x] Homepage hero rewritten (fear-based urgency messaging)
+- [x] Homepage CTA changed to "Check Your Dog Now"
+
+### Feature 2: Free vs Paid Tier System
+- [x] Tier limits defined: Free (1 dog, 30-day history, no alerts) vs Premium (unlimited)
+- [x] Subscription utility with TIER_LIMITS constants and helper functions
+- [x] TierGatePrompt component (6 gate types: second-pet, old-history, health-alerts, etc.)
+- [x] 1 dog limit enforced in API (app/api/pets/route.ts)
+- [x] 30-day history limit with blur UI (components/pets/health-log-history.tsx)
+- [x] Vet report paywall (components/pets/vet-report-export-button.tsx)
+- [x] Pattern detection with tier gating
+
+### Feature 3: Weekly Check-In System
+- [x] WeeklyCheckIn database table with migration
+- [x] Weekly check-in email template (Sunday 9am)
+- [x] Check-in form (4 questions: symptoms, energy, appetite, vet visits)
+- [x] Week-over-week comparison logic (lib/week-comparison.ts)
+- [x] Results page showing improvements/declines
+- [x] Cron job configured (Sunday 9am UTC in vercel.json)
+- [x] API endpoints (GET/POST /api/weekly-checkin)
+- [x] Routes: /weekly-checkin/[dogId] and /weekly-checkin/[dogId]/results
+
+### Feature 4: Dashboard Health Alert System
+- [x] HealthAlert database table with migration
+- [x] Alert calculation logic (lib/health-alerts.ts) - red/yellow/green rules
+- [x] AlertCard component at top of dashboard
+- [x] Tier gating (free users see blurred preview)
+- [x] Urgent symptom detection (immediate red alert even with 1 log)
+- [x] Fixed to check both symptoms AND notes fields
+- [x] Enhanced pattern detection (weight trends + symptom combos)
+- [x] Deployed and tested
+
+### Feature 5: Project State Tracking
+- [x] PROJECT_STATE.md created for cross-session context
+- [x] All architecture, files, and decisions documented
 
 ## IN PROGRESS
-- [ ] Waiting for Vercel deployment to complete (~2-3 min) - Red alert should show for "vomiting" logs
-- [ ] Weekly check-in emails (will auto-send Sunday March 9 at 9am UTC)
+- [ ] Monitoring first deployment of health alerts (waiting for user refresh)
+- [ ] Weekly check-in emails will auto-send Sunday March 9 at 9am UTC
 
 ## BLOCKED/WAITING
 - None currently
 
 ## NEXT UP (Backlog)
-1. Monitor first batch of weekly check-in emails (Sunday 9am)
-2. Track conversion metrics from health alerts
-3. A/B test alert messaging
-4. Add more pattern detection types if needed
-5. Mobile app push notifications for alerts
+1. **Audit & Integration Check** (CURRENT - March 4)
+   - Verify tier restrictions are enforced everywhere
+   - Check email system for conflicts/spam
+   - Validate payment flow end-to-end
+   - Test all upgrade prompts
+2. Monitor first batch of weekly check-in emails (Sunday March 9)
+3. Track conversion metrics from health alerts
+4. A/B test alert messaging (fear vs reassurance)
+5. Add email notification when alert level changes (red → green)
+6. Mobile app push notifications for alerts
+7. Consolidate email sequences (avoid spam)
+8. Add subscription management page (cancel, change plan)
+9. Build admin dashboard for monitoring metrics
 
 ## ARCHITECTURE DECISIONS
 - **Database:** PostgreSQL via Prisma (hosted at db.prisma.io)
@@ -43,6 +81,11 @@
 1. **Weekly check-in cron manual trigger fails with 401** - This is expected, Vercel's cron system handles auth differently. Will work automatically on Sunday.
 2. **Prisma migration drift warnings** - Ignore for now, production DB is up to date
 3. **Meta CAPI events not showing in Events Manager** - Tracking implemented but may have delay
+4. ~~**3-day check-in has no backend logic**~~ - FIXED: Removed fake promise, now just links to dashboard
+5. ~~**Email consolidation needed**~~ - FIXED: Weekly check-ins now premium-only (prevents spam)
+6. **No subscription management UI** - Users can't cancel/change plans from dashboard (must go to Stripe portal)
+7. **Weekly check-ins not used in alert calculation** - WeeklyCheckIn table exists but alerts only read HealthLog
+8. **Missing database index on HealthLog** - Need (petId, date) index for alert performance
 
 ## KEY FILES LOCATIONS
 
@@ -138,6 +181,11 @@
 3. **Added notes field to HealthLogEntry type**
 4. **Updated dashboard query to include notes**
 5. **Changed alert check threshold from 3 to 1 for urgent symptoms**
+6. **Build failure (check-email-sequence.ts)** - Deleted script with missing dependency
+7. **Vercel build (prisma migrate)** - Added vercel-build script to skip auto-migrations
+8. **Radio button component missing** - Created components/ui/radio-group.tsx
+9. **CRITICAL: Weekly check-ins going to free users** - Added premium-only filter to cron job
+10. **CRITICAL: 3-day check-in fake promise** - Removed fake "Set My 3-Day Check-In" CTA, replaced with honest "Go to Dashboard"
 
 ## ENVIRONMENT VARIABLES (Production)
 - `RESEND_API_KEY` - Email sending

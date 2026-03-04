@@ -77,6 +77,7 @@ model Pet {
   aiInsights        AIInsight[]
   longevityDrugProfile LongevityDrugProfile?
   vetShareLinks     VetShareLink[]
+  weeklyCheckIns    WeeklyCheckIn[]
 }
 
 model HealthLog {
@@ -419,3 +420,23 @@ model EmailEvent {
   @@index([messageId])
   @@index([eventType, eventAt])
 }
+
+model WeeklyCheckIn {
+  id             String   @id @default(cuid())
+  userId         String
+  petId          String
+  pet            Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  weekStartDate  DateTime // Monday of the week being reported
+  newSymptoms    Boolean  @default(false)
+  symptomDetails String?
+  energyLevel    String   // "better", "same", "worse"
+  appetite       String   // "better", "same", "worse"
+  vetVisit       Boolean  @default(false)
+  vetVisitDetails String?
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  @@index([petId, weekStartDate])
+  @@index([userId, createdAt])
+}
+

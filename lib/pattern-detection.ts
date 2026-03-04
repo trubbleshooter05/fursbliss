@@ -7,6 +7,7 @@ export type PatternAlert = {
   changePercent: number;
   severity: "red" | "yellow";
   message: string;
+  category: "symptom" | "energy" | "appetite" | "mobility" | "weight" | "combo";
 };
 
 /**
@@ -54,6 +55,14 @@ export function detectPatternChanges(entries: HealthLogEntry[]): PatternAlert[] 
   const mobilityPattern = analyzeMobilityFrequency(currentWeekEntries, previousWeekEntries);
   if (mobilityPattern) alerts.push(mobilityPattern);
 
+  // NEW: Check for weight trends
+  const weightPattern = analyzeWeightTrend(sortedEntries);
+  if (weightPattern) alerts.push(weightPattern);
+
+  // NEW: Check for symptom combinations (red flags)
+  const comboPatterns = analyzeSymptomCombinations(currentWeekEntries);
+  alerts.push(...comboPatterns);
+
   // Sort by severity (red first)
   return alerts.sort((a, b) => (a.severity === "red" ? -1 : 1));
 }
@@ -88,6 +97,7 @@ function analyzeSymptomFrequency(
         changePercent,
         severity: currentCount >= 4 ? "red" : "yellow",
         message: `⚠️ ${symptom.charAt(0).toUpperCase() + symptom.slice(1)} logged ${currentCount}x this week (up from ${previousCount}x last week)`,
+        category: "symptom",
       });
     }
   }
@@ -140,6 +150,7 @@ function analyzeEnergyFrequency(
       changePercent,
       severity: currentLowEnergyCount >= 4 ? "red" : "yellow",
       message: `⚠️ Low energy logged ${currentLowEnergyCount}x this week (up from ${previousLowEnergyCount}x last week)`,
+      category: "energy",
     };
   }
 
@@ -169,6 +180,7 @@ function analyzeAppetiteFrequency(
       changePercent,
       severity: currentLowAppetiteCount >= 4 ? "red" : "yellow",
       message: `⚠️ Poor appetite logged ${currentLowAppetiteCount}x this week (up from ${previousLowAppetiteCount}x last week)`,
+      category: "appetite",
     };
   }
 
@@ -198,8 +210,146 @@ function analyzeMobilityFrequency(
       changePercent,
       severity: currentLowMobilityCount >= 4 ? "red" : "yellow",
       message: `⚠️ Reduced mobility logged ${currentLowMobilityCount}x this week (up from ${previousLowMobilityCount}x last week)`,
+      category: "mobility",
     };
   }
 
   return null;
+}
+
+/**
+ * NEW: Analyze weight trends over time
+ */
+function analyzeWeightTrend(entries: HealthLogEntry[]): PatternAlert | null {
+  const weightsWithDates = entries
+    .filter((e) => e.weight != null)
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  if (weightsWithDates.length < 3) return null;
+
+  // Check last 14 days of weight data
+  const twoWeeksAgo = new Date();
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+  const recentWeights = weightsWithDates.filter((e) => e.date >= twoWeeksAgo);
+
+  if (recentWeights.length < 2) return null;
+
+  const mostRecent = recentWeights[0].weight!;
+  const oldest = recentWeights[recentWeights.length - 1].weight!;
+  const percentChange = ((mostRecent - oldest) / oldest) * 100;
+  const absChange = Math.abs(percentChange);
+
+  // Red flag: >5% weight change in 2 weeks
+  if (absChange > 5) {
+    const direction = percentChange > 0 ? "gained" : "lost";
+    return {
+      symptom: "Rapid weight change",
+      currentWeekCount: 0, // Not frequency-based
+      previousWeekCount: 0,
+      changePercent: Math.round(absChange * 10) / 10,
+      severity: "red",
+      message: `🚨 ${direction} ${Math.abs(mostRecent - oldest).toFixed(1)} lbs (${absChange.toFixed(1)}%) in 2 weeks — vet check recommended`,
+      category: "weight",
+    };
+  }
+
+  // Yellow flag: >3% weight change in 2 weeks
+  if (absChange > 3) {
+    const direction = percentChange > 0 ? "gaining" : "losing";
+    return {
+      symptom: "Weight trending",
+      currentWeekCount: 0,
+      previousWeekCount: 0,
+      changePercent: Math.round(absChange * 10) / 10,
+      severity: "yellow",
+      message: `⚠️ Weight ${direction}: ${absChange.toFixed(1)}% change in 2 weeks — monitor closely`,
+      category: "weight",
+    };
+  }
+
+  return null;
+}
+
+/**
+ * NEW: Detect dangerous symptom combinations
+ */
+function analyzeSymptomCombinations(currentWeek: HealthLogEntry[]): PatternAlert[] {
+  const alerts: PatternAlert[] = [];
+
+  if (currentWeek.length < 3) return alerts;
+
+  const symptoms = extractSymptoms(currentWeek);
+  const symptomKeys = Object.keys(symptoms).map((s) => s.toLowerCase());
+
+  // Red flag combos that suggest serious issues
+  const dangerousCombos: Array<{ symptoms: string[]; message: string; name: string }> = [
+    {
+      symptoms: ["vomiting", "diarrhea"],
+      name: "GI distress",
+      message: "🚨 Vomiting + diarrhea logged this week — dehydration risk, consider ER triage",
+    },
+    {
+      symptoms: ["vomiting", "not eating", "lethargy"],
+      name: "Severe illness signs",
+      message: "🚨 Vomiting + poor appetite + lethargy — multiple warning signs, vet visit recommended",
+    },
+    {
+      symptoms: ["coughing", "breathing", "labored"],
+      name: "Respiratory distress",
+      message: "🚨 Breathing issues + coughing — respiratory distress, urgent vet check needed",
+    },
+    {
+      symptoms: ["limping", "swelling"],
+      name: "Joint/injury concern",
+      message: "⚠️ Limping + swelling logged — possible injury or joint inflammation",
+    },
+    {
+      symptoms: ["seizure", "collapse"],
+      name: "Neurological emergency",
+      message: "🚨 Seizure or collapse logged — EMERGENCY, contact vet immediately",
+    },
+  ];
+
+  for (const combo of dangerousCombos) {
+    const matchedSymptoms = combo.symptoms.filter((s) =>
+      symptomKeys.some((key) => key.includes(s) || s.includes(key))
+    );
+
+    // If 2+ symptoms from combo are present
+    if (matchedSymptoms.length >= 2) {
+      const totalCount = matchedSymptoms.reduce((sum, s) => {
+        const key = symptomKeys.find((k) => k.includes(s) || s.includes(k));
+        return sum + (key ? symptoms[key] || 0 : 0);
+      }, 0);
+
+      alerts.push({
+        symptom: combo.name,
+        currentWeekCount: totalCount,
+        previousWeekCount: 0,
+        changePercent: 0,
+        severity: combo.message.startsWith("🚨") ? "red" : "yellow",
+        message: combo.message,
+        category: "combo",
+      });
+    }
+  }
+
+  // Yellow flag: Multiple symptoms at once
+  const uniqueSymptomCount = Object.keys(symptoms).length;
+  if (uniqueSymptomCount >= 3) {
+    const totalSymptomLogs = Object.values(symptoms).reduce((sum, count) => sum + count, 0);
+    if (totalSymptomLogs >= 5) {
+      alerts.push({
+        symptom: "Multiple symptoms",
+        currentWeekCount: uniqueSymptomCount,
+        previousWeekCount: 0,
+        changePercent: 0,
+        severity: "yellow",
+        message: `⚠️ ${uniqueSymptomCount} different symptoms logged this week — monitor for worsening`,
+        category: "combo",
+      });
+    }
+  }
+
+  return alerts;
 }

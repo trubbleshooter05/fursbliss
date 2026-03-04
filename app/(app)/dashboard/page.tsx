@@ -21,8 +21,10 @@ import { MilestoneUpgradeCard } from "@/components/dashboard/milestone-upgrade-c
 import { HealthScorePanel } from "@/components/dashboard/health-score-panel";
 import { MissedAlertsPreview } from "@/components/dashboard/missed-alerts-preview";
 import { PatternAlertsCard } from "@/components/dashboard/pattern-alerts-card";
+import { AlertCard } from "@/components/dashboard/alert-card";
 import { calculateHealthScore, getHealthFlags } from "@/lib/health-score";
 import { detectPatternChanges } from "@/lib/pattern-detection";
+import { calculateHealthAlert } from "@/lib/health-alerts";
 import type { HealthLogEntry } from "@/lib/health-score";
 
 export default async function DashboardPage() {
@@ -184,6 +186,14 @@ export default async function DashboardPage() {
     alerts: Awaited<ReturnType<typeof detectPatternChanges>>;
   } | null = null;
 
+  // Calculate health alert (red/yellow/green) for primary pet
+  let healthAlertData: {
+    level: "red" | "yellow" | "green";
+    reason: string;
+    actionable: string;
+    petName: string;
+  } | null = null;
+
   if (pets[0]) {
     const primaryPet = pets[0];
     const primaryPetLogs = allLogs
@@ -198,6 +208,17 @@ export default async function DashboardPage() {
         weight: log.weight,
         symptoms: log.symptoms,
       })) as HealthLogEntry[];
+
+    // Calculate health alert (for all users)
+    if (primaryPetLogs.length >= 3) {
+      const alert = calculateHealthAlert(primaryPetLogs, primaryPet.name);
+      healthAlertData = {
+        level: alert.level,
+        reason: alert.reason,
+        actionable: alert.actionable,
+        petName: primaryPet.name,
+      };
+    }
 
     // Pattern detection for premium users OR free users (for preview)
     if (primaryPetLogs.length >= 7) {
@@ -257,6 +278,19 @@ export default async function DashboardPage() {
           </Button>
         </div>
       </AnimateIn>
+
+      {/* PROMINENT HEALTH ALERT CARD - Shows at top of dashboard */}
+      {healthAlertData ? (
+        <AnimateIn delay={0.05}>
+          <AlertCard
+            level={healthAlertData.level}
+            reason={healthAlertData.reason}
+            actionable={healthAlertData.actionable}
+            isPremium={isPremiumUser}
+            petName={healthAlertData.petName}
+          />
+        </AnimateIn>
+      ) : null}
 
       {/* Health Score Panel - Shows for primary pet if they have tracking data */}
       {pets[0] && allLogs.length > 0 ? (

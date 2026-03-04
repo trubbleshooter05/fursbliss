@@ -78,6 +78,7 @@ model Pet {
   longevityDrugProfile LongevityDrugProfile?
   vetShareLinks     VetShareLink[]
   weeklyCheckIns    WeeklyCheckIn[]
+  healthAlerts      HealthAlert[]
 }
 
 model HealthLog {
@@ -438,5 +439,19 @@ model WeeklyCheckIn {
 
   @@index([petId, weekStartDate])
   @@index([userId, createdAt])
+}
+
+model HealthAlert {
+  id          String    @id @default(cuid())
+  petId       String
+  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  userId      String
+  alertLevel  String    // "red", "yellow", "green"
+  alertReason String    // Human-readable description
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  @@index([petId, resolvedAt])
+  @@index([userId, alertLevel, resolvedAt])
 }
 

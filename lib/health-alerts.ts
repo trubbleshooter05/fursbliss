@@ -241,14 +241,26 @@ function extractSymptomCounts(entries: HealthLogEntry[]): Record<string, number>
  * Helper: Extract symptoms array from a single entry
  */
 function extractSymptomsFromEntry(entry: HealthLogEntry): string[] {
-  if (!entry.symptoms) return [];
+  const allSymptoms: string[] = [];
 
-  try {
-    const parsed = JSON.parse(entry.symptoms);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return entry.symptoms.split(",").map((s) => s.trim());
+  // Check symptoms field
+  if (entry.symptoms) {
+    try {
+      const parsed = JSON.parse(entry.symptoms);
+      if (Array.isArray(parsed)) {
+        allSymptoms.push(...parsed);
+      }
+    } catch {
+      allSymptoms.push(...entry.symptoms.split(",").map((s) => s.trim()));
+    }
   }
+
+  // ALSO check notes field for urgent keywords
+  if (entry.notes) {
+    allSymptoms.push(entry.notes);
+  }
+
+  return allSymptoms.filter(Boolean);
 }
 
 /**

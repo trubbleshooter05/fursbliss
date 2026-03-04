@@ -61,6 +61,7 @@ export default async function DashboardPage() {
       where: { pet: { userId } },
       orderBy: { date: "desc" },
       select: {
+        id: true,
         date: true,
         energyLevel: true,
         appetite: true,
@@ -68,6 +69,7 @@ export default async function DashboardPage() {
         mobilityLevel: true,
         weight: true,
         symptoms: true,
+        notes: true,
         petId: true,
         pet: {
           select: {
@@ -199,7 +201,7 @@ export default async function DashboardPage() {
     const primaryPetLogs = allLogs
       .filter((log) => log.petId === primaryPet.id)
       .map((log) => ({
-        id: primaryPet.id,
+        id: log.id,
         date: log.date,
         energyLevel: log.energyLevel,
         appetite: log.appetite,
@@ -207,10 +209,11 @@ export default async function DashboardPage() {
         mobilityLevel: log.mobilityLevel,
         weight: log.weight,
         symptoms: log.symptoms,
+        notes: log.notes,
       })) as HealthLogEntry[];
 
-    // Calculate health alert (for all users)
-    if (primaryPetLogs.length >= 3) {
+    // Calculate health alert (for all users) - now checks notes too!
+    if (primaryPetLogs.length >= 1) {
       const alert = calculateHealthAlert(primaryPetLogs, primaryPet.name);
       healthAlertData = {
         level: alert.level,

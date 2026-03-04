@@ -9,6 +9,7 @@ export type HealthLogEntry = {
   mobilityLevel?: number | null;
   weight?: number | null;
   symptoms?: string | null;
+  notes?: string | null;
 };
 
 export type HealthFlag = {

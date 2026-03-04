@@ -20,7 +20,9 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { MilestoneUpgradeCard } from "@/components/dashboard/milestone-upgrade-card";
 import { HealthScorePanel } from "@/components/dashboard/health-score-panel";
 import { MissedAlertsPreview } from "@/components/dashboard/missed-alerts-preview";
+import { PatternAlertsCard } from "@/components/dashboard/pattern-alerts-card";
 import { calculateHealthScore, getHealthFlags } from "@/lib/health-score";
+import { detectPatternChanges } from "@/lib/pattern-detection";
 import type { HealthLogEntry } from "@/lib/health-score";
 
 export default async function DashboardPage() {
@@ -176,7 +178,13 @@ export default async function DashboardPage() {
     daysTracked: number;
   } | null = null;
 
-  if (!isPremiumUser && pets[0]) {
+  // Calculate pattern alerts for all users (but gate display for free users)
+  let patternAlertsData: {
+    petName: string;
+    alerts: Awaited<ReturnType<typeof detectPatternChanges>>;
+  } | null = null;
+
+  if (pets[0]) {
     const primaryPet = pets[0];
     const primaryPetLogs = allLogs
       .filter((log) => log.petId === primaryPet.id)
@@ -191,7 +199,19 @@ export default async function DashboardPage() {
         symptoms: log.symptoms,
       })) as HealthLogEntry[];
 
+    // Pattern detection for premium users OR free users (for preview)
     if (primaryPetLogs.length >= 7) {
+      const patternAlerts = detectPatternChanges(primaryPetLogs);
+      if (patternAlerts.length > 0) {
+        patternAlertsData = {
+          petName: primaryPet.name,
+          alerts: patternAlerts,
+        };
+      }
+    }
+
+    // Missed alerts preview for free users only
+    if (!isPremiumUser && primaryPetLogs.length >= 7) {
       const currentScore = calculateHealthScore(primaryPetLogs);
       const previousScore = calculateHealthScore(primaryPetLogs.slice(1));
       const flags = getHealthFlags(primaryPetLogs, primaryPet);
@@ -267,6 +287,17 @@ export default async function DashboardPage() {
             scoreChange={missedAlertsData.scoreChange}
             flags={missedAlertsData.flags}
             daysTracked={missedAlertsData.daysTracked}
+          />
+        </AnimateIn>
+      ) : null}
+
+      {/* Pattern Alerts - Premium users see full details, free users see gated preview */}
+      {patternAlertsData ? (
+        <AnimateIn delay={0.2}>
+          <PatternAlertsCard
+            alerts={patternAlertsData.alerts}
+            isPremium={isPremiumUser}
+            petName={patternAlertsData.petName}
           />
         </AnimateIn>
       ) : null}

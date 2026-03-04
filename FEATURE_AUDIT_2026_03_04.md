@@ -376,41 +376,40 @@ This would speed up dashboard alert calculations significantly.
 
 ### 🔴 CRITICAL (Breaks Production):
 
-1. **Weekly Check-In Emails Going to Free Users**
-   - **Impact:** Resend costs + broken promise (they can't access check-ins)
-   - **Fix:** Add `subscriptionStatus: "premium"` filter (5 min)
-   - **Priority:** P0 (fix before Sunday)
+1. ~~**Weekly Check-In Emails Going to Free Users**~~ ✅ FIXED
+   - ~~Impact: Resend costs + broken promise (they can't access check-ins)~~
+   - ~~Fix: Add `subscriptionStatus: "premium"` filter (5 min)~~
+   - ~~Priority: P0 (fix before Sunday)~~
 
-2. **3-Day Check-In Button Does Nothing**
-   - **Impact:** Broken user experience, erodes trust
-   - **Fix:** Either implement OR remove button (30 min)
-   - **Priority:** P0
+2. ~~**3-Day Check-In Button Does Nothing**~~ ✅ FIXED
+   - ~~Impact: Broken user experience, erodes trust~~
+   - ~~Fix: Either implement OR remove button (30 min)~~
+   - ~~Priority: P0~~
 
-### 🟡 HIGH (Degrades Experience):
+### 🟢 HIGH (Now Complete):
 
-3. **No Subscription Management UI**
-   - **Impact:** Users can't cancel/change plans from dashboard
-   - **Fix:** Add Stripe Customer Portal link (1 hour)
-   - **Code:**
-   ```typescript
-   // app/api/stripe/portal/route.ts
-   const session = await stripe.billingPortal.sessions.create({
-     customer: user.stripeCustomerId,
-     return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-   });
-   ```
+3. ~~**No Subscription Management UI**~~ ✅ ALREADY EXISTS
+   - **Status:** Stripe Customer Portal already implemented at `/api/stripe/portal`
+   - **Location:** `app/(app)/account/page.tsx:185` - "Manage Subscription" button
+   - **Features:** Users can update payment method, cancel subscription, view invoices
+   - **Return URL:** Redirects back to `/account` page after portal actions
 
-4. **Email Spam Risk (3+ emails/week)**
+4. ~~**Missing Index on HealthLog (petId, date)**~~ ✅ FIXED
+   - **Fix:** Added composite index `@@index([petId, date(sort: Desc)])`
+   - **Migration:** `20260304180000_add_healthlog_index`
+   - **SQL:** `CREATE INDEX "HealthLog_petId_date_idx" ON "HealthLog"("petId", "date" DESC);`
+   - **Impact:** Prevents full table scans on alert calculations, improves dashboard load speed
+
+### 🟡 REMAINING (Not Critical):
+
+5. **Email Spam Risk (3+ emails/week)**
    - **Impact:** Unsubscribes, spam complaints
    - **Fix:** Add email consolidation logic (2 hours)
+   - **Status:** Mitigated by premium-only weekly check-ins
 
-5. **Weekly Check-Ins Not Factored into Alerts**
+6. **Weekly Check-Ins Not Factored into Alerts**
    - **Impact:** Missing valuable data points
    - **Fix:** Update alert calculation to read `WeeklyCheckIn` table (1 hour)
-
-6. **Missing Index on HealthLog (petId, date)**
-   - **Impact:** Slow dashboard loads as data grows
-   - **Fix:** Add migration for index (10 min)
 
 ### 🟢 MEDIUM (Nice to Have):
 
@@ -427,25 +426,33 @@ This would speed up dashboard alert calculations significantly.
 ## AUDIT SUMMARY
 
 ### What's Working ✅
-- Tier restrictions on dogs/history/reports
-- Dashboard alert system with tier gating
-- Alert calculation logic (red/yellow/green)
-- Quiz and triage flows
-- Upgrade prompts at key moments
-- Database migrations applied
+- ✅ Tier restrictions on dogs/history/reports
+- ✅ Dashboard alert system with tier gating
+- ✅ Alert calculation logic (red/yellow/green)
+- ✅ Quiz and triage flows
+- ✅ Upgrade prompts at key moments
+- ✅ Database migrations applied
+- ✅ **Stripe Customer Portal (update payment, cancel subscription)**
+- ✅ **HealthLog performance index (petId, date)**
+- ✅ **Weekly check-ins premium-only (prevents spam + cost)**
+- ✅ **Honest triage CTA (no fake promises)**
 
-### What's Broken ❌
-- Weekly check-ins going to ALL users (not just premium)
-- 3-day check-in button (fake feature)
-- Email consolidation (spam risk)
+### What's Fixed ❌→✅
+- ✅ ~~Weekly check-ins going to ALL users~~ → Premium-only filter added
+- ✅ ~~3-day check-in button (fake feature)~~ → Replaced with honest CTA
+- ✅ ~~No subscription management~~ → Already exists at `/api/stripe/portal`
+- ✅ ~~Missing database index~~ → Added composite index on HealthLog
+
+### Remaining Opportunities 🟡
+- Email consolidation (3+ emails/week risk)
 - Weekly check-in data not used in alerts
 
 ### Immediate Actions (Before Sunday):
 1. ✅ Update PROJECT_STATE.md (done)
-2. 🔴 Add tier check to weekly check-in cron
-3. 🔴 Remove or implement 3-day check-in button
-4. 🟡 Add subscription management portal
-5. 🟡 Add HealthLog index for performance
+2. ✅ Add tier check to weekly check-in cron (done)
+3. ✅ Remove or implement 3-day check-in button (done - replaced with honest CTA)
+4. ✅ Verify subscription management portal (confirmed - already exists)
+5. ✅ Add HealthLog index for performance (done - migration created)
 
 ---
 

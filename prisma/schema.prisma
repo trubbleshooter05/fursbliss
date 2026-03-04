@@ -98,6 +98,8 @@ model HealthLog {
   photoUrl       String?
   improvements   Boolean  @default(false)
   createdAt      DateTime @default(now())
+
+  @@index([petId, date(sort: Desc)])
 }
 
 model Recommendation {

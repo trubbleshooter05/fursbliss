@@ -11,9 +11,10 @@ type AlertCardProps = {
   actionable: string;
   isPremium: boolean;
   petName: string;
+  source?: "daily_logs" | "weekly_checkin" | "combined";
 };
 
-export function AlertCard({ level, reason, actionable, isPremium, petName }: AlertCardProps) {
+export function AlertCard({ level, reason, actionable, isPremium, petName, source }: AlertCardProps) {
   // Free users see gated version if there's an alert
   if (!isPremium && level !== "green") {
     return (
@@ -110,6 +111,19 @@ export function AlertCard({ level, reason, actionable, isPremium, petName }: Ale
             >
               {actionable}
             </p>
+            {source === "weekly_checkin" && (
+              <p
+                className={`text-xs italic ${
+                  level === "red"
+                    ? "text-rose-700"
+                    : level === "yellow"
+                    ? "text-amber-700"
+                    : "text-emerald-700"
+                }`}
+              >
+                Based on your weekly check-in response
+              </p>
+            )}
             {level !== "green" && (
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button asChild size="sm" variant="default">

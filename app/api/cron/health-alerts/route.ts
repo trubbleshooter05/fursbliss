@@ -69,6 +69,34 @@ export async function POST(request: Request) {
         // Skip if not enough data
         if (healthLogs.length < 3) continue;
 
+        // Fetch recent weekly check-ins for this pet
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const recentCheckIns = await prisma.weeklyCheckIn.findMany({
+          where: {
+            petId: pet.id,
+            createdAt: { gte: sevenDaysAgo },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 2,
+        });
+
+        // Check for urgent weekly check-in signals
+        let hasUrgentCheckInSignal = false;
+        if (recentCheckIns.length > 0) {
+          const latest = recentCheckIns[0];
+          const energyWorse = latest.energyLevel === "worse" || latest.energyLevel === "much_worse";
+          const appetiteWorse = latest.appetite === "worse" || latest.appetite === "much_worse";
+          
+          // Urgent if BOTH energy and appetite declining, or either is "much_worse"
+          hasUrgentCheckInSignal = 
+            (energyWorse && appetiteWorse) ||
+            latest.energyLevel === "much_worse" ||
+            latest.appetite === "much_worse" ||
+            (latest.newSymptoms && !!latest.symptomDetails);
+        }
+
         // Calculate current and previous health scores
         const currentScore = calculateHealthScore(healthLogs);
         const previousScore = calculateHealthScore(healthLogs.slice(1)); // Yesterday's data
@@ -80,13 +108,16 @@ export async function POST(request: Request) {
         // Get current health flags
         const flags = getHealthFlags(healthLogs, pet);
 
-        // Determine if we should send an alert
+        // Determine if we should send an alert (include check-in signals)
         const hasRedFlags = flags.some((f) => f.type === "red");
         const significantScoreChange = Math.abs(scoreChange) >= 10;
         const hasNewYellowFlags = flags.filter((f) => f.type === "yellow").length > 0;
 
         const shouldSendAlert =
-          hasRedFlags || significantScoreChange || (hasNewYellowFlags && scoreChange < -5);
+          hasRedFlags || 
+          significantScoreChange || 
+          (hasNewYellowFlags && scoreChange < -5) ||
+          hasUrgentCheckInSignal; // NEW: Include weekly check-in signals
 
         if (!shouldSendAlert) continue;
 
@@ -99,9 +130,11 @@ export async function POST(request: Request) {
             body:
               hasRedFlags
                 ? `🔴 Urgent: ${pet.name} has red flag alerts that need attention.`
-                : significantScoreChange
-                  ? `Health score ${scoreChange > 0 ? "improved" : "declined"} by ${Math.abs(scoreChange)} points.`
-                  : `⚠️ New patterns detected for ${pet.name}.`,
+                : hasUrgentCheckInSignal
+                  ? `⚠️ Your weekly check-in for ${pet.name} reported concerning changes.`
+                  : significantScoreChange
+                    ? `Health score ${scoreChange > 0 ? "improved" : "declined"} by ${Math.abs(scoreChange)} points.`
+                    : `⚠️ New patterns detected for ${pet.name}.`,
             read: false,
           },
         });

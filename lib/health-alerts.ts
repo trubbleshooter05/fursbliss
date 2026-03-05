@@ -1,17 +1,29 @@
 import type { HealthLogEntry } from "./health-score";
 
+export type WeeklyCheckIn = {
+  energyLevel: string; // "better", "same", "worse", "much_worse"
+  appetite: string; // "better", "same", "worse", "much_worse"
+  newSymptoms: boolean;
+  symptomDetails: string | null;
+  vetVisit: boolean;
+  createdAt: Date;
+};
+
 export type HealthAlert = {
   level: "red" | "yellow" | "green";
   reason: string;
   actionable: string; // What the user should do
+  source?: "daily_logs" | "weekly_checkin" | "combined"; // Where the alert came from
 };
 
 /**
  * Calculate health alert based on strict red/yellow/green rules
+ * Now includes weekly check-in responses for more comprehensive alerting
  */
 export function calculateHealthAlert(
   entries: HealthLogEntry[],
-  petName: string
+  petName: string,
+  recentCheckIns?: WeeklyCheckIn[]
 ): HealthAlert {
   // URGENT CHECK: Even with 1 entry, check for urgent symptoms
   if (entries.length > 0) {
@@ -49,12 +61,26 @@ export function calculateHealthAlert(
   const yellowAlert = checkYellowAlerts(last7Days, entries, petName);
   if (yellowAlert) return yellowAlert;
 
+  // Check weekly check-in responses (if provided)
+  if (recentCheckIns && recentCheckIns.length > 0) {
+    const checkInAlert = checkWeeklyCheckInSignals(recentCheckIns, petName);
+    if (checkInAlert) return checkInAlert;
+  }
+
   // Default: GREEN (all clear)
-  return {
+  const greenAlert: HealthAlert = {
     level: "green",
     reason: `All Clear: ${petName} looking stable`,
     actionable: "Keep up the tracking!",
+    source: "daily_logs",
   };
+
+  // Add vet visit context if recent
+  if (recentCheckIns && recentCheckIns.length > 0 && recentCheckIns[0].vetVisit) {
+    greenAlert.actionable += " Recent vet visit reported.";
+  }
+
+  return greenAlert;
 }
 
 /**
@@ -286,4 +312,59 @@ function checkLowEnergyStreak(entries: HealthLogEntry[]): number {
  */
 function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * NEW: Check weekly check-in responses for alert signals
+ */
+function checkWeeklyCheckInSignals(
+  checkIns: WeeklyCheckIn[],
+  petName: string
+): HealthAlert | null {
+  // Get most recent check-in
+  const latest = checkIns[0];
+
+  // RED ALERT: Both energy AND appetite are worse/much_worse in same check-in
+  const energyWorse = latest.energyLevel === "worse" || latest.energyLevel === "much_worse";
+  const appetiteWorse = latest.appetite === "worse" || latest.appetite === "much_worse";
+
+  if (energyWorse && appetiteWorse) {
+    return {
+      level: "red",
+      reason: `🔴 URGENT: ${petName} showing concerning patterns`,
+      actionable: `Your weekly check-in reported declining energy AND appetite. Consider calling your vet today.`,
+      source: "weekly_checkin",
+    };
+  }
+
+  // YELLOW ALERT: Either energy or appetite is "much_worse"
+  if (latest.energyLevel === "much_worse") {
+    return {
+      level: "yellow",
+      reason: `⚠️ WATCH CLOSELY: ${petName} showing changes`,
+      actionable: `Your weekly check-in reported much worse energy levels. Continue monitoring. Alert your vet if it worsens.`,
+      source: "weekly_checkin",
+    };
+  }
+
+  if (latest.appetite === "much_worse") {
+    return {
+      level: "yellow",
+      reason: `⚠️ WATCH CLOSELY: ${petName} showing changes`,
+      actionable: `Your weekly check-in reported much worse appetite. Continue monitoring. Alert your vet if it worsens.`,
+      source: "weekly_checkin",
+    };
+  }
+
+  // YELLOW ALERT: New symptoms reported
+  if (latest.newSymptoms && latest.symptomDetails) {
+    return {
+      level: "yellow",
+      reason: `⚠️ WATCH CLOSELY: ${petName} showing changes`,
+      actionable: `Your weekly check-in reported new symptoms: "${latest.symptomDetails}". Continue monitoring. Alert your vet if it worsens.`,
+      source: "weekly_checkin",
+    };
+  }
+
+  return null;
 }

@@ -194,6 +194,7 @@ export default async function DashboardPage() {
     reason: string;
     actionable: string;
     petName: string;
+    source?: "daily_logs" | "weekly_checkin" | "combined";
   } | null = null;
 
   if (pets[0]) {
@@ -212,16 +213,39 @@ export default async function DashboardPage() {
         notes: log.notes,
       })) as HealthLogEntry[];
 
-    // Calculate health alert (for all users) - now checks notes too!
+    // Fetch recent weekly check-ins for primary pet (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentCheckIns = await prisma.weeklyCheckIn.findMany({
+      where: {
+        petId: primaryPet.id,
+        createdAt: { gte: sevenDaysAgo },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 2,
+      select: {
+        energyLevel: true,
+        appetite: true,
+        newSymptoms: true,
+        symptomDetails: true,
+        vetVisit: true,
+        createdAt: true,
+      },
+    });
+
+    // Calculate health alert (for all users) - now includes weekly check-in signals!
     if (primaryPetLogs.length >= 1) {
-      const alert = calculateHealthAlert(primaryPetLogs, primaryPet.name);
+      const alert = calculateHealthAlert(primaryPetLogs, primaryPet.name, recentCheckIns);
       healthAlertData = {
         level: alert.level,
         reason: alert.reason,
         actionable: alert.actionable,
         petName: primaryPet.name,
+        source: alert.source,
       };
     }
+  }
 
     // Pattern detection for premium users OR free users (for preview)
     if (primaryPetLogs.length >= 7) {
@@ -291,6 +315,7 @@ export default async function DashboardPage() {
             actionable={healthAlertData.actionable}
             isPremium={isPremiumUser}
             petName={healthAlertData.petName}
+            source={healthAlertData.source}
           />
         </AnimateIn>
       ) : null}

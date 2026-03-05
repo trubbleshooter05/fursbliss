@@ -3,6 +3,8 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
+import { InlineEmailCapture } from "@/components/blog/inline-email-capture";
+import { BlogBottomCTA } from "@/components/blog/blog-bottom-cta";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
 const PUBLISHED_AT = "2026-02-08T00:00:00.000Z";
@@ -97,6 +99,9 @@ export default function FakeAdvicePostPage() {
             </CardContent>
           </Card>
 
+          {/* Inline email capture after intro section */}
+          <InlineEmailCapture slug="how-to-spot-fake-dog-health-advice-social-media" />
+
           <section className="space-y-3 text-sm text-muted-foreground">
             <h2 className="font-display text-3xl text-foreground">
               A safer decision framework
@@ -146,6 +151,9 @@ export default function FakeAdvicePostPage() {
             FursBliss does not diagnose or prescribe treatment. Always confirm
             supplement decisions with your veterinarian.
           </p>
+
+          {/* Bottom of post CTA */}
+          <BlogBottomCTA slug="how-to-spot-fake-dog-health-advice-social-media" />
         </article>
       </main>
       <SiteFooter />

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
+import { InlineEmailCapture } from "@/components/blog/inline-email-capture";
+import { BlogBottomCTA } from "@/components/blog/blog-bottom-cta";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
 const PUBLISHED_AT = "2026-02-11T00:00:00.000Z";
@@ -94,6 +96,9 @@ export default function LoyalFundingPostPage() {
             </CardContent>
           </Card>
 
+          {/* Inline email capture after intro section */}
+          <InlineEmailCapture slug="loyal-series-c-funding-feb-2026" />
+
           <div className="flex flex-wrap gap-3">
             <Link
               href="/longevity-drugs"
@@ -120,6 +125,9 @@ export default function LoyalFundingPostPage() {
               Open symptom guide
             </Link>
           </div>
+
+          {/* Bottom of post CTA */}
+          <BlogBottomCTA slug="loyal-series-c-funding-feb-2026" />
         </article>
       </main>
       <SiteFooter />

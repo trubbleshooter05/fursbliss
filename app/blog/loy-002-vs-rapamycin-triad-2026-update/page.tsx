@@ -3,6 +3,8 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
+import { InlineEmailCapture } from "@/components/blog/inline-email-capture";
+import { BlogBottomCTA } from "@/components/blog/blog-bottom-cta";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
 const PUBLISHED_AT = "2026-02-14T00:00:00.000Z";
@@ -183,6 +185,9 @@ export default function LoyVsTriadPostPage() {
             </li>
           </ul>
         </section>
+
+        {/* Bottom of post CTA */}
+        <BlogBottomCTA slug="loy-002-vs-rapamycin-triad-2026-update" />
       </main>
       <SiteFooter />
     </div>

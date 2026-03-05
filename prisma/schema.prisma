@@ -48,6 +48,7 @@ model User {
   referrals          Referral[]
   quizSubmissions    QuizSubmission[]
   emailSequenceEnrollments EmailSequenceEnrollment[]
+  emailLogs          EmailLog[]
 }
 
 model Pet {
@@ -455,5 +456,16 @@ model HealthAlert {
 
   @@index([petId, resolvedAt])
   @@index([userId, alertLevel, resolvedAt])
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailType String   // "health-alert" | "weekly-checkin" | "email-drip"
+  sentAt    DateTime @default(now())
+
+  @@index([userId, sentAt])
+  @@index([userId, emailType, sentAt])
 }
 

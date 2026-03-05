@@ -12,6 +12,7 @@ import {
 import { createUnsubscribeToken } from "@/lib/email/unsubscribe";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { getMonthlyRecommendationCount, getTrackingDaysForPet } from "@/lib/user-engagement";
+import { canSendEmail, logEmailSent } from "@/lib/email-throttle";
 
 export const runtime = "nodejs";
 const MAX_STEPS_PER_RUN = 50;
@@ -162,6 +163,14 @@ export async function GET(request: Request) {
 
       const alreadySentToday = await sentAnyEmailToday(enrollment.id);
       if (alreadySentToday) {
+        deferred += 1;
+        continue;
+      }
+
+      // Email throttling: Skip if any other email sent in past 24h OR weekly check-in completed in past 7 days
+      const throttleCheck = await canSendEmail(user.id, "email-drip");
+      if (!throttleCheck.canSend) {
+        console.log(`[email-drip] Skipping ${user.email} step ${dueStep.step}: ${throttleCheck.reason}`);
         deferred += 1;
         continue;
       }
@@ -338,6 +347,10 @@ export async function GET(request: Request) {
 
       await markEmailSequenceStepSent(dueStep.id, result.messageId);
       await updateEnrollmentNextSendAt(enrollment.id);
+      
+      // Log email send for throttling
+      await logEmailSent(user.id, "email-drip");
+      
       sent += 1;
     } catch (error) {
       console.error("[email-drip] failed to send step", {

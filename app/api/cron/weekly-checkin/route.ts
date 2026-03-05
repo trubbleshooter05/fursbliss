@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { WeeklyCheckInEmail, WeeklyCheckInEmailText } from "@/components/emails/weekly-checkin-email";
+import { canSendEmail, logEmailSent } from "@/lib/email-throttle";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
 
     let emailsSent = 0;
     let errors = 0;
+    let skipped = 0;
 
     // Calculate current week start date (last Monday)
     const now = new Date();
@@ -82,7 +84,16 @@ export async function POST(request: Request) {
 
         if (existingCheckIn) {
           console.log(`[Weekly Check-In] User ${user.email} already completed check-in for ${pet.name}`);
+          skipped++;
           continue; // Skip if already completed
+        }
+
+        // Check email throttling (skip if health alert sent in past 7 days)
+        const throttleCheck = await canSendEmail(user.id, "weekly-checkin");
+        if (!throttleCheck.canSend) {
+          console.log(`[Weekly Check-In] Skipping ${user.email}: ${throttleCheck.reason}`);
+          skipped++;
+          continue;
         }
 
         // Calculate week number
@@ -123,6 +134,10 @@ export async function POST(request: Request) {
           errors++;
         } else {
           console.log(`[Weekly Check-In] Sent to ${user.email} for ${pet.name}`);
+          
+          // Log email send for throttling
+          await logEmailSent(user.id, "weekly-checkin");
+          
           emailsSent++;
         }
 
@@ -134,11 +149,12 @@ export async function POST(request: Request) {
       }
     }
 
-    console.log(`[Weekly Check-In] Completed: ${emailsSent} sent, ${errors} errors`);
+    console.log(`[Weekly Check-In] Completed: ${emailsSent} sent, ${skipped} skipped, ${errors} errors`);
 
     return NextResponse.json({
       success: true,
       emailsSent,
+      skipped,
       errors,
       totalUsers: users.length,
     });

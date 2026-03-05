@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { calculateHealthScore, getHealthFlags } from "@/lib/health-score";
 import type { HealthLogEntry, HealthFlag } from "@/lib/health-score";
 import { HealthAlertEmail } from "@/components/emails/health-alert-email";
+import { logEmailSent } from "@/lib/email-throttle";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -128,6 +129,9 @@ export async function POST(request: Request) {
               dashboardUrl,
             }),
           });
+
+          // Log email send for throttling (health alerts always send, highest priority)
+          await logEmailSent(user.id, "health-alert");
 
           emailsSent++;
           console.log(`[Health Alerts] Sent alert to ${user.email} for ${pet.name}`);

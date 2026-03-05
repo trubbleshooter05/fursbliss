@@ -245,7 +245,6 @@ export default async function DashboardPage() {
         source: alert.source,
       };
     }
-  }
 
     // Pattern detection for premium users OR free users (for preview)
     if (primaryPetLogs.length >= 7) {

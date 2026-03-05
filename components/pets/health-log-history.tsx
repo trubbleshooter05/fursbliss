@@ -47,7 +47,7 @@ export function HealthLogHistory({ logs, isPremium, petName }: HealthLogHistoryP
 
   const hasLockedContent = lockedLogs.length > 0;
 
-  // Track when user scrolls to locked section
+  // Track when user scrolls to locked section (view event)
   useEffect(() => {
     if (!hasLockedContent || gateHitTracked || isPremium) return;
 
@@ -55,7 +55,8 @@ export function HealthLogHistory({ logs, isPremium, petName }: HealthLogHistoryP
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && !gateHitTracked) {
-            void trackMetaCustomEvent("HistoryGateHit", {
+            void trackMetaCustomEvent("TierGate_OldHistory", {
+              source: "history-gate",
               pet_name: petName,
               locked_entries: lockedLogs.length,
             });
@@ -159,12 +160,31 @@ export function HealthLogHistory({ logs, isPremium, petName }: HealthLogHistoryP
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
               <Button asChild className="bg-amber-600 hover:bg-amber-700">
-                <Link href="/pricing?source=history-gate">
+                <Link 
+                  href="/pricing?source=history-gate"
+                  onClick={() => {
+                    void trackMetaCustomEvent("TierGate_OldHistory_Click", {
+                      source: "history-gate",
+                      pet_name: petName,
+                      locked_entries: lockedLogs.length,
+                    });
+                  }}
+                >
                   Unlock Full History — $9/mo
                 </Link>
               </Button>
               <Button asChild variant="link" className="text-amber-700">
-                <Link href="/pricing?source=history-gate">
+                <Link 
+                  href="/pricing?source=history-gate"
+                  onClick={() => {
+                    void trackMetaCustomEvent("TierGate_OldHistory_Click", {
+                      source: "history-gate",
+                      pet_name: petName,
+                      locked_entries: lockedLogs.length,
+                      cta: "yearly",
+                    });
+                  }}
+                >
                   Or save 45% with yearly billing
                 </Link>
               </Button>

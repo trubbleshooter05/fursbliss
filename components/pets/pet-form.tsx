@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoUploader } from "@/components/pets/photo-uploader";
+import { trackMetaCustomEvent } from "@/lib/meta-events";
 
 const symptomsOptions = [
   "Low energy",
@@ -101,6 +102,41 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
     );
 
     if (!response.ok) {
+      // Check for tier gate error (second dog limit)
+      if (response.status === 403) {
+        const errorData = await response.json();
+        
+        if (errorData.tierGate === "second-dog") {
+          // Track tier gate hit
+          void trackMetaCustomEvent("TierGate_SecondDog", {
+            source: "second-dog",
+            petName: values.name,
+          });
+          
+          toast({
+            title: "Upgrade to add more pets",
+            description: "Free tier supports 1 pet profile. Upgrade to premium for unlimited pets.",
+            variant: "destructive",
+            action: (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  void trackMetaCustomEvent("TierGate_SecondDog_Click", {
+                    source: "second-dog",
+                    petName: values.name,
+                  });
+                  router.push("/pricing?source=second-dog");
+                }}
+              >
+                Upgrade
+              </Button>
+            ),
+          });
+          return;
+        }
+      }
+      
       toast({
         title: "Unable to save pet",
         description: "Please try again in a moment.",

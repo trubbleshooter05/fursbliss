@@ -36,7 +36,11 @@ export async function POST(request: Request) {
 
       if (petCount >= 1) {
         return NextResponse.json(
-          { message: "Free tier supports 1 pet profile. Upgrade for more." },
+          { 
+            message: "Free tier supports 1 pet profile. Upgrade for more.",
+            errorCode: "TIER_LIMIT_PET_COUNT",
+            tierGate: "second-dog"
+          },
           { status: 403 }
         );
       }

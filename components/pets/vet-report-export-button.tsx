@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,15 @@ export function VetReportExportButton({
 }: VetReportExportButtonProps) {
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [viewTracked, setViewTracked] = useState(false);
+
+  // Track view when paywall is shown
+  useEffect(() => {
+    if (showPaywall && !viewTracked && !isPremium) {
+      void trackMetaCustomEvent("TierGate_VetExport", { source: "vet-export", petName });
+      setViewTracked(true);
+    }
+  }, [showPaywall, viewTracked, isPremium, petName]);
 
   const handleExportClick = async () => {
     if (isPremium) {

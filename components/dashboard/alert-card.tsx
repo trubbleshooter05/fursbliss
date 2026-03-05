@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, Shield } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { trackMetaCustomEvent } from "@/lib/meta-events";
 
 type AlertCardProps = {
   level: "red" | "yellow" | "green";
@@ -15,6 +17,13 @@ type AlertCardProps = {
 };
 
 export function AlertCard({ level, reason, actionable, isPremium, petName, source }: AlertCardProps) {
+  // Track when free users see the gated health alert
+  useEffect(() => {
+    if (!isPremium && level !== "green") {
+      void trackMetaCustomEvent("TierGate_HealthAlert", { source: "health-alert", petName });
+    }
+  }, [isPremium, level, petName]);
+
   // Free users see gated version if there's an alert
   if (!isPremium && level !== "green") {
     return (
@@ -43,7 +52,15 @@ export function AlertCard({ level, reason, actionable, isPremium, petName, sourc
               </div>
               <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center">
                 <Button asChild className="bg-amber-600 hover:bg-amber-700">
-                  <Link href="/pricing?source=health-alert">
+                  <Link 
+                    href="/pricing?source=health-alert"
+                    onClick={() => {
+                      void trackMetaCustomEvent("TierGate_HealthAlert_Click", { 
+                        source: "health-alert",
+                        petName 
+                      });
+                    }}
+                  >
                     Enable Health Alerts — $9/mo
                   </Link>
                 </Button>

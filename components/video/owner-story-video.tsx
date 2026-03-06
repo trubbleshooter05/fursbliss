@@ -21,10 +21,10 @@ export function OwnerStoryVideo({
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-md md:max-w-2xl">
       <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/20 backdrop-blur-sm">
         {/* Video container */}
-        <div className="relative aspect-[9/16] md:aspect-video bg-black">
+        <div className="relative aspect-[9/16] bg-black">
           {!isPlaying ? (
             // Thumbnail with play button
             <div
@@ -45,7 +45,7 @@ export function OwnerStoryVideo({
           ) : (
             // Video player
             <video
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
               controls
               autoPlay
               playsInline

@@ -31,21 +31,17 @@ from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 # 4. Replace the placeholder URLs below
 
 GROUPS = [
-    # Large, active senior dog groups (REPLACE WITH REAL URLS)
-    {"name": "Senior Dogs 4 Ever", "url": "https://www.facebook.com/groups/134567890"},  # REPLACE
-    {"name": "Old Dogs Rule", "url": "https://www.facebook.com/groups/234567890"},  # REPLACE
-    {"name": "Senior Dog Care & Support", "url": "https://www.facebook.com/groups/334567890"},  # REPLACE
-    {"name": "Grey Muzzle Dogs", "url": "https://www.facebook.com/groups/434567890"},  # REPLACE
-    {"name": "Senior Dog Health & Wellness", "url": "https://www.facebook.com/groups/534567890"},  # REPLACE
-    
-    # Breed-specific senior groups (REPLACE WITH REAL URLS)
-    {"name": "Senior Golden Retrievers", "url": "https://www.facebook.com/groups/634567890"},  # REPLACE
-    {"name": "Senior Labrador Retrievers", "url": "https://www.facebook.com/groups/734567890"},  # REPLACE
-    {"name": "Doodle (Goldendoodle/Labradoodle) Lovers", "url": "https://www.facebook.com/groups/834567890"},  # REPLACE
-    
-    # Dog longevity & health groups (REPLACE WITH REAL URLS)
-    {"name": "Dog Longevity & Healthspan", "url": "https://www.facebook.com/groups/934567890"},  # REPLACE
-    {"name": "Holistic Dog Health", "url": "https://www.facebook.com/groups/1034567890"},  # REPLACE
+    # Real, active senior dog Facebook groups
+    {"name": "Senior Dog Lovers", "url": "https://www.facebook.com/groups/seniordoglovers"},
+    {"name": "Canine Lifespan and Aging", "url": "https://www.facebook.com/groups/caninelifespanandaging"},
+    {"name": "The Old Dog House", "url": "https://www.facebook.com/groups/theolddoghouse"},
+    {"name": "Grey Muzzle", "url": "https://www.facebook.com/greymuzzle"},
+    {"name": "Senior Dog Health and Wellness", "url": "https://www.facebook.com/groups/seniordoghealthandwellness"},
+    {"name": "The Senior Dog Community", "url": "https://www.facebook.com/groups/seniordogcommunity"},
+    {"name": "Aged Paws", "url": "https://www.facebook.com/groups/agedpaws"},
+    {"name": "Dogs Over a Decade", "url": "https://www.facebook.com/groups/dogsoverdade"},
+    {"name": "Senior Dog Support Group", "url": "https://www.facebook.com/groups/seniordogsupportgroup"},
+    {"name": "Canine Health & Wellness", "url": "https://www.facebook.com/groups/caninehealthwellness"},
 ]
 
 KEYWORDS = [
@@ -180,9 +176,6 @@ def search_group(page, group, keyword, writer, counter):
 def run_scraper():
     print("Starting FursBliss Facebook scraper...")
     print(f"Groups: {len(GROUPS)}  |  Keywords: {len(KEYWORDS)}  |  Max queries: {len(GROUPS)*len(KEYWORDS)}\n")
-    
-    print("⚠️  WARNING: Make sure you've replaced the placeholder group URLs in the script!")
-    print("    Look for lines with '# REPLACE' comments\n")
 
     counter = [0]
 

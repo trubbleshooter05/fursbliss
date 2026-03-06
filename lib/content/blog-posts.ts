@@ -8,12 +8,12 @@ export type BlogPostMeta = {
 
 export const blogPosts: BlogPostMeta[] = [
   {
-    slug: "how-to-spot-fake-dog-health-advice-social-media",
-    title: "How to Spot Fake Dog Health Advice on Social Media",
+    slug: "rapamycin-for-dogs-2026-guide",
+    title: "Rapamycin for Dogs in 2026: What Every Senior Dog Owner Should Know",
     excerpt:
-      "How to spot scammy supplement claims fast, including the recent mushroom-viral pattern, and use FursBliss checks as a safer next step.",
-    date: "2026-02-08",
-    updatedAt: "2026-02-08",
+      "Rapamycin is already being prescribed off-label for dogs. Here's what the research shows, what it costs, the risks, and how it compares to LOY-002.",
+    date: "2026-02-20",
+    updatedAt: "2026-02-20",
   },
   {
     slug: "loy-002-vs-rapamycin-triad-2026-update",
@@ -30,6 +30,14 @@ export const blogPosts: BlogPostMeta[] = [
       "What Loyal's Feb 2026 financing update means for LOY-001, LOY-002, and LOY-003 timelines.",
     date: "2026-02-11",
     updatedAt: "2026-02-11",
+  },
+  {
+    slug: "how-to-spot-fake-dog-health-advice-social-media",
+    title: "How to Spot Fake Dog Health Advice on Social Media",
+    excerpt:
+      "How to spot scammy supplement claims fast, including the recent mushroom-viral pattern, and use FursBliss checks as a safer next step.",
+    date: "2026-02-08",
+    updatedAt: "2026-02-08",
   },
 ];
 

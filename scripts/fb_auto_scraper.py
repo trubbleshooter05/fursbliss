@@ -42,9 +42,9 @@ RELEVANCE_KEYWORDS = [
 
 PROFILE_DIR = "./fb_profile"
 OUTPUT_FILE = "fursbliss_fb_auto.csv"
-GROUPS_TO_SCRAPE = 20  # Max number of groups to scrape (to avoid taking forever)
-SCROLL_PASSES_DISCOVERY = 10  # How many times to scroll when discovering groups
-SCROLL_PASSES_POSTS = 3  # How many times to scroll in each group
+GROUPS_TO_SCRAPE = 30  # Max number of groups to scrape (to avoid taking forever)
+SCROLL_PASSES_DISCOVERY = 15  # How many times to scroll when discovering groups
+SCROLL_PASSES_POSTS = 5  # How many times to scroll in each group (more = more posts)
 DELAY_MIN = 2.0
 DELAY_MAX = 4.0
 

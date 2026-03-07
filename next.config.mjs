@@ -2,6 +2,7 @@
 const nextConfig = {
   trailingSlash: false,
   skipTrailingSlashRedirect: true,
+  serverExternalPackages: ["pdfkit"],
   images: {
     remotePatterns: [
       {

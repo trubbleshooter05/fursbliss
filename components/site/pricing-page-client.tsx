@@ -19,7 +19,7 @@ const comparisonRows = [
     premium: "Personalized with dosages",
   },
   { feature: "LOY-002 readiness action plan", free: "Eligibility snapshot", premium: "Step-by-step action plan" },
-  { feature: "Vet-ready health reports", free: "Preview only", premium: "Full export + sharing" },
+  { feature: "AI Vet-Ready Summary Report (shareable link)", free: "Preview only", premium: "Full report + shareable link" },
   {
     feature: "Breed-specific longevity insights",
     free: "Lifespan range",
@@ -129,7 +129,7 @@ export function PricingPageClient({
             <CardHeader className="space-y-2 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/75">Most popular</p>
               <CardTitle className="font-display text-4xl tracking-[-0.03em]">Premium</CardTitle>
-              <p className="text-sm text-white/85">Full longevity planning, alerts, and vet-ready reporting.</p>
+              <p className="text-sm text-white/85">Full longevity planning, health alerts, and AI vet-ready reports.</p>
             </CardHeader>
             <CardContent className="space-y-5 p-5 pt-0 sm:p-6 sm:pt-0">
               <div className="grid gap-3 rounded-2xl bg-white/12 p-4 md:grid-cols-2">
@@ -220,7 +220,7 @@ export function PricingPageClient({
             </CardHeader>
             <CardContent className="p-5 pt-0 sm:p-6 sm:pt-0">
               <p className="text-sm text-muted-foreground">
-                Start free and upgrade when you&apos;re ready to unlock personalized plans and vet-ready reports.
+                Start free and upgrade when you&apos;re ready to unlock AI insights, health alerts, and your vet-ready summary report.
               </p>
               <Button asChild variant="outline" className="mt-4 min-h-11">
                 <Link href="/signup">Create free account</Link>

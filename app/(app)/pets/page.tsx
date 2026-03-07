@@ -3,10 +3,12 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isSubscriptionActive } from "@/lib/subscription";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { VetReportExportButton } from "@/components/pets/vet-report-export-button";
 
 export default async function PetsPage() {
   const session = await auth();
@@ -16,10 +18,17 @@ export default async function PetsPage() {
     return null;
   }
 
-  const pets = await prisma.pet.findMany({
-    where: { userId },
-    include: { healthLogs: { orderBy: { date: "desc" }, take: 1 } },
-  });
+  const [pets, user] = await Promise.all([
+    prisma.pet.findMany({
+      where: { userId },
+      include: { healthLogs: { orderBy: { date: "desc" }, take: 1 } },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
+    }),
+  ]);
+  const isPremium = isSubscriptionActive(user ?? {});
 
   return (
     <div className="space-y-8">
@@ -83,11 +92,11 @@ export default async function PetsPage() {
                 <Button variant="outline" className="w-full hover:scale-[1.02] transition-all duration-300" asChild>
                   <Link href={`/pets/${pet.id}/vaccines`}>Vaccine Hub</Link>
                 </Button>
-                <Button variant="ghost" className="w-full hover:scale-[1.02] transition-all duration-300" asChild>
-                  <a href={`/api/exports/pet-report?petId=${pet.id}`}>
-                    Download report (PDF)
-                  </a>
-                </Button>
+                <VetReportExportButton
+                  petId={pet.id}
+                  petName={pet.name}
+                  isPremium={isPremium}
+                />
               </CardContent>
             </Card>
             </AnimateIn>

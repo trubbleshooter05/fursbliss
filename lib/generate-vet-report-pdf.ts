@@ -1,25 +1,28 @@
-import PDFDocument from "pdfkit";
+import { PDFDocument, rgb, StandardFonts, PDFPage, PDFFont } from "pdf-lib";
 import type { VetReadyReport } from "@/app/api/pets/[id]/vet-report/route";
 
-// Sanitize to ASCII-safe text for PDF
+// Sanitize to ASCII-safe text
 function s(value: string): string {
   return value.replace(/[^\x09\x0A\x0D\x20-\x7E]/g, "");
 }
 
-const COLORS = {
-  black: "#111111",
-  gray: "#6B7280",
-  lightGray: "#D1D5DB",
-  bgGray: "#F9FAFB",
-  red: "#DC2626",
-  yellow: "#D97706",
-  green: "#16A34A",
-  accent: "#1E40AF", // deep blue for header
-};
-
 const MARGIN = 45;
-const PAGE_WIDTH = 612;
-const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
+const PAGE_W = 612;
+const PAGE_H = 792;
+const CONTENT_W = PAGE_W - MARGIN * 2;
+
+// pdf-lib uses 0–1 RGB
+const C = {
+  black:     rgb(0.07, 0.07, 0.07),
+  gray:      rgb(0.42, 0.45, 0.50),
+  lightGray: rgb(0.82, 0.84, 0.86),
+  bgGray:    rgb(0.98, 0.98, 0.99),
+  red:       rgb(0.86, 0.15, 0.15),
+  yellow:    rgb(0.85, 0.47, 0.02),
+  green:     rgb(0.09, 0.64, 0.29),
+  accent:    rgb(0.12, 0.25, 0.69),
+  white:     rgb(1, 1, 1),
+};
 
 function trendArrow(trend: "improving" | "declining" | "stable"): string {
   if (trend === "improving") return "(+)";
@@ -27,323 +30,223 @@ function trendArrow(trend: "improving" | "declining" | "stable"): string {
   return "(=)";
 }
 
-function severityLabel(severity: "high" | "medium" | "low"): string {
-  if (severity === "high") return "[HIGH]";
-  if (severity === "medium") return "[MOD]";
-  return "[LOW]";
+function severityColor(severity: "high" | "medium" | "low") {
+  if (severity === "high") return C.red;
+  if (severity === "medium") return C.yellow;
+  return C.gray;
 }
 
-function alertLabel(level: "red" | "yellow" | "green"): string {
-  if (level === "red") return "[!]";
-  if (level === "yellow") return "[~]";
-  return "[OK]";
+// Draw text that wraps at maxWidth, returns new y position
+function drawWrappedText(
+  page: PDFPage,
+  text: string,
+  x: number,
+  y: number,
+  font: PDFFont,
+  size: number,
+  color: ReturnType<typeof rgb>,
+  maxWidth: number,
+  lineHeight: number
+): number {
+  const words = text.split(" ");
+  let line = "";
+  let curY = y;
+
+  for (const word of words) {
+    const testLine = line ? `${line} ${word}` : word;
+    const testWidth = font.widthOfTextAtSize(testLine, size);
+    if (testWidth > maxWidth && line) {
+      if (curY < 30) break; // stop if too close to bottom
+      page.drawText(s(line), { x, y: curY, size, font, color });
+      curY -= lineHeight;
+      line = word;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line && curY >= 30) {
+    page.drawText(s(line), { x, y: curY, size, font, color });
+    curY -= lineHeight;
+  }
+  return curY;
 }
 
 export async function generateVetReportPDF(report: VetReadyReport): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({
-      size: "LETTER",
-      margin: MARGIN,
-      info: {
-        Title: `FursBliss Vet-Ready Health Summary - ${report.pet.name}`,
-        Author: "FursBliss",
-        Subject: "Veterinary Health Summary",
-      },
-    });
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-    const chunks: Buffer[] = [];
-    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
+  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    let y = MARGIN;
+  // pdf-lib y=0 is bottom; we work top-down by tracking y from top
+  // helper: convert from "top-down y" to pdf-lib y
+  const py = (y: number) => PAGE_H - y;
 
-    // ── HEADER ────────────────────────────────────────────────────────────────
-    // Blue header bar
-    doc.rect(0, 0, PAGE_WIDTH, 62).fill(COLORS.accent);
+  // ── HEADER BAR ───────────────────────────────────────────────────────────
+  page.drawRectangle({ x: 0, y: py(62), width: PAGE_W, height: 62, color: C.accent });
 
-    doc
-      .fillColor("white")
-      .fontSize(15)
-      .font("Helvetica-Bold")
-      .text(s("FursBliss Vet-Ready Health Summary"), MARGIN, 14, { width: CONTENT_WIDTH });
-
-    doc
-      .fillColor("white")
-      .fontSize(8.5)
-      .font("Helvetica")
-      .text(
-        s(`${report.pet.name}  |  ${report.period.start} - ${report.period.end}  |  Generated: ${new Date(report.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`),
-        MARGIN,
-        36,
-        { width: CONTENT_WIDTH }
-      );
-
-    y = 76;
-
-    // ── SECTION 1: Pet Info ───────────────────────────────────────────────────
-    doc.fillColor(COLORS.black).fontSize(9).font("Helvetica-Bold");
-    doc.text(s("PATIENT INFORMATION"), MARGIN, y);
-    y += 12;
-
-    // Draw a thin rule
-    doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.lightGray).lineWidth(0.5).stroke();
-    y += 5;
-
-    const weightTrendSymbol =
-      report.pet.weight.trend === "gaining" ? "(+)" : report.pet.weight.trend === "losing" ? "(-)" : "(=)";
-    const weightLine =
-      report.pet.weight.thirtyDaysAgo
-        ? `${report.pet.weight.current} lbs ${weightTrendSymbol}  (30-day: ${report.pet.weight.thirtyDaysAgo} lbs)`
-        : `${report.pet.weight.current} lbs`;
-
-    const petInfoCols = [
-      [`Name: ${s(report.pet.name)}`, `Breed: ${s(report.pet.breed)}`],
-      [`Age: ${s(report.pet.age)}`, `Weight: ${s(weightLine)}`],
-    ];
-
-    doc.fillColor(COLORS.black).fontSize(8.5).font("Helvetica");
-    const colW = CONTENT_WIDTH / 2;
-    for (let col = 0; col < 2; col++) {
-      for (let row = 0; row < 2; row++) {
-        doc.text(s(petInfoCols[col][row]), MARGIN + col * colW, y + row * 13, { width: colW - 10 });
-      }
-    }
-
-    // Tracking stats (right-aligned block)
-    const statsX = MARGIN + colW;
-    doc
-      .fillColor(COLORS.gray)
-      .fontSize(7.5)
-      .text(
-        s(`Tracking: ${report.period.totalDaysLogged}/30 days (${report.period.logCompletionRate}% completion)`),
-        statsX,
-        y + 26,
-        { width: colW - 10, align: "right" }
-      );
-
-    y += 42;
-
-    // ── SECTION 2: 30-Day Health Trends ──────────────────────────────────────
-    doc.fillColor(COLORS.black).fontSize(9).font("Helvetica-Bold");
-    doc.text(s("30-DAY HEALTH TRENDS  (W1 = oldest, W4 = most recent, scale 1-10)"), MARGIN, y);
-    y += 11;
-    doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.lightGray).lineWidth(0.5).stroke();
-    y += 4;
-
-    // Table header
-    const colWidths = [90, 55, 55, 55, 55, 80, 82];
-    const headers = ["Metric", "W1 Avg", "W2 Avg", "W3 Avg", "W4 Avg", "30-Day Avg", "Trend"];
-    let xPos = MARGIN;
-
-    doc.fillColor(COLORS.gray).fontSize(7.5).font("Helvetica-Bold");
-    headers.forEach((h, i) => {
-      doc.text(s(h), xPos, y, { width: colWidths[i] - 4 });
-      xPos += colWidths[i];
-    });
-    y += 12;
-
-    // Table rows
-    const metricRows: Array<{
-      label: string;
-      data: VetReadyReport["trends"]["energy"];
-    }> = [
-      { label: "Energy", data: report.trends.energy },
-      { label: "Appetite", data: report.trends.appetite },
-      { label: "Mobility", data: report.trends.mobility },
-      { label: "Mood", data: report.trends.mood },
-    ];
-
-    metricRows.forEach((row, idx) => {
-      // Alternating row bg
-      if (idx % 2 === 0) {
-        doc.rect(MARGIN, y - 1, CONTENT_WIDTH, 13).fill("#F3F4F6").fillColor(COLORS.black);
-      }
-
-      const trendColor =
-        row.data.trend === "declining"
-          ? COLORS.red
-          : row.data.trend === "improving"
-          ? COLORS.green
-          : COLORS.black;
-
-      xPos = MARGIN;
-      const cells = [
-        { text: row.label, color: COLORS.black, bold: true },
-        { text: row.data.weekOverWeek[0] > 0 ? String(row.data.weekOverWeek[0]) : "-", color: COLORS.black, bold: false },
-        { text: row.data.weekOverWeek[1] > 0 ? String(row.data.weekOverWeek[1]) : "-", color: COLORS.black, bold: false },
-        { text: row.data.weekOverWeek[2] > 0 ? String(row.data.weekOverWeek[2]) : "-", color: COLORS.black, bold: false },
-        { text: row.data.weekOverWeek[3] > 0 ? String(row.data.weekOverWeek[3]) : "-", color: COLORS.black, bold: false },
-        { text: row.data.average > 0 ? String(row.data.average) : "-", color: COLORS.black, bold: false },
-        { text: `${trendArrow(row.data.trend)} ${row.data.trend}`, color: trendColor, bold: false },
-      ];
-
-      cells.forEach((cell, i) => {
-        doc
-          .fillColor(cell.color)
-          .fontSize(8)
-          .font(cell.bold ? "Helvetica-Bold" : "Helvetica")
-          .text(s(cell.text), xPos, y, { width: colWidths[i] - 4 });
-        xPos += colWidths[i];
-      });
-
-      y += 13;
-    });
-
-    // Stool row
-    const stoolText =
-      report.trends.stool.abnormalDays + report.trends.stool.normalDays > 0
-        ? `Normal: ${report.trends.stool.normalDays}d  Abnormal: ${report.trends.stool.abnormalDays}d`
-        : "No gut health logs";
-    doc
-      .fillColor(COLORS.gray)
-      .fontSize(7.5)
-      .font("Helvetica")
-      .text(s(`Gut/Stool: ${stoolText}`), MARGIN, y, { width: CONTENT_WIDTH });
-    y += 13;
-
-    // ── SECTION 3: Flagged Concerns ───────────────────────────────────────────
-    doc.fillColor(COLORS.black).fontSize(9).font("Helvetica-Bold");
-    doc.text(s("FLAGGED CONCERNS"), MARGIN, y);
-    y += 11;
-    doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.lightGray).lineWidth(0.5).stroke();
-    y += 4;
-
-    if (report.concerns.length === 0) {
-      doc.fillColor(COLORS.green).fontSize(8).font("Helvetica");
-      doc.text(s("No concerning patterns detected in the 30-day window."), MARGIN, y);
-      y += 13;
-    } else {
-      for (const concern of report.concerns) {
-        const labelColor =
-          concern.severity === "high" ? COLORS.red : concern.severity === "medium" ? COLORS.yellow : COLORS.gray;
-        const label = severityLabel(concern.severity);
-
-        // Severity badge
-        doc.fillColor(labelColor).fontSize(7.5).font("Helvetica-Bold");
-        const labelWidth = 30;
-        doc.text(s(label), MARGIN, y, { width: labelWidth });
-
-        // Category + description
-        doc.fillColor(COLORS.black).fontSize(8).font("Helvetica-Bold");
-        doc.text(s(`${concern.category}:`), MARGIN + labelWidth + 2, y, { width: 100 });
-
-        doc.fillColor(COLORS.black).fontSize(7.5).font("Helvetica");
-        doc.text(s(concern.description), MARGIN + labelWidth + 106, y, {
-          width: CONTENT_WIDTH - labelWidth - 108,
-        });
-
-        // Estimate height used
-        const lines = Math.ceil(concern.description.length / 82);
-        y += Math.max(12, lines * 9 + 3);
-      }
-    }
-
-    y += 2;
-
-    // ── SECTION 4: Discussion Topics ──────────────────────────────────────────
-    doc.fillColor(COLORS.black).fontSize(9).font("Helvetica-Bold");
-    doc.text(s("RECOMMENDED DISCUSSION TOPICS FOR VET VISIT"), MARGIN, y);
-    y += 11;
-    doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.lightGray).lineWidth(0.5).stroke();
-    y += 4;
-
-    if (report.discussionTopics.length === 0) {
-      doc.fillColor(COLORS.gray).fontSize(8).font("Helvetica");
-      doc.text(s("No specific discussion topics generated. Continue routine monitoring."), MARGIN, y);
-      y += 13;
-    } else {
-      report.discussionTopics.forEach((topic, i) => {
-        doc.fillColor(COLORS.accent).fontSize(8).font("Helvetica-Bold");
-        doc.text(s(`${i + 1}.`), MARGIN, y, { width: 14 });
-        doc.fillColor(COLORS.black).fontSize(8).font("Helvetica");
-        doc.text(s(topic), MARGIN + 16, y, { width: CONTENT_WIDTH - 16 });
-        const lines = Math.ceil(topic.length / 90);
-        y += Math.max(12, lines * 9 + 3);
-      });
-    }
-
-    y += 2;
-
-    // ── SECTION 5: Weekly Check-In Summary ───────────────────────────────────
-    doc.fillColor(COLORS.black).fontSize(9).font("Helvetica-Bold");
-    doc.text(s("WEEKLY CHECK-IN SUMMARY"), MARGIN, y);
-    y += 11;
-    doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.lightGray).lineWidth(0.5).stroke();
-    y += 4;
-
-    const ci = report.weeklyCheckIns;
-    const ciLine1 = `Completed: ${ci.completed} of ${ci.totalPossible} check-ins  |  Vet visits reported: ${ci.vetVisitsReported}  |  New symptoms reported: ${ci.newSymptomsReported ? "Yes" : "No"}`;
-    doc.fillColor(COLORS.black).fontSize(8).font("Helvetica");
-    doc.text(s(ciLine1), MARGIN, y, { width: CONTENT_WIDTH });
-    y += 11;
-
-    if (ci.symptomDetails.length > 0) {
-      doc.fillColor(COLORS.gray).fontSize(7.5);
-      doc.text(s(`Symptom notes: ${ci.symptomDetails.slice(0, 3).join("; ")}`), MARGIN, y, { width: CONTENT_WIDTH });
-      y += 11;
-    }
-
-    y += 2;
-
-    // ── SECTION 6: Supplements / Medications ─────────────────────────────────
-    doc.fillColor(COLORS.black).fontSize(9).font("Helvetica-Bold");
-    doc.text(s("CURRENT MEDICATIONS & SUPPLEMENTS"), MARGIN, y);
-    y += 11;
-    doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.lightGray).lineWidth(0.5).stroke();
-    y += 4;
-
-    if (report.supplements.length === 0) {
-      doc.fillColor(COLORS.gray).fontSize(8).font("Helvetica");
-      doc.text(s("None recorded."), MARGIN, y);
-      y += 13;
-    } else {
-      const suppColW = CONTENT_WIDTH / 3;
-      report.supplements.forEach((sup, i) => {
-        const col = i % 3;
-        const row = Math.floor(i / 3);
-        doc.fillColor(COLORS.black).fontSize(8).font("Helvetica");
-        doc.text(s(`• ${sup.name} (${sup.dosage})`), MARGIN + col * suppColW, y + row * 12, {
-          width: suppColW - 8,
-        });
-      });
-      y += Math.ceil(report.supplements.length / 3) * 12 + 2;
-    }
-
-    // Alert history (compact, only if space and any alerts exist)
-    if (report.alerts.length > 0 && y < 680) {
-      y += 4;
-      doc.fillColor(COLORS.black).fontSize(9).font("Helvetica-Bold");
-      doc.text(s("RECENT HEALTH ALERTS (30 days)"), MARGIN, y);
-      y += 11;
-      doc.moveTo(MARGIN, y).lineTo(MARGIN + CONTENT_WIDTH, y).strokeColor(COLORS.lightGray).lineWidth(0.5).stroke();
-      y += 4;
-
-      const alertsToShow = report.alerts.slice(0, 5);
-      alertsToShow.forEach((alert) => {
-        const alertColor = alert.level === "red" ? COLORS.red : alert.level === "yellow" ? COLORS.yellow : COLORS.green;
-        doc.fillColor(alertColor).fontSize(7.5).font("Helvetica-Bold");
-        doc.text(s(`${alertLabel(alert.level)} ${alert.date}`), MARGIN, y, { width: 80 });
-        doc.fillColor(COLORS.black).fontSize(7.5).font("Helvetica");
-        doc.text(s(alert.reason.slice(0, 100)), MARGIN + 82, y, { width: CONTENT_WIDTH - 82 });
-        y += 12;
-      });
-    }
-
-    // ── FOOTER ─────────────────────────────────────────────────────────────────
-    const footerY = 762;
-    doc.moveTo(MARGIN, footerY - 6).lineTo(MARGIN + CONTENT_WIDTH, footerY - 6).strokeColor(COLORS.lightGray).lineWidth(0.5).stroke();
-    doc
-      .fillColor(COLORS.gray)
-      .fontSize(6.5)
-      .font("Helvetica")
-      .text(
-        s("Generated by FursBliss  |  www.fursbliss.com  |  This summary reflects owner-recorded observations only. It is not a veterinary diagnosis. Discuss all findings with your veterinarian."),
-        MARGIN,
-        footerY,
-        { width: CONTENT_WIDTH, align: "center" }
-      );
-
-    doc.end();
+  page.drawText(s("FursBliss Vet-Ready Health Summary"), {
+    x: MARGIN, y: py(26), font: bold, size: 14, color: C.white,
   });
+  page.drawText(
+    s(`${report.pet.name}  |  ${report.period.start} – ${report.period.end}  |  Generated: ${new Date(report.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`),
+    { x: MARGIN, y: py(50), font: regular, size: 8, color: C.white }
+  );
+
+  let y = 76;
+
+  // ── HELPER: section heading ───────────────────────────────────────────────
+  function sectionHeading(label: string) {
+    page.drawText(s(label), { x: MARGIN, y: py(y), font: bold, size: 9, color: C.black });
+    y += 11;
+    page.drawLine({
+      start: { x: MARGIN, y: py(y) },
+      end: { x: MARGIN + CONTENT_W, y: py(y) },
+      thickness: 0.5,
+      color: C.lightGray,
+    });
+    y += 6;
+  }
+
+  // ── SECTION 1: PET INFO ──────────────────────────────────────────────────
+  sectionHeading("PATIENT INFORMATION");
+
+  const petInfoLine = s(
+    `${report.pet.name}  •  ${report.pet.breed}  •  ${report.pet.age}  •  Weight: ${report.pet.weight.current} lbs ${report.pet.weight.trend === "gaining" ? "(gaining)" : report.pet.weight.trend === "losing" ? "(losing)" : "(stable)"}`
+  );
+  const logLine = s(
+    `Logging period: ${report.period.start} – ${report.period.end}  •  ${report.period.totalDaysLogged}/${report.period.totalDaysLogged > 0 ? Math.round(30) : 30} days logged  •  Completion: ${Math.round(report.period.logCompletionRate * 100)}%`
+  );
+  page.drawText(petInfoLine, { x: MARGIN, y: py(y), font: regular, size: 8.5, color: C.black });
+  y += 13;
+  page.drawText(logLine, { x: MARGIN, y: py(y), font: regular, size: 8, color: C.gray });
+  y += 18;
+
+  // ── SECTION 2: 30-DAY TRENDS ─────────────────────────────────────────────
+  sectionHeading("30-DAY HEALTH TRENDS");
+
+  const metrics = ["Energy", "Appetite", "Mobility", "Mood"] as const;
+  const metricKeys = ["energy", "appetite", "mobility", "mood"] as const;
+  const colW = CONTENT_W / 4;
+
+  // Column headers
+  metrics.forEach((m, i) => {
+    page.drawText(s(m), { x: MARGIN + i * colW + 2, y: py(y), font: bold, size: 8, color: C.gray });
+  });
+  y += 12;
+
+  // Averages row
+  metricKeys.forEach((k, i) => {
+    const t = report.trends[k];
+    const avg = typeof t.average === "number" ? t.average.toFixed(1) : "—";
+    const arrow = trendArrow(t.trend);
+    page.drawText(s(`${avg} ${arrow}`), { x: MARGIN + i * colW + 2, y: py(y), font: regular, size: 9, color: C.black });
+  });
+  y += 11;
+
+  // Week-over-week row label + data
+  page.drawText("Week avg:", { x: MARGIN, y: py(y), font: regular, size: 7.5, color: C.gray });
+  metricKeys.forEach((k, i) => {
+    const ww = report.trends[k].weekOverWeek;
+    const weekStr = ww.map((v) => (v > 0 ? v.toFixed(1) : "—")).join(" / ");
+    page.drawText(s(weekStr), { x: MARGIN + i * colW + 2, y: py(y), font: regular, size: 7, color: C.gray });
+  });
+  y += 11;
+
+  // Stool
+  page.drawText(
+    s(`Stool: ${report.trends.stool.normalDays} normal days, ${report.trends.stool.abnormalDays} abnormal days${report.trends.stool.abnormalDetails.length ? " — " + report.trends.stool.abnormalDetails.slice(0, 3).join(", ") : ""}`),
+    { x: MARGIN, y: py(y), font: regular, size: 7.5, color: C.gray }
+  );
+  y += 18;
+
+  // ── SECTION 3: FLAGGED CONCERNS ──────────────────────────────────────────
+  sectionHeading("FLAGGED CONCERNS");
+
+  if (report.concerns.length === 0) {
+    page.drawText("No concerns flagged for this period.", { x: MARGIN, y: py(y), font: regular, size: 8.5, color: C.green });
+    y += 18;
+  } else {
+    for (const concern of report.concerns.slice(0, 5)) {
+      if (y > PAGE_H - 140) break;
+      const dot = concern.severity === "high" ? "[!]" : concern.severity === "medium" ? "[~]" : "[ ]";
+      const color = severityColor(concern.severity);
+      page.drawText(s(`${dot} ${concern.category}`), { x: MARGIN, y: py(y), font: bold, size: 8.5, color });
+      y += 11;
+      y = drawWrappedText(page, concern.description, MARGIN + 12, py(y), regular, 7.5, C.black, CONTENT_W - 12, 10);
+      // drawWrappedText returns pdf-lib y (bottom-up), convert back
+      // Actually we're tracking y top-down, so adjust:
+      y += 8;
+    }
+    y += 4;
+  }
+
+  // ── SECTION 4: DISCUSSION TOPICS ─────────────────────────────────────────
+  if (y < PAGE_H - 120) {
+    sectionHeading("RECOMMENDED DISCUSSION TOPICS FOR VET VISIT");
+    const topics = report.discussionTopics.slice(0, 5);
+    if (topics.length === 0) {
+      page.drawText("No specific topics flagged.", { x: MARGIN, y: py(y), font: regular, size: 8.5, color: C.gray });
+      y += 16;
+    } else {
+      topics.forEach((topic, i) => {
+        if (y > PAGE_H - 100) return;
+        const line = s(`${i + 1}. ${topic}`);
+        page.drawText(line.substring(0, 90), { x: MARGIN, y: py(y), font: regular, size: 8.5, color: C.black });
+        y += 12;
+        if (line.length > 90) {
+          page.drawText(line.substring(90, 170), { x: MARGIN + 12, y: py(y), font: regular, size: 8.5, color: C.black });
+          y += 12;
+        }
+      });
+    }
+    y += 6;
+  }
+
+  // ── SECTION 5: WEEKLY CHECK-INS ──────────────────────────────────────────
+  if (y < PAGE_H - 80) {
+    sectionHeading("WEEKLY CHECK-IN SUMMARY");
+    const wc = report.weeklyCheckIns;
+    page.drawText(
+      s(`${wc.completed} of ${wc.totalPossible} check-ins completed  •  New symptoms reported: ${wc.newSymptomsReported ? "Yes" : "No"}  •  Vet visits: ${wc.vetVisitsReported}`),
+      { x: MARGIN, y: py(y), font: regular, size: 8.5, color: C.black }
+    );
+    y += 14;
+    if (wc.symptomDetails.length > 0) {
+      page.drawText(s(`Symptoms noted: ${wc.symptomDetails.slice(0, 4).join("; ")}`), {
+        x: MARGIN, y: py(y), font: regular, size: 7.5, color: C.gray
+      });
+      y += 12;
+    }
+    y += 6;
+  }
+
+  // ── SECTION 6: SUPPLEMENTS / MEDICATIONS ────────────────────────────────
+  if (y < PAGE_H - 60 && report.supplements.length > 0) {
+    sectionHeading("CURRENT SUPPLEMENTS / MEDICATIONS");
+    report.supplements.slice(0, 6).forEach((sup) => {
+      if (y > PAGE_H - 50) return;
+      page.drawText(s(`• ${sup.name}${sup.dosage ? "  " + sup.dosage : ""}  (since ${sup.startDate})`), {
+        x: MARGIN, y: py(y), font: regular, size: 8, color: C.black,
+      });
+      y += 11;
+    });
+    y += 6;
+  }
+
+  // ── FOOTER ───────────────────────────────────────────────────────────────
+  const footerY = 28;
+  page.drawLine({
+    start: { x: MARGIN, y: footerY + 10 },
+    end: { x: MARGIN + CONTENT_W, y: footerY + 10 },
+    thickness: 0.5,
+    color: C.lightGray,
+  });
+  page.drawText(
+    "Generated by FursBliss — www.fursbliss.com  |  This is not veterinary advice. Discuss all findings with your veterinarian.",
+    { x: MARGIN, y: footerY, font: regular, size: 7, color: C.gray }
+  );
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
 }

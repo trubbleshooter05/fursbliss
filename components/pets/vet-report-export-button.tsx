@@ -19,7 +19,7 @@ type ButtonState = "idle" | "loading" | "preview" | "sharing";
 type VetReportExportButtonProps = {
   petId: string;
   petName: string;
-  daysTracked: number;
+  daysTracked?: number;
   isPremium: boolean;
 };
 

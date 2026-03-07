@@ -522,7 +522,14 @@ export async function GET(
     }
 
     // ── Generate PDF ──────────────────────────────────────────────────────────
-    const pdfBuffer = await generateVetReportPDF(report);
+    let pdfBuffer: Buffer;
+    try {
+      pdfBuffer = await generateVetReportPDF(report);
+    } catch (pdfError) {
+      const msg = pdfError instanceof Error ? pdfError.message : String(pdfError);
+      console.error("PDF generation failed:", msg, pdfError);
+      return new Response(JSON.stringify({ message: "PDF generation failed", detail: msg }), { status: 500 });
+    }
 
     const filename = `${pet.name.replace(/[^a-zA-Z0-9]/g, "-")}-vet-report-${now.toISOString().split("T")[0]}.pdf`;
 
@@ -533,7 +540,8 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("Vet report generation failed:", error);
-    return new Response(JSON.stringify({ message: "Unable to generate report. Please try again." }), { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Vet report generation failed:", msg, error);
+    return new Response(JSON.stringify({ message: "Unable to generate report. Please try again.", detail: msg }), { status: 500 });
   }
 }

@@ -49,6 +49,7 @@ model User {
   quizSubmissions    QuizSubmission[]
   emailSequenceEnrollments EmailSequenceEnrollment[]
   emailLogs          EmailLog[]
+  vetReports         VetReport[]
 }
 
 model Pet {
@@ -80,6 +81,7 @@ model Pet {
   vetShareLinks     VetShareLink[]
   weeklyCheckIns    WeeklyCheckIn[]
   healthAlerts      HealthAlert[]
+  vetReports        VetReport[]
 }
 
 model HealthLog {
@@ -467,5 +469,18 @@ model EmailLog {
 
   @@index([userId, sentAt])
   @@index([userId, emailType, sentAt])
+}
+
+model VetReport {
+  id         String   @id @default(cuid())
+  petId      String
+  userId     String
+  reportData Json
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  pet        Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([petId, createdAt])
 }
 

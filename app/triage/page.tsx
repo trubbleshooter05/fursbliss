@@ -6,12 +6,15 @@ import { ErTriageWorkbench } from "@/components/triage/er-triage-workbench";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Pet ER Triage Assistant | FursBliss",
+  title: "Free Dog ER Triage Tool — Should I Go to the Emergency Vet? | FursBliss",
   description:
-    "Run AI-assisted symptom triage to help decide if your dog needs emergency, same-day, or scheduled vet care.",
-  robots: {
-    index: false,
-    follow: false,
+    "Enter your dog's symptoms and get an instant triage recommendation — emergency, same-day, or monitor at home. Free AI-assisted triage tool.",
+  alternates: { canonical: "https://www.fursbliss.com/triage" },
+  openGraph: {
+    title: "Free Dog ER Triage Tool | FursBliss",
+    description: "Get an instant recommendation: emergency vet, same-day, or home care. Free and no login required.",
+    url: "https://www.fursbliss.com/triage",
+    type: "website",
   },
 };
 

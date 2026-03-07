@@ -40,6 +40,22 @@ RELEVANCE_KEYWORDS = [
     "older dog", "aging", "decline", "slowing down", "stiff", "tired",
 ]
 
+GRIEF_EXCLUSION_KEYWORDS = [
+    "rip", "passed away", "rainbow bridge", "euthanasia", "put down",
+    "goodbye", "miss you", "grieving", "processing a loss", "loss of",
+    "heartbreaking", "funeral", "memorial",
+]
+
+UNACTIONABLE_TOPIC_KEYWORDS = [
+    "book recommendation", "book suggestions", "toy", "toys", "crate",
+    "food bowl", "grooming", "training tips",
+]
+
+ACTION_SIGNAL_KEYWORDS = [
+    "any advice", "advice", "help", "what should i", "should i",
+    "anyone else", "experience with", "worried",
+]
+
 PROFILE_DIR = "./fb_profile"
 OUTPUT_FILE = "fursbliss_fb_auto.csv"
 GROUPS_TO_SCRAPE = 30  # Max number of groups to scrape (to avoid taking forever)
@@ -65,6 +81,29 @@ def is_relevant(text):
         return False
     text_lower = text.lower()
     return any(keyword in text_lower for keyword in RELEVANCE_KEYWORDS)
+
+def is_excluded_or_unactionable(text):
+    """Exclude grief/memorial posts and low-action topics."""
+    if not text:
+        return True
+    text_lower = text.lower()
+
+    if any(keyword in text_lower for keyword in GRIEF_EXCLUSION_KEYWORDS):
+        return True
+
+    if any(keyword in text_lower for keyword in UNACTIONABLE_TOPIC_KEYWORDS):
+        return True
+
+    return False
+
+def is_actionable(text):
+    """Keep posts where a helpful comment is likely welcome."""
+    if not text:
+        return False
+    text_lower = text.lower()
+    has_action_signal = any(keyword in text_lower for keyword in ACTION_SIGNAL_KEYWORDS)
+    has_health_relevance = any(keyword in text_lower for keyword in RELEVANCE_KEYWORDS)
+    return has_action_signal or has_health_relevance
 
 # ── GROUP DISCOVERY ───────────────────────────────────────────────────────────
 
@@ -183,9 +222,19 @@ def extract_posts(page):
                     }
                     
                     if (postUrl && text) {
+                        const articleText = article.innerText ? article.innerText.toLowerCase() : '';
+                        const hasCommentCTA =
+                            articleText.includes('comment') ||
+                            articleText.includes('leave a comment') ||
+                            article.querySelector('[aria-label*="Comment"]') ||
+                            article.querySelector('[aria-label*="comment"]') ||
+                            article.querySelector('div[role="button"][aria-label*="Comment"]') ||
+                            article.querySelector('div[role="button"][aria-label*="comment"]');
+
                         posts.push({
                             url: postUrl,
-                            text: text.substring(0, 400)
+                            text: text.substring(0, 400),
+                            commentable: Boolean(hasCommentCTA)
                         });
                     }
                 });
@@ -236,7 +285,13 @@ def scrape_group(page, group, writer, counter):
                 continue
             seen_urls.add(post['url'])
             
-            if is_relevant(post['text']):
+            if not post.get('commentable'):
+                continue
+
+            if is_excluded_or_unactionable(post['text']):
+                continue
+
+            if is_relevant(post['text']) and is_actionable(post['text']):
                 writer.writerow({
                     "group_name": name,
                     "post_url": post['url'],

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import type { VetReadyReport } from "@/app/api/pets/[petId]/vet-report/route";
+import type { VetReadyReport } from "@/app/api/pets/[id]/vet-report/route";
 import { VetReportLinkViewTracker } from "@/components/vet-report/vet-report-link-view-tracker";
 
 interface Props {

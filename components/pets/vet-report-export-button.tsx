@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { trackCheckoutAndRedirect, trackMetaCustomEvent } from "@/lib/meta-events";
-import type { VetReadyReport } from "@/app/api/pets/[petId]/vet-report/route";
+import type { VetReadyReport } from "@/app/api/pets/[id]/vet-report/route";
 
 type ButtonState = "idle" | "loading" | "preview" | "sharing";
 

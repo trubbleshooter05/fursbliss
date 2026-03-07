@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ petId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -24,7 +24,7 @@ export async function POST(
       return new Response(JSON.stringify({ message: "Premium required." }), { status: 403 });
     }
 
-    const { petId } = await params;
+    const { id: petId } = await params;
 
     // Verify pet ownership
     const pet = await prisma.pet.findFirst({

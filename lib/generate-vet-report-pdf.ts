@@ -1,5 +1,5 @@
 import PDFDocument from "pdfkit";
-import type { VetReadyReport } from "@/app/api/pets/[petId]/vet-report/route";
+import type { VetReadyReport } from "@/app/api/pets/[id]/vet-report/route";
 
 // Sanitize to ASCII-safe text for PDF
 function s(value: string): string {

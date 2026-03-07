@@ -295,7 +295,7 @@ function buildDiscussionTopics(
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ petId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -327,7 +327,7 @@ export async function GET(
       });
     }
 
-    const { petId } = await params;
+    const { id: petId } = await params;
 
     const pet = await prisma.pet.findFirst({
       where: { id: petId, userId: session.user.id },

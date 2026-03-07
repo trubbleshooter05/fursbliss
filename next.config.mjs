@@ -16,6 +16,7 @@ const nextConfig = {
       { source: "/collections/:path*", destination: "/", permanent: true },
       { source: "/pages/:path*",       destination: "/", permanent: true },
       { source: "/cart",               destination: "/", permanent: true },
+      { source: "/services/:path*",    destination: "/", permanent: true },
     ];
   },
   async headers() {

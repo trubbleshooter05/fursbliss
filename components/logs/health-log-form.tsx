@@ -141,7 +141,7 @@ export function HealthLogForm({ pets, defaultPetId }: HealthLogFormProps) {
           name="date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Date</FormLabel>
+              <FormLabel>Date <span className="text-xs text-muted-foreground">(change to log previous days)</span></FormLabel>
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>

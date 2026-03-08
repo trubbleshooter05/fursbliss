@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import Image from "next/image";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isSubscriptionActive } from "@/lib/subscription";
@@ -66,16 +65,20 @@ export default async function PetsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {pet.photoUrl ? (
-                  <Image
+                  <img
                     src={pet.photoUrl}
                     alt={pet.name}
-                    width={700}
-                    height={420}
                     className="h-36 w-full rounded-xl object-cover sm:h-40"
                   />
                 ) : (
                   <div className="flex h-36 items-center justify-center rounded-xl bg-slate-100 text-sm text-muted-foreground sm:h-40">
-                    No photo uploaded
+                    <div className="text-center space-y-2 px-4">
+                      <div className="text-4xl">📷</div>
+                      <p>No photo yet</p>
+                      <Button variant="link" size="sm" asChild className="text-xs">
+                        <Link href={`/pets/${pet.id}/edit`}>Add photo</Link>
+                      </Button>
+                    </div>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-sm">

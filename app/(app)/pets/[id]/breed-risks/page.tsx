@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -32,6 +34,11 @@ export default async function BreedRisksPage({ params }: PageProps) {
   const profile = await prisma.breedProfile.findUnique({
     where: { breed: pet.breed },
   });
+
+  const breedGuideSlug = `${pet.breed
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")}-senior-longevity`;
 
   const riskTimeline = safeParseTimeline(profile?.riskTimeline).sort(
     (a, b) => a.age - b.age
@@ -65,7 +72,18 @@ export default async function BreedRisksPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             {riskTimeline.length === 0 ? (
-              <p>No breed timeline available yet.</p>
+              <div className="space-y-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4">
+                <p>
+                  We do not have a structured breed-risk timeline for {pet.breed} yet.
+                </p>
+                <p className="text-xs">
+                  You can still use daily tracking, vet summaries, and our public breed guide
+                  while we expand database-backed breed profiles.
+                </p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/breeds/${breedGuideSlug}`}>Open {pet.breed} guide</Link>
+                </Button>
+              </div>
             ) : (
               riskTimeline.map((risk) => (
                 <div

@@ -38,8 +38,8 @@ export async function POST() {
       date.setDate(date.getDate() - i);
       
       let energyLevel = 8;
-      let symptoms = [];
-      let notes = null;
+      let symptoms: string[] = [];
+      let notes: string | null = null;
       let weight = 42;
       
       // Week 1: Normal, high energy

@@ -95,9 +95,7 @@ export async function POST() {
         mood,
         symptoms: symptoms.length > 0 ? symptoms.join(', ') : null,
         notes,
-        stoolQuality: 'normal',
         createdAt: date,
-        updatedAt: date
       });
     }
 
@@ -123,7 +121,8 @@ export async function POST() {
     });
 
   } catch (error) {
-    console.error('Seed error:', error);
-    return NextResponse.json({ error: 'Failed to seed data' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Seed error:', msg);
+    return NextResponse.json({ error: 'Failed to seed data', detail: msg }, { status: 500 });
   }
 }

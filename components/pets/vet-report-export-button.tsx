@@ -328,9 +328,10 @@ export function VetReportExportButton({
 
   return (
     <>
-      {/* Main trigger button */}
+      {/* Main trigger button — primary style, most prominent on card */}
       <Button
-        variant="outline"
+        className="w-full hover:scale-[1.02] transition-all duration-300 font-semibold"
+        size="lg"
         onClick={() => void handleClick()}
         disabled={buttonState === "loading"}
       >

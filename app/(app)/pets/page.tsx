@@ -89,12 +89,14 @@ export default async function PetsPage() {
                       : "No logs yet"}
                   </span>
                 </div>
-                <Button variant="outline" className="w-full hover:scale-[1.02] transition-all duration-300" asChild>
-                  <Link href={`/pets/${pet.id}`}>View Details</Link>
-                </Button>
-                <Button variant="outline" className="w-full hover:scale-[1.02] transition-all duration-300" asChild>
-                  <Link href={`/pets/${pet.id}/vaccines`}>Vaccine Hub</Link>
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="w-full hover:scale-[1.02] transition-all duration-300" asChild>
+                    <Link href={`/pets/${pet.id}`}>View Details</Link>
+                  </Button>
+                  <Button variant="outline" className="w-full hover:scale-[1.02] transition-all duration-300" asChild>
+                    <Link href={`/pets/${pet.id}/vaccines`}>Vaccine Hub</Link>
+                  </Button>
+                </div>
                 <VetReportExportButton
                   petId={pet.id}
                   petName={pet.name}

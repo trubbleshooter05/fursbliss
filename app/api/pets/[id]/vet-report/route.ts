@@ -34,6 +34,7 @@ export interface VetReadyReport {
   };
   supplements: Array<{ name: string; dosage: string; startDate: string }>;
   alerts: Array<{ date: string; level: "red" | "yellow" | "green"; reason: string }>;
+  photos: Array<{ id: string; category: string; bodyArea: string | null; takenAt: string; imageUrl: string; notes: string | null }>;
 }
 
 interface MetricTrend {
@@ -342,7 +343,7 @@ export async function GET(
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     // Fetch all data in parallel
-    const [healthLogs, gutLogs, weeklyCheckIns, medications, supplements, alertHistory] =
+    const [healthLogs, gutLogs, weeklyCheckIns, medications, supplements, alertHistory, petPhotos] =
       await Promise.all([
         prisma.healthLog.findMany({
           where: { petId, date: { gte: thirtyDaysAgo } },
@@ -384,6 +385,12 @@ export async function GET(
           orderBy: { createdAt: "desc" },
           take: 10,
           select: { createdAt: true, alertLevel: true, alertReason: true },
+        }),
+        prisma.petPhoto.findMany({
+          where: { petId, takenAt: { gte: thirtyDaysAgo } },
+          orderBy: { takenAt: "desc" },
+          take: 20,
+          select: { id: true, category: true, bodyArea: true, takenAt: true, imageUrl: true, notes: true },
         }),
       ]);
 
@@ -510,6 +517,14 @@ export async function GET(
         date: a.createdAt.toLocaleDateString("en-US"),
         level: a.alertLevel as "red" | "yellow" | "green",
         reason: a.alertReason,
+      })),
+      photos: petPhotos.map((p) => ({
+        id: p.id,
+        category: p.category,
+        bodyArea: p.bodyArea,
+        takenAt: p.takenAt.toISOString(),
+        imageUrl: p.imageUrl,
+        notes: p.notes,
       })),
     };
 

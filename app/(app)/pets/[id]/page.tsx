@@ -21,6 +21,8 @@ import { MedicationForm } from "@/components/pets/medication-form";
 import { DoseScheduleForm } from "@/components/pets/dose-schedule-form";
 import { VetReportExportButton } from "@/components/pets/vet-report-export-button";
 import { HealthLogHistory } from "@/components/pets/health-log-history";
+import { PhotoTimeline } from "@/components/pets/photo-timeline";
+import { isSubscriptionActive } from "@/lib/subscription";
 
 type PetDetailPageProps = {
   params: { id: string };
@@ -33,7 +35,12 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
   if (!userId) {
     return null;
   }
-  const isPremiumUser = session.user.subscriptionStatus === "premium";
+
+  const userRecord = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
+  });
+  const isPremiumUser = isSubscriptionActive(userRecord ?? {});
 
   const pet = await prisma.pet.findFirst({
     where: { id: params.id, userId },
@@ -49,6 +56,22 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
   if (!pet) {
     notFound();
   }
+
+  // Fetch PetPhoto timeline data
+  const [petPhotosRaw, petPhotoTotal] = await Promise.all([
+    prisma.petPhoto.findMany({
+      where: { petId: params.id, userId },
+      orderBy: { takenAt: "desc" },
+      take: isPremiumUser ? 200 : 3,
+      select: { id: true, imageUrl: true, category: true, bodyArea: true, notes: true, takenAt: true, createdAt: true },
+    }),
+    prisma.petPhoto.count({ where: { petId: params.id, userId } }),
+  ]);
+  const petPhotos = petPhotosRaw.map((p) => ({
+    ...p,
+    takenAt: p.takenAt.toISOString(),
+    createdAt: p.createdAt.toISOString(),
+  }));
 
   const symptoms = Array.isArray(pet.symptoms)
     ? pet.symptoms.filter((symptom): symptom is string => typeof symptom === "string")
@@ -254,25 +277,16 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Photo progress</CardTitle>
+          <CardTitle>Photo Timeline</CardTitle>
         </CardHeader>
         <CardContent>
-          {pet.photoLogs.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-muted-foreground">
-              Add photos in daily logs to track progress.
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-3">
-              {pet.photoLogs.map((photo) => (
-                <img
-                  key={photo.id}
-                  src={photo.imageUrl}
-                  alt="Progress"
-                  className="h-40 w-full rounded-xl object-cover"
-                />
-              ))}
-            </div>
-          )}
+          <PhotoTimeline
+            petId={pet.id}
+            petName={pet.name}
+            isPremium={isPremiumUser}
+            initialPhotos={petPhotos}
+            initialTotal={petPhotoTotal}
+          />
         </CardContent>
       </Card>
     </div>

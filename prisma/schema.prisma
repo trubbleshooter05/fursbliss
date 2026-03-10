@@ -50,6 +50,7 @@ model User {
   emailSequenceEnrollments EmailSequenceEnrollment[]
   emailLogs          EmailLog[]
   vetReports         VetReport[]
+  petPhotos          PetPhoto[]
 }
 
 model Pet {
@@ -82,6 +83,7 @@ model Pet {
   weeklyCheckIns    WeeklyCheckIn[]
   healthAlerts      HealthAlert[]
   vetReports        VetReport[]
+  petPhotos         PetPhoto[]
 }
 
 model HealthLog {
@@ -484,3 +486,19 @@ model VetReport {
   @@index([petId, createdAt])
 }
 
+model PetPhoto {
+  id        String   @id @default(cuid())
+  petId     String
+  userId    String
+  imageUrl  String
+  category  String   // "lump", "skin", "eye", "teeth", "wound", "mobility", "other"
+  bodyArea  String?  // "left_hip", "right_ear", "abdomen", "mouth", etc.
+  notes     String?
+  takenAt   DateTime
+  createdAt DateTime @default(now())
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([petId, category, takenAt])
+  @@index([petId, takenAt])
+}

@@ -51,3 +51,7 @@ dev.db
 *.db
 *.sqlite
 *.sqlite3
+
+# browser profile used by scraper scripts (binary cache files, not source)
+scripts/fb_profile/
+scripts/__pycache__/

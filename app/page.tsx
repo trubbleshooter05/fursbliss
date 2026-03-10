@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
+import { SocialCtaBanner } from "@/components/site/social-cta-banner";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { CountUp } from "@/components/ui/count-up";
 import { HeroDashboardMock } from "@/components/hero/hero-dashboard-mock";
@@ -187,6 +188,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SocialCtaBanner />
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-20 px-4 py-8 pb-28 sm:px-6 md:gap-24 md:py-16 md:pb-24">
         <script

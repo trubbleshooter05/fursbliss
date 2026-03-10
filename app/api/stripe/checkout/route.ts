@@ -117,6 +117,13 @@ export async function GET(request: Request) {
     mode: "subscription",
     customer: customerId ?? undefined,
     line_items: [{ price: priceId, quantity: 1 }],
+    subscription_data: {
+      trial_period_days: 7,
+      trial_settings: {
+        end_behavior: { missing_payment_method: "cancel" },
+      },
+    },
+    payment_method_collection: "always",
     metadata: { plan: selectedPlan, source },
     success_url: `${appUrl()}${user ? successPath : guestSuccessPath}`,
     cancel_url: `${appUrl()}${cancelTo}`,

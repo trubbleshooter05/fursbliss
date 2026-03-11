@@ -14,14 +14,14 @@ type EligibilityCheckerProps = {
 };
 
 export function EligibilityChecker({
-  defaultAge = 10,
-  defaultWeight = 14,
+  defaultAge,
+  defaultWeight,
   defaultSpecies = "dog",
-  defaultGeneralHealth = "good",
+  defaultGeneralHealth = "",
   petName,
 }: EligibilityCheckerProps) {
-  const [age, setAge] = useState(String(defaultAge));
-  const [weight, setWeight] = useState(String(defaultWeight));
+  const [age, setAge] = useState(defaultAge != null ? String(defaultAge) : "");
+  const [weight, setWeight] = useState(defaultWeight != null ? String(defaultWeight) : "");
   const [species, setSpecies] = useState(defaultSpecies);
   const [generalHealth, setGeneralHealth] = useState(defaultGeneralHealth);
   const [checked, setChecked] = useState(false);
@@ -85,20 +85,25 @@ export function EligibilityChecker({
           <p className="font-semibold text-slate-900">
             Longevity eligibility check{petName ? ` for ${petName}` : ""}
           </p>
-          <div className="space-y-2 text-muted-foreground rounded-xl border border-slate-200 bg-white p-3">
-            <p className="font-medium text-slate-900">LOY-002 (Loyal)</p>
-            <p>
-              {result.loyAgeOk ? "✅" : "⬜"} Age: {result.numericAge || 0} years
-              (requires 10+)
+
+          <div className="space-y-2 text-muted-foreground rounded-xl border border-emerald-200 bg-white p-3">
+            <p className="font-medium text-slate-900">LOY-002 (Loyal) — FDA-approved lifespan extension</p>
+            <p className="text-xs text-muted-foreground">
+              For senior dogs. Expected to be broadly available via veterinary prescription.
             </p>
-            <p>
-              {result.loyWeightOk ? "✅" : "⬜"} Weight: {result.numericWeight || 0} lbs
-              (requires 14+ lbs)
-            </p>
-            <p>
-              {result.isDog ? "✅" : "⬜"} Species: {species || "unknown"} (requires
-              dog)
-            </p>
+            <div className="mt-2 space-y-1">
+              <p>
+                {result.loyAgeOk ? "✅" : "⬜"} Age: {result.numericAge || "—"} years
+                (requires 10+)
+              </p>
+              <p>
+                {result.loyWeightOk ? "✅" : "⬜"} Weight: {result.numericWeight || "—"} lbs
+                (requires 14+ lbs)
+              </p>
+              <p>
+                {result.isDog ? "✅" : "⬜"} Species: {species || "unknown"} (dogs only)
+              </p>
+            </div>
             <Badge
               className={
                 result.loyEligible
@@ -111,24 +116,29 @@ export function EligibilityChecker({
                 : "Not currently eligible for LOY-002"}
             </Badge>
           </div>
+
           <div className="space-y-2 text-muted-foreground rounded-xl border border-slate-200 bg-white p-3">
-            <p className="font-medium text-slate-900">TRIAD Rapamycin (research trial)</p>
-            <p>
-              {result.triadAgeOk ? "✅" : "⬜"} Age: {result.numericAge || 0} years
-              (requires 7+)
+            <p className="font-medium text-slate-900">TRIAD Rapamycin — separate research trial</p>
+            <p className="text-xs text-muted-foreground">
+              A different study from LOY-002 with stricter weight requirements. Still enrolling across 20 trial sites.
             </p>
-            <p>
-              {result.triadWeightOk ? "✅" : "⬜"} Weight: {result.numericWeight || 0} lbs
-              (requires 44+ lbs)
-            </p>
-            <p>
-              {result.goodGeneralHealth ? "✅" : "⬜"} General health: {generalHealth || "unknown"}
-              {" "}(recommended: good/stable)
-            </p>
-            <p>
-              {result.isDog ? "✅" : "⬜"} Species: {species || "unknown"} (requires
-              dog)
-            </p>
+            <div className="mt-2 space-y-1">
+              <p>
+                {result.triadAgeOk ? "✅" : "⬜"} Age: {result.numericAge || "—"} years
+                (requires 7+)
+              </p>
+              <p>
+                {result.triadWeightOk ? "✅" : "⬜"} Weight: {result.numericWeight || "—"} lbs
+                (requires 44+ lbs — this is specific to the TRIAD trial, not LOY-002)
+              </p>
+              <p>
+                {result.goodGeneralHealth ? "✅" : "⬜"} General health: {generalHealth || "not entered"}
+                {" "}(recommended: good/stable)
+              </p>
+              <p>
+                {result.isDog ? "✅" : "⬜"} Species: {species || "unknown"} (dogs only)
+              </p>
+            </div>
             <Badge
               className={
                 result.triadEligible
@@ -141,9 +151,10 @@ export function EligibilityChecker({
                 : "May not meet TRIAD screening criteria"}
             </Badge>
           </div>
+
           <p className="text-xs text-muted-foreground">
-            Eligibility checks are informational only. Final trial screening and treatment decisions
-            require veterinary and study-team review.
+            Eligibility checks are informational only. LOY-002 and TRIAD are two separate programs with different
+            requirements. Final screening and treatment decisions require veterinary review.
           </p>
         </div>
       )}

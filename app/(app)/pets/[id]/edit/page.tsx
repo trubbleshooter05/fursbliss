@@ -42,6 +42,7 @@ export default async function EditPetPage({ params }: EditPetPageProps) {
             petId={pet.id}
             defaultValues={{
               name: pet.name,
+              species: pet.species ?? "dog",
               breed: pet.breed,
               age: pet.age,
               weight: pet.weight,

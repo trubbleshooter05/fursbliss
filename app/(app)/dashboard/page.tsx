@@ -305,6 +305,67 @@ export default async function DashboardPage() {
         </div>
       </AnimateIn>
 
+      {/* Welcome card for brand-new users (no pets yet) */}
+      {pets.length === 0 && (
+        <AnimateIn delay={0.05}>
+          <Card className="rounded-2xl border-primary/20 bg-primary/5">
+            <CardContent className="p-6 space-y-4">
+              <h2 className="font-display text-xl font-semibold text-foreground">
+                Welcome to FursBliss
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                FursBliss helps you track your pet&apos;s health daily so you can
+                <strong> catch small changes before they become big problems</strong>.
+                Here&apos;s what you can do:
+              </p>
+              <ul className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-primary">1.</span>
+                  <span><strong>Add your pet</strong> — name, breed, age, weight, and a photo</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-primary">2.</span>
+                  <span><strong>Log daily health</strong> — energy, appetite, mood, symptoms in under 30 seconds</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-primary">3.</span>
+                  <span><strong>See trends &amp; alerts</strong> — we flag declining energy, new symptoms, weight shifts</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 text-primary">4.</span>
+                  <span><strong>Share with your vet</strong> — generate a one-page summary for your next visit</span>
+                </li>
+              </ul>
+              <Button asChild>
+                <Link href="/pets/new">Add Your Pet to Get Started</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </AnimateIn>
+      )}
+
+      {/* Purpose reminder for users who have pets but no logs */}
+      {pets.length > 0 && allLogs.length === 0 && (
+        <AnimateIn delay={0.05}>
+          <Card className="rounded-2xl border-primary/20 bg-primary/5">
+            <CardContent className="flex flex-col gap-3 p-6 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">
+                  Start tracking {pets[0].name}&apos;s health
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Log daily energy, appetite, and mood to unlock trends, AI insights, and vet-ready reports.
+                  Takes under 30 seconds.
+                </p>
+              </div>
+              <Button asChild className="shrink-0">
+                <Link href={`/logs/new?petId=${pets[0].id}`}>Log First Health Check</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </AnimateIn>
+      )}
+
       {/* PROMINENT HEALTH ALERT CARD - Shows at top of dashboard */}
       {healthAlertData ? (
         <AnimateIn delay={0.05}>

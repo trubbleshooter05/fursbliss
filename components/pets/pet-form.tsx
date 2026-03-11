@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState, useRef, useCallback } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -15,9 +16,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoUploader } from "@/components/pets/photo-uploader";
 import { trackMetaCustomEvent } from "@/lib/meta-events";
+import { BREED_NAMES } from "@/lib/breed-data";
 
 const symptomsOptions = [
   "Low energy",
@@ -32,6 +41,114 @@ const symptomsOptions = [
   "Bad breath",
   "Restlessness",
 ];
+
+const CAT_BREEDS_AND_TYPES = [
+  "Domestic Shorthair",
+  "Domestic Longhair",
+  "Domestic Medium Hair",
+  "Tabby",
+  "Tuxedo",
+  "Calico",
+  "Tortoiseshell",
+  "Orange Tabby",
+  "Black Cat",
+  "White Cat",
+  "Gray Cat",
+  "Siamese",
+  "Maine Coon",
+  "Persian",
+  "Ragdoll",
+  "Bengal",
+  "British Shorthair",
+  "Abyssinian",
+  "Sphynx",
+  "Scottish Fold",
+  "Russian Blue",
+  "Birman",
+  "Burmese",
+  "Himalayan",
+  "Norwegian Forest Cat",
+  "Devon Rex",
+  "Cornish Rex",
+  "Exotic Shorthair",
+  "Manx",
+  "Savannah",
+  "Turkish Angora",
+  "Bombay",
+  "Tonkinese",
+  "Chartreux",
+  "Snowshoe",
+  "Mixed / Unknown",
+];
+
+function BreedAutocomplete({
+  value,
+  onChange,
+  species,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  species: string;
+}) {
+  const [query, setQuery] = useState(value);
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const breedList = species === "cat" ? CAT_BREEDS_AND_TYPES : BREED_NAMES;
+  const placeholder = species === "cat" ? "e.g. Tuxedo, Tabby, Siamese" : "e.g. Golden Retriever, Pomchi";
+
+  const filtered = useCallback(() => {
+    if (!query.trim()) return breedList.slice(0, 12);
+    const q = query.toLowerCase();
+    return breedList.filter((b) => b.toLowerCase().includes(q)).slice(0, 12);
+  }, [query, breedList]);
+
+  const suggestions = filtered();
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <Input
+        placeholder={placeholder}
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          onChange(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => {
+          setTimeout(() => setOpen(false), 150);
+        }}
+        autoComplete="off"
+      />
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+          {suggestions.map((breed) => (
+            <li key={breed}>
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setQuery(breed);
+                  onChange(breed);
+                  setOpen(false);
+                }}
+              >
+                {breed}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {species === "cat" && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Color, pattern, or breed all work — whatever best describes your cat
+        </p>
+      )}
+    </div>
+  );
+}
 
 function sanitizeWholeNumberInput(value: string) {
   return value.replace(/[^\d]/g, "");
@@ -56,6 +173,7 @@ function stripLeadingZeros(value: string) {
 
 const petSchema = z.object({
   name: z.string().min(1, "Pet name is required."),
+  species: z.string().min(1).default("dog"),
   breed: z.string().min(1, "Breed is required."),
   age: z.coerce.number().int().min(0, "Age must be positive."),
   weight: z.coerce.number().min(0, "Weight must be positive."),
@@ -83,13 +201,16 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
     resolver: zodResolver(petSchema),
     defaultValues: {
       name: defaultValues?.name ?? "",
+      species: defaultValues?.species ?? "dog",
       breed: defaultValues?.breed ?? "",
-      age: defaultValues?.age ?? 0,
-      weight: defaultValues?.weight ?? 0,
+      age: defaultValues?.age ?? ("" as unknown as number),
+      weight: defaultValues?.weight ?? ("" as unknown as number),
       symptoms: defaultValues?.symptoms ?? [],
       photoUrl: defaultValues?.photoUrl ?? "",
     },
   });
+
+  const currentSpecies = form.watch("species") ?? "dog";
 
   const onSubmit = async (values: PetFormValues) => {
     const response = await fetch(
@@ -165,7 +286,7 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Luna" {...field} />
+                  <Input placeholder="Your pet's name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -173,18 +294,50 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
           />
           <FormField
             control={form.control}
-            name="breed"
+            name="species"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Breed</FormLabel>
-                <FormControl>
-                  <Input placeholder="Golden Retriever" {...field} />
-                </FormControl>
+                <FormLabel>Type</FormLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={(v) => {
+                    field.onChange(v);
+                    form.setValue("breed", "");
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Dog or Cat" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="dog">Dog</SelectItem>
+                    <SelectItem value="cat">Cat</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="breed"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{currentSpecies === "cat" ? "Breed, color, or pattern" : "Breed"}</FormLabel>
+              <FormControl>
+                <BreedAutocomplete
+                  value={field.value}
+                  onChange={field.onChange}
+                  species={currentSpecies}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="grid gap-4 md:grid-cols-2">
           <FormField

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 const petSchema = z.object({
   name: z.string().min(1),
+  species: z.string().min(1).default("dog"),
   breed: z.string().min(1),
   age: z.number().int().min(0),
   weight: z.number().min(0),
@@ -40,6 +41,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       where: { id: params.id },
       data: {
         name: parsed.data.name,
+        species: parsed.data.species,
         breed: parsed.data.breed,
         age: parsed.data.age,
         weight: parsed.data.weight,

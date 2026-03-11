@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { WalksLeftCalculator } from "@/components/walks-left/walks-left-calculator";
-import { OwnerStoryVideo } from "@/components/video/owner-story-video";
+
 
 type WalksLeftPageProps = {
   searchParams?: {
@@ -40,15 +40,16 @@ export default function WalksLeftPage({ searchParams }: WalksLeftPageProps) {
     <div className="min-h-screen bg-[#12091f]">
       <SiteHeader />
       
-      {/* Owner Story Video - Above Calculator */}
+      {/* Owner Story — text-only testimonial, no video */}
       <div className="px-4 pt-8 pb-6">
-        <OwnerStoryVideo
-          videoUrl="/videos/luna-walks-left.mp4"
-          thumbnail="/videos/luna-walks-left-thumbnail.jpg"
-          ownerName="Greg"
-          dogName="Luna"
-          caption="Luna is only 2, but I just found out she has exactly 6,434 walks left. That's why I'm tracking her health now — so I can catch the tiny red flags years before they become big problems."
-        />
+        <div className="mx-auto max-w-md rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+          <p className="text-sm text-white/80 leading-relaxed italic">
+            &ldquo;My dog is only 2, but I just found out she has exactly 6,434 walks left.
+            That&apos;s why I&apos;m tracking her health now — so I can catch the tiny red
+            flags years before they become big problems.&rdquo;
+          </p>
+          <p className="mt-3 text-xs text-white/50">— FursBliss user</p>
+        </div>
       </div>
 
       <WalksLeftCalculator

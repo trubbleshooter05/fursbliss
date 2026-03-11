@@ -133,6 +133,13 @@ const SMALL_BREEDS = [
   "Russian Toy",
   "Toy Poodle",
   "Toy Maltipoo",
+  "Pomchi",
+  "Chorkie",
+  "Shih-Poo",
+  "Chi-Poo",
+  "Peekapoo",
+  "Schnoodle (Mini)",
+  "Havapoo",
   "Mixed Breed (Small)",
 ];
 

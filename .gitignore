@@ -55,3 +55,4 @@ dev.db
 # browser profile used by scraper scripts (binary cache files, not source)
 scripts/fb_profile/
 scripts/__pycache__/
+*.webm

@@ -11,8 +11,12 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { trackCheckoutAndRedirect, trackMetaCustomEvent } from "@/lib/meta-events";
 
 const comparisonRows = [
+  { feature: "Number of pets", free: "1 pet", premium: "Unlimited pets" },
   { feature: "Daily health tracking dashboard", free: "Basic view", premium: "Full dashboard + history" },
+  { feature: "Health history", free: "Last 30 days only", premium: "Full history forever" },
   { feature: "AI-powered health trend alerts", free: "Not included", premium: "Included" },
+  { feature: "Red/Yellow/Green health flags", free: "Not included", premium: "Included" },
+  { feature: "Pattern detection alerts", free: "Preview only", premium: "Full details" },
   {
     feature: "Personalized supplement recommendations",
     free: "Basic suggestions",
@@ -20,6 +24,8 @@ const comparisonRows = [
   },
   { feature: "LOY-002 readiness action plan", free: "Eligibility snapshot", premium: "Step-by-step action plan" },
   { feature: "AI Vet-Ready Summary Report (shareable link)", free: "Preview only", premium: "Full report + shareable link" },
+  { feature: "Photo Symptom Timeline", free: "3 photos per pet", premium: "Unlimited photos" },
+  { feature: "Next vet check countdown", free: "Not included", premium: "Included" },
   {
     feature: "Breed-specific longevity insights",
     free: "Lifespan range",

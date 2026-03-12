@@ -26,9 +26,12 @@ import { isSubscriptionActive } from "@/lib/subscription";
 
 type PetDetailPageProps = {
   params: { id: string };
+  searchParams?: { compare?: string };
 };
 
-export default async function PetDetailPage({ params }: PetDetailPageProps) {
+export default async function PetDetailPage({ params, searchParams }: PetDetailPageProps) {
+  const { id } = params;
+  const compare = searchParams?.compare;
   const session = await auth();
   const userId = session?.user?.id;
 
@@ -43,7 +46,7 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
   const isPremiumUser = isSubscriptionActive(userRecord ?? {});
 
   const pet = await prisma.pet.findFirst({
-    where: { id: params.id, userId },
+    where: { id, userId },
     include: {
       healthLogs: { orderBy: { date: "desc" }, take: 50 },
       weightLogs: { orderBy: { date: "desc" } },
@@ -60,12 +63,12 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
   // Fetch PetPhoto timeline data
   const [petPhotosRaw, petPhotoTotal] = await Promise.all([
     prisma.petPhoto.findMany({
-      where: { petId: params.id, userId },
+      where: { petId: id, userId },
       orderBy: { takenAt: "desc" },
       take: isPremiumUser ? 200 : 3,
       select: { id: true, imageUrl: true, category: true, bodyArea: true, notes: true, takenAt: true, createdAt: true },
     }),
-    prisma.petPhoto.count({ where: { petId: params.id, userId } }),
+    prisma.petPhoto.count({ where: { petId: id, userId } }),
   ]);
   const petPhotos = petPhotosRaw.map((p) => ({
     ...p,
@@ -286,6 +289,7 @@ export default async function PetDetailPage({ params }: PetDetailPageProps) {
             isPremium={isPremiumUser}
             initialPhotos={petPhotos}
             initialTotal={petPhotoTotal}
+            openCompareIds={compare}
           />
         </CardContent>
       </Card>

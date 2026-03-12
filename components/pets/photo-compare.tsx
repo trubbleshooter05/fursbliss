@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { X } from "lucide-react";
+import { X, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trackMetaCustomEvent } from "@/lib/meta-events";
 import type { PetPhotoRecord } from "@/components/pets/photo-timeline";
@@ -23,6 +24,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function PhotoCompare({ photos, onClose, petId }: Props) {
+  const [shareState, setShareState] = useState<"idle" | "success" | "show-url">("idle");
+
   // Show max 4, sorted oldest → newest for progression view
   const sorted = [...photos]
     .sort((a, b) => new Date(a.takenAt).getTime() - new Date(b.takenAt).getTime())
@@ -31,20 +34,58 @@ export function PhotoCompare({ photos, onClose, petId }: Props) {
   const category = sorted[0]?.category ?? "";
   const bodyArea = sorted[0]?.bodyArea ?? "";
 
+  const baseUrl =
+    (typeof window !== "undefined" && window.location?.origin) ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://www.fursbliss.com";
+  const shareUrl = `${baseUrl}/pets/${petId}?compare=${sorted.map((p) => p.id).join(",")}`;
+
   async function handleShareWithVet() {
     void trackMetaCustomEvent("PhotoTimeline_ShareVet", {
       petId,
       category,
       photoCount: sorted.length,
     });
-    // Copy page URL with photo IDs as share intent
-    const ids = sorted.map((p) => p.id).join(",");
-    const url = `${window.location.origin}/pets/${petId}?compare=${ids}`;
+
+    // 1. Web Share API (best on mobile — opens native share sheet)
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `${CATEGORY_LABELS[category] ?? category} progression`,
+          text: `Photo comparison for vet review`,
+          url: shareUrl,
+        });
+        setShareState("success");
+        return;
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return; // user cancelled
+        // fall through to clipboard
+      }
+    }
+
+    // 2. Clipboard API
     try {
-      await navigator.clipboard.writeText(url);
-      alert("Comparison link copied to clipboard! Share it with your vet.");
+      await navigator.clipboard.writeText(shareUrl);
+      setShareState("success");
+      return;
     } catch {
-      prompt("Copy this link to share with your vet:", url);
+      // fall through to manual copy
+    }
+
+    // 3. Show URL for manual copy (works when clipboard fails, e.g. iOS Safari)
+    setShareState("show-url");
+  }
+
+  async function copyFromInput() {
+    const input = document.getElementById("share-url-input") as HTMLInputElement | null;
+    if (!input) return;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    try {
+      await navigator.clipboard.writeText(input.value);
+      setShareState("success");
+    } catch {
+      // keep show-url so they can manually copy
     }
   }
 
@@ -112,9 +153,35 @@ export function PhotoCompare({ photos, onClose, petId }: Props) {
         )}
 
         {/* Footer */}
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button onClick={() => void handleShareWithVet()}>Share with Vet</Button>
+        <div className="mt-5 flex flex-col gap-3">
+          {shareState === "success" && (
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              <Check className="h-4 w-4 shrink-0" />
+              Link copied! Share it with your vet via text or email.
+            </div>
+          )}
+          {shareState === "show-url" && (
+            <div className="flex gap-2">
+              <input
+                id="share-url-input"
+                readOnly
+                value={shareUrl}
+                className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700"
+              />
+              <Button size="sm" variant="outline" onClick={() => void copyFromInput()}>
+                <Copy className="mr-1 h-3.5 w-3.5" />
+                Copy
+              </Button>
+            </div>
+          )}
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button variant="outline" onClick={onClose}>Close</Button>
+            {shareState === "idle" || shareState === "show-url" ? (
+              <Button onClick={() => void handleShareWithVet()}>Share with Vet</Button>
+            ) : (
+              <Button onClick={() => void handleShareWithVet()}>Share Again</Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

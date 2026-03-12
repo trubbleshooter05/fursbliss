@@ -25,6 +25,8 @@ type Props = {
   isPremium: boolean;
   initialPhotos: PetPhotoRecord[];
   initialTotal: number;
+  /** Optional: comma-separated photo IDs to auto-open Compare modal (from share link) */
+  openCompareIds?: string;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -49,13 +51,22 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const FREE_LIMIT = 3;
 
-export function PhotoTimeline({ petId, petName, isPremium, initialPhotos, initialTotal }: Props) {
+export function PhotoTimeline({ petId, petName, isPremium, initialPhotos, initialTotal, openCompareIds }: Props) {
   const [photos, setPhotos] = useState<PetPhotoRecord[]>(initialPhotos);
   const [total, setTotal] = useState(initialTotal);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [lightboxPhoto, setLightboxPhoto] = useState<PetPhotoRecord | null>(null);
   const [comparePhotos, setComparePhotos] = useState<PetPhotoRecord[] | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Auto-open Compare when arriving via share link (?compare=id1,id2)
+  useEffect(() => {
+    if (!openCompareIds?.trim()) return;
+    const ids = openCompareIds.split(",").map((s) => s.trim()).filter(Boolean);
+    if (ids.length < 2) return;
+    const toShow = initialPhotos.filter((p) => ids.includes(p.id));
+    if (toShow.length >= 2) setComparePhotos(toShow);
+  }, [openCompareIds, initialPhotos]);
 
   const fetchPhotos = useCallback(async () => {
     const params = new URLSearchParams();

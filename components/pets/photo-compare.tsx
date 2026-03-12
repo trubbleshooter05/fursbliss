@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Copy, Check } from "lucide-react";
+import { X, Copy, Check, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trackMetaCustomEvent } from "@/lib/meta-events";
 import type { PetPhotoRecord } from "@/components/pets/photo-timeline";
@@ -121,13 +121,24 @@ export function PhotoCompare({ photos, onClose, petId }: Props) {
         {/* Photo grid — horizontal scroll on mobile */}
         <div className="flex gap-4 overflow-x-auto pb-2">
           {sorted.map((photo, i) => (
-            <div key={photo.id} className="flex-shrink-0 space-y-2" style={{ width: "calc(25% - 12px)", minWidth: 160 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.imageUrl}
-                alt={`Photo ${i + 1}`}
-                className="aspect-square w-full rounded-xl object-cover"
-              />
+            <div key={photo.id} className="flex flex-shrink-0 flex-col space-y-2" style={{ width: "calc(25% - 12px)", minWidth: 160 }}>
+              <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-100">
+                <div className="absolute inset-0 flex items-center justify-center text-slate-400" aria-hidden>
+                  <ImageOff className="h-10 w-10" />
+                </div>
+                {photo.imageUrl && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={photo.imageUrl}
+                    alt={`Photo ${i + 1}`}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    loading="eager"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                )}
+              </div>
               <div className="text-center">
                 <p className="text-xs font-medium text-slate-800">
                   {format(parseISO(photo.takenAt), "MMM d, yyyy")}

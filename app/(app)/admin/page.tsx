@@ -23,6 +23,41 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
+  // Meta ad retention: signups since Feb 28 (proxy for Meta ads)
+  const metaSince = new Date("2026-02-28");
+  const metaCohort = await prisma.user.findMany({
+    where: { createdAt: { gte: metaSince } },
+    select: {
+      id: true,
+      email: true,
+      createdAt: true,
+      pets: {
+        select: {
+          _count: {
+            select: {
+              healthLogs: true,
+              weeklyCheckIns: true,
+              gutHealthLogs: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const getHealthCount = (u: (typeof metaCohort)[0]) =>
+    u.pets.reduce(
+      (s, p) =>
+        s +
+        p._count.healthLogs +
+        p._count.weeklyCheckIns +
+        p._count.gutHealthLogs,
+      0
+    );
+  const logged2Plus = metaCohort.filter((u) => getHealthCount(u) > 1).length;
+  const logged1 = metaCohort.filter((u) => getHealthCount(u) === 1).length;
+  const neverLogged = metaCohort.filter((u) => getHealthCount(u) === 0).length;
+
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
@@ -57,6 +92,25 @@ export default async function AdminPage() {
           </Button>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Meta ad retention (since Feb 28)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Of {metaCohort.length} signups: <strong>{logged2Plus}</strong> logged health data 2+ times,{" "}
+            <strong>{logged1}</strong> logged once, <strong>{neverLogged}</strong> never logged.
+          </p>
+          <p className="mt-2 text-sm font-medium">
+            {metaCohort.length === 0
+              ? "No signups in this period."
+              : logged2Plus >= metaCohort.length * 0.7
+                ? "→ Distribution problem: find more of these people."
+                : "→ Product/retention problem: deliver value faster."}
+          </p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

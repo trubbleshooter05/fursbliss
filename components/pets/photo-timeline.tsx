@@ -88,13 +88,16 @@ export function PhotoTimeline({ petId, petName, isPremium, initialPhotos, initia
     return acc;
   }, {});
 
-  // Find groups that can be compared (same bodyArea + category, 2+ photos)
+  // Find groups that can be compared (same category; bodyArea helps but not required)
   function getComparableGroup(photo: PetPhotoRecord): PetPhotoRecord[] | null {
-    if (!photo.bodyArea) return null;
-    const group = photos.filter(
-      (p) => p.category === photo.category && p.bodyArea === photo.bodyArea
-    );
-    return group.length >= 2 ? group : null;
+    const sameCategory = photos.filter((p) => p.category === photo.category);
+    if (sameCategory.length < 2) return null;
+    // If body area is set, prefer grouping by category + bodyArea for tighter comparison
+    if (photo.bodyArea) {
+      const sameBodyArea = sameCategory.filter((p) => p.bodyArea === photo.bodyArea);
+      if (sameBodyArea.length >= 2) return sameBodyArea;
+    }
+    return sameCategory;
   }
 
   const lockedCount = Math.max(0, total - FREE_LIMIT);

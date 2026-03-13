@@ -165,7 +165,11 @@ async function upsertGoogleUser(input: {
         where: { userId: updatedUser.id },
       })) > 0;
     if (hasLinkedQuiz) {
-      await enrollUserInWelcomeSequence(updatedUser.id);
+      try {
+        await enrollUserInWelcomeSequence(updatedUser.id);
+      } catch (e) {
+        console.warn("[Auth] enrollUserInWelcomeSequence failed (non-blocking):", e);
+      }
     }
 
     return updatedUser;
@@ -195,18 +199,20 @@ async function upsertGoogleUser(input: {
   console.info("[Meta CAPI] Google OAuth new user created; sending CompleteRegistration", {
     email: normalizedEmail,
   });
-  const requestHeaders = new Headers(headers());
-  const callbackRequest = new Request(
-    `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}/api/auth/callback/google`,
-    {
-      headers: requestHeaders,
-    }
-  );
-  await sendMetaConversionEvent({
-    eventName: "CompleteRegistration",
-    email: input.email,
-    request: callbackRequest,
-  });
+  try {
+    const requestHeaders = new Headers(headers());
+    const callbackRequest = new Request(
+      `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}/api/auth/callback/google`,
+      { headers: requestHeaders }
+    );
+    await sendMetaConversionEvent({
+      eventName: "CompleteRegistration",
+      email: input.email,
+      request: callbackRequest,
+    });
+  } catch (e) {
+    console.warn("[Meta CAPI] CompleteRegistration failed (non-blocking):", e);
+  }
 
   await prisma.quizSubmission.updateMany({
     where: { email: normalizedEmail, userId: null },
@@ -217,7 +223,11 @@ async function upsertGoogleUser(input: {
       where: { userId: createdUser.id },
     })) > 0;
   if (hasLinkedQuiz) {
-    await enrollUserInWelcomeSequence(createdUser.id);
+    try {
+      await enrollUserInWelcomeSequence(createdUser.id);
+    } catch (e) {
+      console.warn("[Auth] enrollUserInWelcomeSequence failed (non-blocking):", e);
+    }
   }
 
   return createdUser;

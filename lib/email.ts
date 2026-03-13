@@ -178,3 +178,26 @@ export async function sendReminderEmail(
 
   return sendEmail({ to: email, subject, html, text });
 }
+
+export async function sendDailyHealthReminderEmail(
+  email: string,
+  petName: string
+) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
+  const logUrl = `${appUrl}/logs/new`;
+  const subject = `How's ${petName} doing today?`;
+  const text = `Tap to log today's 30-second check-in → ${logUrl}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #111827;">
+      <h2>How's ${petName} doing today?</h2>
+      <p>Tap to log today's 30-second check-in.</p>
+      <p>
+        <a href="${logUrl}" style="color: #059669; font-weight: 600;">
+          Log health check
+        </a>
+      </p>
+    </div>
+  `;
+
+  return sendEmail({ to: email, subject, html, text });
+}

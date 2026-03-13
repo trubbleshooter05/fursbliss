@@ -28,6 +28,7 @@ const BLOCKED_PREFIXES = [
   "/interaction-checker",
   "/admin",
   "/vet-view",
+  "/onboarding",
 ];
 const BLOCKED_PATHS = new Set([
   "/login",

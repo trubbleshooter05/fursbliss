@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { LoginForm } from "@/components/auth/login-form";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -52,6 +53,15 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             <CardTitle className="font-display text-3xl text-foreground">Sign In</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center">
+              <p className="text-sm font-medium text-foreground">New to FursBliss?</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Try the free quiz first — no signup required. See your dog&apos;s readiness score in 2 minutes.
+              </p>
+              <Button variant="outline" size="sm" className="mt-3 w-full" asChild>
+                <Link href="/quiz">Try the Quiz First</Link>
+              </Button>
+            </div>
             <LoginForm />
             <Link
               href="/forgot-password"

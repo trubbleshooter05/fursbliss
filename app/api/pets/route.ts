@@ -47,6 +47,10 @@ export async function POST(request: Request) {
       }
     }
 
+    const petCountBefore = await prisma.pet.count({
+      where: { userId: session.user.id },
+    });
+
     const body = await request.json();
     const parsed = petSchema.safeParse(body);
 
@@ -67,7 +71,8 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(pet);
+    const isFirstPet = petCountBefore === 0;
+    return NextResponse.json({ pet, isFirstPet });
   } catch (error) {
     console.error("Create pet error", error);
     return NextResponse.json(

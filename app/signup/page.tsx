@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import Image from "next/image";
 import { SignupForm } from "@/components/auth/signup-form";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -55,6 +56,15 @@ export default function SignupPage({ searchParams }: SignupPageProps) {
             <CardTitle className="font-display text-3xl text-foreground">Sign Up</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center">
+              <p className="text-sm font-medium text-foreground">Want to see value first?</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Try the free quiz — no signup required. Get your dog&apos;s readiness score in 2 minutes.
+              </p>
+              <Button variant="outline" size="sm" className="mt-3 w-full" asChild>
+                <Link href="/quiz">Try the Quiz First</Link>
+              </Button>
+            </div>
             <Suspense fallback={<div className="text-sm text-muted-foreground">Loading form...</div>}>
               <SignupForm />
             </Suspense>

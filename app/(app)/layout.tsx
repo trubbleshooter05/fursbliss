@@ -16,8 +16,16 @@ export default async function AppLayout({
 
   const pets = await prisma.pet.findMany({
     where: { userId: session.user.id },
-    select: { id: true, name: true },
+    select: { id: true, name: true, healthLogs: { take: 1 } },
   });
 
-  return <AppShell user={session.user} pets={pets}>{children}</AppShell>;
+  const firstPetNoLogs =
+    pets.length === 1 && pets[0].healthLogs.length === 0;
+  if (firstPetNoLogs) {
+    redirect(`/onboarding/first-log?petId=${pets[0].id}`);
+  }
+
+  const petsForShell = pets.map(({ healthLogs: _, ...p }) => p);
+
+  return <AppShell user={session.user} pets={petsForShell}>{children}</AppShell>;
 }

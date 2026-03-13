@@ -266,12 +266,20 @@ export function PetForm({ mode, petId, defaultValues }: PetFormProps) {
       return;
     }
 
+    const data = await response.json();
+    const pet = data.pet ?? data;
+    const isFirstPet = data.isFirstPet ?? false;
+
     toast({
       title: mode === "create" ? "Pet added!" : "Pet updated!",
       description: "Your pet profile has been saved.",
     });
 
-    router.push("/pets");
+    if (mode === "create" && isFirstPet && pet?.id) {
+      router.push(`/onboarding/first-log?petId=${pet.id}`);
+    } else {
+      router.push("/pets");
+    }
     router.refresh();
   };
 

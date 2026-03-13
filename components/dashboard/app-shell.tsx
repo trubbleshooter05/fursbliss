@@ -6,6 +6,7 @@ import {
   ActivitySquare,
   FlaskConical,
   Gift,
+  Home,
   LayoutDashboard,
   Pill,
   Menu,
@@ -108,6 +109,12 @@ export function AppShell({ children, user, pets = [] }: AppShellProps) {
         <div className="flex min-h-screen flex-1 flex-col">
           <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/70 bg-background/85 px-6 backdrop-blur-md">
             <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" asChild>
+                <Link href="/">
+                  <Home className="mr-1.5 h-4 w-4" />
+                  Return home
+                </Link>
+              </Button>
               <div className="lg:hidden">
                 <Sheet>
                   <SheetTrigger asChild>
@@ -119,6 +126,14 @@ export function AppShell({ children, user, pets = [] }: AppShellProps) {
                     <SheetHeader>
                       <SheetTitle>FursBliss</SheetTitle>
                     </SheetHeader>
+                    <SheetClose asChild>
+                      <Button variant="ghost" className="mt-2 justify-start gap-3 text-muted-foreground" asChild>
+                        <Link href="/">
+                          <Home className="h-4 w-4" />
+                          Return home
+                        </Link>
+                      </Button>
+                    </SheetClose>
                   <div className="mt-4">
                     <PetSwitcher pets={pets} />
                   </div>

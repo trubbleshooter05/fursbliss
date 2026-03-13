@@ -89,24 +89,24 @@ export function SiteHeader() {
                     </SheetClose>
                   ))}
                   <SheetClose asChild>
+                    <Button asChild className="shimmer-cta hover:scale-[1.02] transition-all duration-300">
+                      <Link href="/quiz">Try the Quiz First</Link>
+                    </Button>
+                  </SheetClose>
+                  <SheetClose asChild>
                     <Link href="/login" className="text-muted-foreground">
                       Login
                     </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Button asChild className="shimmer-cta hover:scale-[1.02] transition-all duration-300">
-                      <Link href="/quiz">Take the 2-Min Quiz</Link>
-                    </Button>
                   </SheetClose>
                 </div>
               </SheetContent>
             </Sheet>
           </div>
+          <Button asChild className="shimmer-cta hover:scale-[1.02] transition-all duration-300">
+            <Link href="/quiz">Try the Quiz First</Link>
+          </Button>
           <Button variant="ghost" asChild className="hidden md:inline-flex hover:scale-[1.02] transition-all duration-300">
             <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild className="shimmer-cta hover:scale-[1.02] transition-all duration-300">
-            <Link href="/quiz">Take the 2-Min Quiz</Link>
           </Button>
         </div>
       </div>

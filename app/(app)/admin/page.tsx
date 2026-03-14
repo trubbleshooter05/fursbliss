@@ -86,9 +86,12 @@ export default async function AdminPage() {
       <div>
         <h1 className="text-3xl font-semibold text-slate-900">Admin</h1>
         <p className="text-muted-foreground">Overview of platform activity.</p>
-        <div className="mt-3">
+        <div className="mt-3 flex gap-2">
           <Button asChild variant="outline">
             <Link href="/admin/ai-costs">Open AI Cost Dashboard</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/admin/startup-advisor">Startup Advisor</Link>
           </Button>
         </div>
       </div>

@@ -5,17 +5,18 @@ const GA_MEASUREMENT_ID =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-4C2EJL2XPS";
 
 /**
- * Server component: injects GA4 scripts with beforeInteractive.
- * Must be in root layout for beforeInteractive to work.
+ * Server component: injects GA4 scripts with afterInteractive.
+ * beforeInteractive can fail to load GA in some browsers (Chrome incognito, etc.).
+ * afterInteractive loads after hydration and is more reliable.
  */
 export function GoogleAnalyticsInit() {
   return (
     <>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
       />
-      <Script id="ga4-init" strategy="beforeInteractive">
+      <Script id="ga4-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}

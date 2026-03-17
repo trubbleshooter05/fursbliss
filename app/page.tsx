@@ -155,14 +155,14 @@ const loyaltyTimeline = [
 export const metadata: Metadata = {
   title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
   description:
-    "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
+    "Prepare your dog for LOY-002 — the first FDA dog longevity drug. Track health, check eligibility, and get launch alerts. Free to start.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
     description:
-      "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
+      "Prepare your dog for LOY-002 — the first FDA dog longevity drug. Track health, check eligibility, and get launch alerts. Free to start.",
     url: "/",
     type: "website",
     images: ["/og-default.jpg"],
@@ -171,7 +171,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
     description:
-      "Track your dog's health, get AI supplement guidance, and prepare for LOY-002 — the first FDA dog longevity drug. Free longevity quiz and breed risk timelines.",
+      "Prepare your dog for LOY-002 — the first FDA dog longevity drug. Track health, check eligibility, and get launch alerts. Free to start.",
     images: ["/og-default.jpg"],
   },
 };
@@ -211,13 +211,13 @@ export default async function Home() {
             <AnimateIn className="space-y-6">
               <Badge className="border border-white/25 bg-white/10 text-white">
                 <TriangleAlert className="mr-1 h-3.5 w-3.5" />
-                Early warning system for senior dogs
+                Prepare for the first FDA dog longevity drug
               </Badge>
               <h1 className="max-w-3xl font-display text-[2rem] leading-[1.04] tracking-[-0.035em] text-white sm:text-4xl md:text-6xl">
-                Catch Health Problems 3 Months Before They Become ER Visits
+                The First Dog Longevity Drug Is Coming. Is Your Dog Ready?
               </h1>
               <p className="max-w-2xl text-base text-white/90 sm:text-lg">
-                Daily health tracking for senior dogs. Spot decline early, save thousands in vet bills.
+                LOY-002 could get FDA conditional approval as early as late 2026. Build your dog&apos;s health baseline now — so you&apos;re prepared on day one, not scrambling after.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button
@@ -225,7 +225,7 @@ export default async function Home() {
                   className="shimmer-cta w-full bg-accent text-accent-foreground hover:scale-[1.02] hover:brightness-110 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/quiz">Check Your Dog Now</Link>
+                  <Link href="/loy-002">Check Your Dog&apos;s Eligibility</Link>
                 </Button>
                 <Button
                   size="lg"
@@ -233,11 +233,11 @@ export default async function Home() {
                   className="w-full border-white/35 bg-white/5 text-white hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/er-triage-for-dogs">Free ER Triage Tool</Link>
+                  <Link href="/signup">Get Launch Alerts (Free)</Link>
                 </Button>
               </div>
               <p className="text-sm text-white/85">
-                Join 1,200+ dog owners tracking subtle changes before they become emergencies.
+                Join 1,200+ dog owners preparing for LOY-002
               </p>
             </AnimateIn>
 

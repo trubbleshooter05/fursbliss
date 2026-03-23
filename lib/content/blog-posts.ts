@@ -8,6 +8,14 @@ export type BlogPostMeta = {
 
 export const blogPosts: BlogPostMeta[] = [
   {
+    slug: "loy-002-fda-timeline",
+    title: "LOY-002 FDA Approval Timeline: Manufacturing & Realistic Dates (2026–2028)",
+    excerpt:
+      "RXE and Target Animal Safety are cleared; CMC (manufacturing) is the last FDA section — expected 2027. What “LOY-002 approval date” really means and what to do while you wait.",
+    date: "2026-03-22",
+    updatedAt: "2026-03-22",
+  },
+  {
     slug: "rapamycin-for-dogs-2026-guide",
     title: "Rapamycin for Dogs in 2026: What Every Senior Dog Owner Should Know",
     excerpt:

@@ -51,22 +51,42 @@ async function main() {
     return;
   }
 
+  if (!process.env.RESEND_API_KEY?.trim()) {
+    console.error(
+      "\nMissing RESEND_API_KEY in this shell’s environment.\n" +
+        "Copy it from Vercel → Project → Settings → Environment Variables → Production,\n" +
+        "add to .env.local as: RESEND_API_KEY=re_...\n" +
+        "Then run: npm run email:health-insights-launch -- --send\n"
+    );
+    process.exit(1);
+  }
+
   let ok = 0;
   let fail = 0;
+  let skipped = 0;
   for (const u of recipients) {
     const pet = u.pets[0]!;
     const idempotencyKey = `health-insights-launch-2026-03:${u.id}`;
     try {
-      await sendHealthInsightsLaunchEmail(u.email, pet.name, pet.id, { idempotencyKey });
-      ok++;
-      console.log(`  sent → ${u.email}`);
+      const result = await sendHealthInsightsLaunchEmail(u.email, pet.name, pet.id, { idempotencyKey });
+      if (result.queued) {
+        ok++;
+        console.log(`  sent → ${u.email}`);
+      } else {
+        skipped++;
+        console.warn(`  skipped (Resend returned not queued) → ${u.email}`);
+      }
     } catch (e) {
       fail++;
       console.error(`  FAIL → ${u.email}`, e);
     }
   }
 
-  console.log(`\nDone: ${ok} sent, ${fail} failed`);
+  console.log(`\nDone: ${ok} sent, ${skipped} skipped, ${fail} failed`);
+  if (skipped > 0 && ok === 0) {
+    console.error("\nNo emails were actually delivered. Fix RESEND_API_KEY / Resend config and try again.");
+    process.exit(1);
+  }
 }
 
 main()

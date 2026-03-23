@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 
 function normalizeRangeDays(value: string | null) {
   const parsed = Number(value);
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
       select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
     });
 
-    if (!user || !isSubscriptionActive(user)) {
+    if (!user || !isEffectivePremium(user, { featureUnlock: true })) {
       return NextResponse.json({ message: "Vet reports are a premium feature." }, { status: 403 });
     }
 

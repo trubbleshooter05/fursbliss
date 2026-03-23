@@ -27,5 +27,17 @@ export default async function AppLayout({
 
   const petsForShell = pets.map(({ healthLogs: _, ...p }) => p);
 
-  return <AppShell user={session.user} pets={petsForShell}>{children}</AppShell>;
+  const unreadUrgentAlerts = await prisma.healthAlert.count({
+    where: {
+      userId: session.user.id,
+      read: false,
+      severity: { in: ["warning", "urgent"] },
+    },
+  });
+
+  return (
+    <AppShell user={session.user} pets={petsForShell} unreadUrgentAlerts={unreadUrgentAlerts}>
+      {children}
+    </AppShell>
+  );
 }

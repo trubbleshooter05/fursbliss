@@ -181,19 +181,65 @@ export async function sendReminderEmail(
 
 export async function sendDailyHealthReminderEmail(
   email: string,
-  petName: string
+  petName: string,
+  options?: { daysSinceLastLog?: number; lastLogDate?: Date }
 ) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
   const logUrl = `${appUrl}/logs/new`;
+  const daysSince = options?.daysSinceLastLog ?? 0;
+  const lastLogDate = options?.lastLogDate;
+
+  const isStale = daysSince >= 3;
+  const dateStr = lastLogDate
+    ? lastLogDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : "";
+
   const subject = `How's ${petName} doing today?`;
-  const text = `Tap to log today's 30-second check-in → ${logUrl}`;
+  const staleLine = isStale
+    ? `You haven't logged since ${dateStr}. Even a quick energy + appetite check helps spot trends.`
+    : "Tap to log today's 30-second check-in.";
+  const text = `${staleLine} → ${logUrl}`;
   const html = `
     <div style="font-family: Arial, sans-serif; color: #111827;">
       <h2>How's ${petName} doing today?</h2>
-      <p>Tap to log today's 30-second check-in.</p>
+      <p>${staleLine}</p>
       <p>
         <a href="${logUrl}" style="color: #059669; font-weight: 600;">
           Log health check
+        </a>
+      </p>
+    </div>
+  `;
+
+  return sendEmail({ to: email, subject, html, text });
+}
+
+export async function sendSevenDayInsightEmail(
+  email: string,
+  petName: string,
+  insight: { avgEnergy: number; avgAppetite: number; avgMobility: number; mobilityDipped?: boolean }
+) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
+  const dashboardUrl = `${appUrl}/dashboard`;
+  const subject = `${petName}'s first weekly health snapshot is ready`;
+  const mobilityNote = insight.mobilityDipped
+    ? ` Mobility dipped this week — keep watching.`
+    : "";
+  const text = `${petName}'s first week of data: Energy averaged ${insight.avgEnergy.toFixed(1)}, Appetite ${insight.avgAppetite.toFixed(1)}, Mobility ${insight.avgMobility.toFixed(1)}.${mobilityNote} Keep logging to unlock your full 30-day Vet Summary Report. → ${dashboardUrl}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #111827;">
+      <h2>${petName}'s first weekly health snapshot is ready</h2>
+      <p>Your first week of data:</p>
+      <ul style="margin: 16px 0;">
+        <li>Energy averaged ${insight.avgEnergy.toFixed(1)}/10</li>
+        <li>Appetite averaged ${insight.avgAppetite.toFixed(1)}/10</li>
+        <li>Mobility averaged ${insight.avgMobility.toFixed(1)}/10</li>
+      </ul>
+      ${insight.mobilityDipped ? `<p style="color: #b45309;">Mobility dipped this week — keep watching.</p>` : ""}
+      <p>Keep logging to unlock your full 30-day Vet Summary Report.</p>
+      <p>
+        <a href="${dashboardUrl}" style="color: #059669; font-weight: 600;">
+          View dashboard
         </a>
       </p>
     </div>

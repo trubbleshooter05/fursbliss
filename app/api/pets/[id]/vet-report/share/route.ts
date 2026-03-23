@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export async function POST(
       select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
     });
 
-    if (!user || !isSubscriptionActive(user)) {
+    if (!user || !isEffectivePremium(user, { featureUnlock: true })) {
       return new Response(JSON.stringify({ message: "Premium required." }), { status: 403 });
     }
 

@@ -9,7 +9,9 @@
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "db:stats": "npx tsx scripts/db-stats.ts",
+    "seed:breed-risks": "npx tsx prisma/seed-breed-risks.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

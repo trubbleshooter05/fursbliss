@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
-import { calculateHealthScore, getHealthFlags } from "@/lib/health-score";
-import type { HealthLogEntry, HealthFlag } from "@/lib/health-score";
-import { HealthAlertEmail } from "@/components/emails/health-alert-email";
+import { prisma } from "@/lib/prisma";
+import { runHealthAlertEngineForAllEligiblePets } from "@/lib/health-alerts/engine";
+import { ProactiveHealthAlertEmail } from "@/components/emails/proactive-health-alert-email";
 import { logEmailSent } from "@/lib/email-throttle";
+import { isEffectivePremium } from "@/lib/subscription";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -20,178 +20,128 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  console.log("[Health Alerts] Starting daily health alerts cron job");
+  const startedAt = new Date();
+  console.log("[Health Alerts] Proactive engine cron start");
 
   try {
-    // Get all premium users
-    const premiumUsers = await prisma.user.findMany({
-      where: {
-        subscriptionStatus: "premium",
-        emailPreferences: {
-          path: ["healthAlerts"],
-          not: false, // Only users who haven't disabled health alerts
-        },
-      },
+    const { petsProcessed, alertsCreated } = await runHealthAlertEngineForAllEligiblePets();
+
+    const newAlerts = await prisma.healthAlert.findMany({
+      where: { createdAt: { gte: startedAt } },
       include: {
-        pets: {
-          include: {
-            healthLogs: {
-              orderBy: { date: "desc" },
-              take: 60, // Last 60 days for trend analysis
-            },
+        pet: { select: { name: true, breed: true } },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            subscriptionStatus: true,
+            subscriptionPlan: true,
+            subscriptionEndsAt: true,
+            emailPreferences: true,
           },
         },
       },
+      orderBy: { createdAt: "asc" },
     });
 
-    console.log(`[Health Alerts] Found ${premiumUsers.length} premium users`);
-
+    let notificationsCreated = 0;
     let emailsSent = 0;
-    let alertsGenerated = 0;
 
-    for (const user of premiumUsers) {
-      // Skip if user has no email
-      if (!user.email) continue;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
 
-      // Process each of their pets
-      for (const pet of user.pets) {
-        const healthLogs = pet.healthLogs.map((log) => ({
-          id: pet.id,
-          date: log.date,
-          energyLevel: log.energyLevel,
-          appetite: log.appetite,
-          appetiteLevel: log.appetiteLevel,
-          mobilityLevel: log.mobilityLevel,
-          weight: log.weight,
-          symptoms: log.symptoms,
-        })) as HealthLogEntry[];
-
-        // Skip if not enough data
-        if (healthLogs.length < 3) continue;
-
-        // Fetch recent weekly check-ins for this pet
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-        const recentCheckIns = await prisma.weeklyCheckIn.findMany({
-          where: {
-            petId: pet.id,
-            createdAt: { gte: sevenDaysAgo },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 2,
-        });
-
-        // Check for urgent weekly check-in signals
-        let hasUrgentCheckInSignal = false;
-        if (recentCheckIns.length > 0) {
-          const latest = recentCheckIns[0];
-          const energyWorse = latest.energyLevel === "worse" || latest.energyLevel === "much_worse";
-          const appetiteWorse = latest.appetite === "worse" || latest.appetite === "much_worse";
-          
-          // Urgent if BOTH energy and appetite declining, or either is "much_worse"
-          hasUrgentCheckInSignal = 
-            (energyWorse && appetiteWorse) ||
-            latest.energyLevel === "much_worse" ||
-            latest.appetite === "much_worse" ||
-            (latest.newSymptoms && !!latest.symptomDetails);
-        }
-
-        // Calculate current and previous health scores
-        const currentScore = calculateHealthScore(healthLogs);
-        const previousScore = calculateHealthScore(healthLogs.slice(1)); // Yesterday's data
-
-        if (!currentScore || !previousScore) continue;
-
-        const scoreChange = currentScore.score - previousScore.score;
-
-        // Get current health flags
-        const flags = getHealthFlags(healthLogs, pet);
-
-        // Determine if we should send an alert (include check-in signals)
-        const hasRedFlags = flags.some((f) => f.type === "red");
-        const significantScoreChange = Math.abs(scoreChange) >= 10;
-        const hasNewYellowFlags = flags.filter((f) => f.type === "yellow").length > 0;
-
-        const shouldSendAlert =
-          hasRedFlags || 
-          significantScoreChange || 
-          (hasNewYellowFlags && scoreChange < -5) ||
-          hasUrgentCheckInSignal; // NEW: Include weekly check-in signals
-
-        if (!shouldSendAlert) continue;
-
-        // Create alert notification in database
+    for (const a of newAlerts) {
+      if (a.severity === "warning" || a.severity === "urgent") {
         await prisma.notification.create({
           data: {
-            userId: user.id,
-            type: "health_alert",
-            title: `Health update for ${pet.name}`,
+            userId: a.userId,
+            type: "proactive_health_alert",
+            title: a.title,
             body:
-              hasRedFlags
-                ? `🔴 Urgent: ${pet.name} has red flag alerts that need attention.`
-                : hasUrgentCheckInSignal
-                  ? `⚠️ Your weekly check-in for ${pet.name} reported concerning changes.`
-                  : significantScoreChange
-                    ? `Health score ${scoreChange > 0 ? "improved" : "declined"} by ${Math.abs(scoreChange)} points.`
-                    : `⚠️ New patterns detected for ${pet.name}.`,
+              a.severity === "urgent"
+                ? `🔴 ${a.title}`
+                : `⚠️ ${a.title}`,
             read: false,
+            actionUrl: `/pets/${a.petId}`,
           },
         });
+        notificationsCreated++;
+      }
 
-        alertsGenerated++;
+      const premium = isEffectivePremium(a.user);
+      const wantsEmail = (a.user.emailPreferences as { healthAlerts?: boolean } | null)?.healthAlerts !== false;
 
-        // Send email alert
-        const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`;
+      if (
+        premium &&
+        wantsEmail &&
+        (a.severity === "warning" || a.severity === "urgent") &&
+        !a.emailSent
+      ) {
+        const trend = (a.trendData as { current7day?: number; previous7day?: number; change?: number } | null) ?? {};
+        const currentAvg = trend.current7day ?? 0;
+        const previousAvg = trend.previous7day ?? 0;
+        const pct =
+          trend.change != null
+            ? Math.abs(trend.change)
+            : previousAvg > 0
+              ? Math.abs(((previousAvg - currentAvg) / previousAvg) * 100)
+              : 0;
+
+        const metricLabel = a.metric ?? "health";
 
         try {
           await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL || "FursBliss <alerts@fursbliss.com>",
-            to: user.email,
-            subject: hasRedFlags
-              ? `⚠️ Urgent health alert for ${pet.name}`
-              : `Health update for ${pet.name}`,
-            react: HealthAlertEmail({
-              userName: user.name?.split(" ")[0] || "there",
-              petName: pet.name,
-              petBreed: pet.breed,
-              oldScore: previousScore.score,
-              newScore: currentScore.score,
-              scoreTrend: currentScore.trend,
-              flags: flags.map(f => ({ id: `${pet.id}-${f.title}`, type: f.type, title: f.title, description: f.description })),
-              dashboardUrl,
+            to: a.user.email!,
+            subject: `⚠️ ${a.pet.name}'s ${metricLabel} — update from FursBliss`,
+            react: ProactiveHealthAlertEmail({
+              userName: a.user.name?.split(" ")[0] ?? "there",
+              petName: a.pet.name,
+              petBreed: a.pet.breed,
+              metricLabel,
+              pctChange: pct,
+              currentAvg,
+              previousAvg,
+              recommendation: a.recommendation,
+              breedNote:
+                a.alertType === "breed_risk"
+                  ? a.message
+                  : undefined,
+              reportUrl: `${appUrl}/pets/${a.petId}`,
             }),
           });
 
-          // Log email send for throttling (health alerts always send, highest priority)
-          await logEmailSent(user.id, "health-alert");
+          await prisma.healthAlert.update({
+            where: { id: a.id },
+            data: { emailSent: true },
+          });
 
+          await logEmailSent(a.userId, "health-alert");
           emailsSent++;
-          console.log(`[Health Alerts] Sent alert to ${user.email} for ${pet.name}`);
-        } catch (emailError) {
-          console.error(
-            `[Health Alerts] Failed to send email to ${user.email}:`,
-            emailError
-          );
+        } catch (e) {
+          console.error("[Health Alerts] Email failed", a.id, e);
         }
       }
     }
 
     console.log(
-      `[Health Alerts] Completed: ${emailsSent} emails sent, ${alertsGenerated} alerts created`
+      `[Health Alerts] Done: pets=${petsProcessed} alerts=${alertsCreated} notify=${notificationsCreated} emails=${emailsSent}`
     );
 
     return NextResponse.json({
       success: true,
-      premiumUsers: premiumUsers.length,
-      alertsGenerated,
+      petsProcessed,
+      alertsCreated,
+      newAlertRows: newAlerts.length,
+      notificationsCreated,
       emailsSent,
     });
   } catch (error) {
     console.error("[Health Alerts] Error:", error);
-    return NextResponse.json(
-      { success: false, error: String(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
+}
+
+export async function GET(request: Request) {
+  return POST(request);
 }

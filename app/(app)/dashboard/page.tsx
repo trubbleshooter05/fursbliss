@@ -22,6 +22,8 @@ import { HealthScorePanel } from "@/components/dashboard/health-score-panel";
 import { MissedAlertsPreview } from "@/components/dashboard/missed-alerts-preview";
 import { PatternAlertsCard } from "@/components/dashboard/pattern-alerts-card";
 import { AlertCard } from "@/components/dashboard/alert-card";
+import { SevenDayInsightCard } from "@/components/dashboard/seven-day-insight-card";
+import { FeatureUnlockBanner } from "@/components/dashboard/feature-unlock-banner";
 import { calculateHealthScore, getHealthFlags } from "@/lib/health-score";
 import { detectPatternChanges } from "@/lib/pattern-detection";
 import { calculateHealthAlert } from "@/lib/health-alerts";
@@ -188,6 +190,19 @@ export default async function DashboardPage() {
     alerts: Awaited<ReturnType<typeof detectPatternChanges>>;
   } | null = null;
 
+  // 7-day insight card data (first week milestone)
+  let sevenDayInsightData: {
+    petName: string;
+    daysTracked: number;
+    avgEnergy: number;
+    avgAppetite: number;
+    avgMobility: number;
+    mobilityDipped?: boolean;
+    energyDipped?: boolean;
+    appetiteDipped?: boolean;
+    chartData: { date: string; energy: number }[];
+  } | null = null;
+
   // Calculate health alert (red/yellow/green) for primary pet
   let healthAlertData: {
     level: "red" | "yellow" | "green";
@@ -284,6 +299,61 @@ export default async function DashboardPage() {
         }
       }
     }
+
+    // 7-day insight card: show when user has 7-29 logged days (first week milestone)
+    const primaryPetUniqueDays = new Set(
+      primaryPetLogs.map((log) => log.date.toISOString().slice(0, 10))
+    ).size;
+    if (primaryPetUniqueDays >= 7 && primaryPetUniqueDays < 30) {
+      const withEnergy = primaryPetLogs.filter((l) => l.energyLevel != null);
+      const withAppetite = primaryPetLogs.filter((l) => l.appetiteLevel != null);
+      const withMobility = primaryPetLogs.filter((l) => l.mobilityLevel != null);
+      const avgEnergy =
+        withEnergy.length > 0
+          ? withEnergy.reduce((s, l) => s + (l.energyLevel ?? 0), 0) / withEnergy.length
+          : 7;
+      const avgAppetite =
+        withAppetite.length > 0
+          ? withAppetite.reduce((s, l) => s + (l.appetiteLevel ?? 0), 0) / withAppetite.length
+          : 7;
+      const avgMobility =
+        withMobility.length > 0
+          ? withMobility.reduce((s, l) => s + (l.mobilityLevel ?? 0), 0) / withMobility.length
+          : 7;
+      const sortedByDate = [...primaryPetLogs].sort(
+        (a, b) => a.date.getTime() - b.date.getTime()
+      );
+      const half = Math.floor(sortedByDate.length / 2);
+      const firstHalf = sortedByDate.slice(0, half);
+      const secondHalf = sortedByDate.slice(half);
+      const avg = (arr: typeof primaryPetLogs, key: "energyLevel" | "appetiteLevel" | "mobilityLevel") => {
+        const filtered = arr.filter((l) => (l as Record<string, unknown>)[key] != null);
+        return filtered.length > 0
+          ? filtered.reduce((s, l) => s + ((l as Record<string, unknown>)[key] as number), 0) / filtered.length
+          : 0;
+      };
+      const mobilityDipped = avg(secondHalf, "mobilityLevel") < avg(firstHalf, "mobilityLevel") - 0.5;
+      const energyDipped = avg(secondHalf, "energyLevel") < avg(firstHalf, "energyLevel") - 0.5;
+      const appetiteDipped = avg(secondHalf, "appetiteLevel") < avg(firstHalf, "appetiteLevel") - 0.5;
+      const sevenDayChartData = primaryPetLogs
+        .slice(0, 7)
+        .reverse()
+        .map((log) => ({
+          date: format(log.date, "MMM d"),
+          energy: log.energyLevel,
+        }));
+      sevenDayInsightData = {
+        petName: primaryPet.name,
+        daysTracked: primaryPetUniqueDays,
+        avgEnergy,
+        avgAppetite,
+        avgMobility,
+        mobilityDipped,
+        energyDipped,
+        appetiteDipped,
+        chartData: sevenDayChartData,
+      };
+    }
   }
 
   return (
@@ -304,6 +374,13 @@ export default async function DashboardPage() {
           </Button>
         </div>
       </AnimateIn>
+
+      {/* Premium Weekend banner for free users */}
+      {!isPremiumUser && (
+        <AnimateIn delay={0.02}>
+          <FeatureUnlockBanner isPremium={false} />
+        </AnimateIn>
+      )}
 
       {/* Welcome card for brand-new users (no pets yet) */}
       {pets.length === 0 && (
@@ -397,6 +474,23 @@ export default async function DashboardPage() {
                 weight: log.weight,
                 symptoms: log.symptoms,
               }))}
+          />
+        </AnimateIn>
+      ) : null}
+
+      {/* 7-Day Insight - First week milestone card */}
+      {sevenDayInsightData ? (
+        <AnimateIn delay={0.12}>
+          <SevenDayInsightCard
+            petName={sevenDayInsightData.petName}
+            daysTracked={sevenDayInsightData.daysTracked}
+            avgEnergy={sevenDayInsightData.avgEnergy}
+            avgAppetite={sevenDayInsightData.avgAppetite}
+            avgMobility={sevenDayInsightData.avgMobility}
+            mobilityDipped={sevenDayInsightData.mobilityDipped}
+            energyDipped={sevenDayInsightData.energyDipped}
+            appetiteDipped={sevenDayInsightData.appetiteDipped}
+            chartData={sevenDayInsightData.chartData}
           />
         </AnimateIn>
       ) : null}

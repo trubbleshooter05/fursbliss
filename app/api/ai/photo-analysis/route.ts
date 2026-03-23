@@ -3,7 +3,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const requestSchema = z.object({
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
-  if (!isSubscriptionActive(user)) {
+  if (!isEffectivePremium(user, { featureUnlock: true })) {
     return NextResponse.json(
       { message: "Photo AI analysis is a premium feature." },
       { status: 403 }

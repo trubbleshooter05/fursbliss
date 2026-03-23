@@ -92,6 +92,7 @@ export async function GET(request: Request) {
 
   const plan = requestedPlan === "yearly" ? "yearly" : "monthly";
   let priceId = plan === "yearly" ? annualPriceId : monthlyPriceId;
+  const introCouponId = process.env.STRIPE_INTRO_COUPON_ID;
 
   if (requestedPriceId) {
     const knownPriceIds = [monthlyPriceId, annualPriceId].filter(
@@ -117,6 +118,9 @@ export async function GET(request: Request) {
     mode: "subscription",
     customer: customerId ?? undefined,
     line_items: [{ price: priceId, quantity: 1 }],
+    ...(plan === "monthly" && introCouponId
+      ? { discounts: [{ coupon: introCouponId }] }
+      : {}),
     subscription_data: {
       trial_period_days: 7,
       trial_settings: {

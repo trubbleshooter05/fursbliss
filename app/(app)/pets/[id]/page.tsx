@@ -23,6 +23,7 @@ import { VetReportExportButton } from "@/components/pets/vet-report-export-butto
 import { HealthLogHistory } from "@/components/pets/health-log-history";
 import { PhotoTimeline } from "@/components/pets/photo-timeline";
 import { isSubscriptionActive } from "@/lib/subscription";
+import { HealthAlertsPanel } from "@/components/dashboard/health-alerts-panel";
 
 type PetDetailPageProps = {
   params: { id: string };
@@ -147,6 +148,8 @@ export default async function PetDetailPage({ params, searchParams }: PetDetailP
           <DeletePetDialog petId={pet.id} petName={pet.name} />
         </div>
       </div>
+
+      <HealthAlertsPanel petId={pet.id} petName={pet.name} />
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <Card>

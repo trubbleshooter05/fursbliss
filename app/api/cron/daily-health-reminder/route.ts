@@ -46,6 +46,15 @@ export async function POST(request: Request) {
 
     if (logCountToday > 0) continue;
 
+    // Skip if any other email sent today (daily reminder is lowest priority)
+    const anyEmailToday = await prisma.emailLog.findFirst({
+      where: {
+        userId: user.id,
+        sentAt: { gte: today },
+      },
+    });
+    if (anyEmailToday) continue;
+
     const pet = petId
       ? await prisma.pet.findFirst({
           where: { id: petId, userId: user.id },
@@ -58,9 +67,27 @@ export async function POST(request: Request) {
 
     const petName = pet?.name ?? "your pet";
 
+    // Get last log date for 3+ days variant
+    const lastLog = await prisma.healthLog.findFirst({
+      where: { pet: { userId: user.id } },
+      orderBy: { date: "desc" },
+      select: { date: true },
+    });
+    const daysSinceLastLog = lastLog
+      ? Math.floor((today.getTime() - lastLog.date.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+
     try {
-      const result = await sendDailyHealthReminderEmail(user.email, petName);
-      if (result.queued) emailsQueued += 1;
+      const result = await sendDailyHealthReminderEmail(user.email, petName, {
+        daysSinceLastLog: daysSinceLastLog ?? 0,
+        lastLogDate: lastLog?.date,
+      });
+      if (result.queued) {
+        await prisma.emailLog.create({
+          data: { userId: user.id, emailType: "daily-reminder" },
+        });
+        emailsQueued += 1;
+      }
     } catch (e) {
       console.error(`Daily reminder email failed for ${user.email}:`, e);
     }

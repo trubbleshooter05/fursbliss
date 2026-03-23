@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ActivitySquare,
+  Bell,
   FlaskConical,
   Gift,
   Home,
@@ -38,6 +39,8 @@ type AppShellProps = {
     role?: string;
   };
   pets?: { id: string; name: string }[];
+  /** Unread warning/urgent proactive health alerts */
+  unreadUrgentAlerts?: number;
 };
 
 const navLinks = [
@@ -53,7 +56,7 @@ const navLinks = [
   { href: "/account", label: "Account", icon: User },
 ];
 
-export function AppShell({ children, user, pets = [] }: AppShellProps) {
+export function AppShell({ children, user, pets = [], unreadUrgentAlerts = 0 }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex">
@@ -181,6 +184,17 @@ export function AppShell({ children, user, pets = [] }: AppShellProps) {
             </div>
             <div className="flex items-center gap-3">
               <GlobalSearch className="hidden w-72 md:block" placeholder="Search pages and tools..." />
+              {unreadUrgentAlerts > 0 && pets[0] ? (
+                <Button variant="outline" size="sm" className="relative gap-1.5" asChild>
+                  <Link href={`/pets/${pets[0].id}#health-alerts`}>
+                    <Bell className="h-4 w-4" />
+                    Alerts
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unreadUrgentAlerts > 9 ? "9+" : unreadUrgentAlerts}
+                    </span>
+                  </Link>
+                </Button>
+              ) : null}
               <UserMenu name={user.name} email={user.email} />
             </div>
           </header>

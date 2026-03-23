@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 
 const requestSchema = z.object({
   petId: z.string().min(1),
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
-  if (!isSubscriptionActive(user)) {
+  if (!isEffectivePremium(user, { featureUnlock: true })) {
     return NextResponse.json(
       { message: "Vet share links are a premium feature." },
       { status: 403 }

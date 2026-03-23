@@ -1,3 +1,5 @@
+import { isFeatureUnlockActive } from "./feature-unlock";
+
 type SubscriptionMeta = {
   subscriptionStatus?: string | null;
   subscriptionEndsAt?: Date | string | null;
@@ -8,7 +10,7 @@ export function isSubscriptionActive(meta: SubscriptionMeta) {
   if (meta.subscriptionStatus !== "premium") {
     return false;
   }
-  if (meta.subscriptionPlan !== "referral") {
+  if (meta.subscriptionPlan !== "referral" && meta.subscriptionPlan !== "trial_extension") {
     return true;
   }
   if (!meta.subscriptionEndsAt) {
@@ -22,8 +24,21 @@ export function isSubscriptionActive(meta: SubscriptionMeta) {
   return endsAt.getTime() > Date.now();
 }
 
-export function getEffectiveSubscriptionStatus(meta: SubscriptionMeta) {
-  return isSubscriptionActive(meta) ? "premium" : "free";
+export function getEffectiveSubscriptionStatus(
+  meta: SubscriptionMeta,
+  options?: { featureUnlock?: boolean }
+) {
+  if (isSubscriptionActive(meta)) return "premium";
+  if (options?.featureUnlock !== false && isFeatureUnlockActive()) return "premium";
+  return "free";
+}
+
+/** Use in API routes when checking premium access (includes Feature Unlock Days) */
+export function isEffectivePremium(
+  meta: SubscriptionMeta,
+  options?: { featureUnlock?: boolean }
+): boolean {
+  return getEffectiveSubscriptionStatus(meta, options) === "premium";
 }
 
 // Tier restriction constants

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 
 const createSchema = z.object({
   petId: z.string().min(1),
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     where: { id: session.user.id },
     select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
   });
-  const isPremium = user ? isSubscriptionActive(user) : false;
+  const isPremium = user ? isEffectivePremium(user, { featureUnlock: true }) : false;
   if (!isPremium) {
     const existingCount = await prisma.doseSchedule.count({
       where: { pet: { userId: session.user.id }, active: true },

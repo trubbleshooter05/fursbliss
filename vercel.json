@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/health-alerts",
-      "schedule": "0 8 * * *"
+      "schedule": "0 9 * * *"
     },
     {
       "path": "/api/cron/weekly-checkin",
@@ -15,6 +15,14 @@
     {
       "path": "/api/cron/daily-health-reminder",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/seven-day-insight",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/trial-extension",
+      "schedule": "0 6 * * *"
     }
   ]
 }

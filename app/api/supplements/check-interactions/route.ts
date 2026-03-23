@@ -3,7 +3,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const requestSchema = z.object({
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid request payload" }, { status: 400 });
   }
 
-  const hasPremium = isSubscriptionActive(user);
+  const hasPremium = isEffectivePremium(user, { featureUnlock: true });
   if (!hasPremium) {
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);

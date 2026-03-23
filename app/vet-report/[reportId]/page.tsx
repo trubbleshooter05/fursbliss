@@ -279,20 +279,21 @@ export default async function PublicVetReportPage({ params }: Props) {
                 <Section title="Recent Health Alerts (30 days)">
                   <div className="space-y-1">
                     {report.alerts.slice(0, 5).map((alert, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-slate-600">
+                      <div key={i} className="flex flex-col gap-0.5 text-xs text-slate-600 sm:flex-row sm:items-start sm:gap-2">
                         <span
                           className={`font-bold shrink-0 ${
-                            alert.level === "red"
+                            alert.severity === "urgent"
                               ? "text-red-600"
-                              : alert.level === "yellow"
-                              ? "text-amber-600"
-                              : "text-green-600"
+                              : alert.severity === "warning"
+                                ? "text-amber-600"
+                                : "text-sky-600"
                           }`}
                         >
-                          [{alert.level.toUpperCase()}]
+                          [{alert.severity.toUpperCase()}]
                         </span>
-                        <span>{alert.date}</span>
-                        <span className="text-slate-500 truncate">{alert.reason}</span>
+                        <span className="shrink-0">{alert.date}</span>
+                        <span className="text-slate-700 font-medium">{alert.title}</span>
+                        <span className="text-slate-500 truncate">{alert.summary}</span>
                       </div>
                     ))}
                   </div>

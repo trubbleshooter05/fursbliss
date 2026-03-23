@@ -1,3 +1,8 @@
+/**
+ * Scripts (tsx/ts-node) must load env before importing this module, e.g.
+ * `import "./load-env"` as the first line — otherwise DATABASE_URL is unset
+ * and the pg pool may connect to a DB named after the OS user.
+ */
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";

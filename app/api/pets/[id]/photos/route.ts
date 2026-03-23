@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
@@ -38,7 +38,7 @@ export async function POST(
     where: { id: session.user.id },
     select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
   });
-  const isPremium = isSubscriptionActive(user ?? {});
+  const isPremium = isEffectivePremium(user ?? {}, { featureUnlock: true });
 
   // Free users: enforce 3-photo limit
   if (!isPremium) {
@@ -132,7 +132,7 @@ export async function GET(
     where: { id: session.user.id },
     select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true },
   });
-  const isPremium = isSubscriptionActive(user ?? {});
+  const isPremium = isEffectivePremium(user ?? {}, { featureUnlock: true });
 
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category") ?? undefined;

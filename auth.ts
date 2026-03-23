@@ -51,11 +51,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          subscriptionStatus: getEffectiveSubscriptionStatus({
-            subscriptionStatus: user.subscriptionStatus,
-            subscriptionPlan: user.subscriptionPlan,
-            subscriptionEndsAt: user.subscriptionEndsAt,
-          }),
+          subscriptionStatus: getEffectiveSubscriptionStatus(
+            {
+              subscriptionStatus: user.subscriptionStatus,
+              subscriptionPlan: user.subscriptionPlan,
+              subscriptionEndsAt: user.subscriptionEndsAt,
+            },
+            { featureUnlock: true }
+          ),
           role: user.role,
         };
       },
@@ -79,11 +82,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
         token.id = oauthUser.id;
         token.sub = oauthUser.id;
-        token.subscriptionStatus = getEffectiveSubscriptionStatus({
-          subscriptionStatus: oauthUser.subscriptionStatus,
-          subscriptionPlan: oauthUser.subscriptionPlan,
-          subscriptionEndsAt: oauthUser.subscriptionEndsAt,
-        });
+        token.subscriptionStatus = getEffectiveSubscriptionStatus(
+          {
+            subscriptionStatus: oauthUser.subscriptionStatus,
+            subscriptionPlan: oauthUser.subscriptionPlan,
+            subscriptionEndsAt: oauthUser.subscriptionEndsAt,
+          },
+          { featureUnlock: true }
+        );
         token.role = oauthUser.role ?? "user";
         return token;
       }
@@ -102,11 +108,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { id: userId },
           select: { subscriptionStatus: true, subscriptionPlan: true, subscriptionEndsAt: true, role: true },
         });
-        token.subscriptionStatus = getEffectiveSubscriptionStatus({
-          subscriptionStatus: dbUser?.subscriptionStatus,
-          subscriptionPlan: dbUser?.subscriptionPlan,
-          subscriptionEndsAt: dbUser?.subscriptionEndsAt,
-        });
+        token.subscriptionStatus = getEffectiveSubscriptionStatus(
+          {
+            subscriptionStatus: dbUser?.subscriptionStatus,
+            subscriptionPlan: dbUser?.subscriptionPlan,
+            subscriptionEndsAt: dbUser?.subscriptionEndsAt,
+          },
+          { featureUnlock: true }
+        );
         token.role = dbUser?.role ?? "user";
       }
       return token;

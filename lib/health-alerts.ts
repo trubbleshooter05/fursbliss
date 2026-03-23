@@ -9,7 +9,8 @@ export type WeeklyCheckIn = {
   createdAt: Date;
 };
 
-export type HealthAlert = {
+/** UI-only red/yellow/green banner (not persisted `HealthAlert` rows) */
+export type DashboardHealthAlert = {
   level: "red" | "yellow" | "green";
   reason: string;
   actionable: string; // What the user should do
@@ -24,7 +25,7 @@ export function calculateHealthAlert(
   entries: HealthLogEntry[],
   petName: string,
   recentCheckIns?: WeeklyCheckIn[]
-): HealthAlert {
+): DashboardHealthAlert {
   // URGENT CHECK: Even with 1 entry, check for urgent symptoms
   if (entries.length > 0) {
     const urgentCheck = checkUrgentSymptomsAnyTime(entries, petName);
@@ -68,7 +69,7 @@ export function calculateHealthAlert(
   }
 
   // Default: GREEN (all clear)
-  const greenAlert: HealthAlert = {
+  const greenAlert: DashboardHealthAlert = {
     level: "green",
     reason: `All Clear: ${petName} looking stable`,
     actionable: "Keep up the tracking!",
@@ -89,7 +90,7 @@ export function calculateHealthAlert(
 function checkUrgentSymptomsAnyTime(
   allEntries: HealthLogEntry[],
   petName: string
-): HealthAlert | null {
+): DashboardHealthAlert | null {
   const urgentSymptoms = ["vomiting", "not eating", "seizure", "difficulty breathing", "collapse", "blood"];
   
   // Check last 7 days only
@@ -122,7 +123,7 @@ function checkRedAlerts(
   last7Days: HealthLogEntry[],
   allEntries: HealthLogEntry[],
   petName: string
-): HealthAlert | null {
+): DashboardHealthAlert | null {
   // 1. Symptom logged 5+ times in 7 days
   const symptomCounts = extractSymptomCounts(last7Days);
   for (const [symptom, count] of Object.entries(symptomCounts)) {
@@ -177,7 +178,7 @@ function checkYellowAlerts(
   last7Days: HealthLogEntry[],
   allEntries: HealthLogEntry[],
   petName: string
-): HealthAlert | null {
+): DashboardHealthAlert | null {
   // Get previous week for comparison
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
@@ -320,7 +321,7 @@ function capitalize(str: string): string {
 function checkWeeklyCheckInSignals(
   checkIns: WeeklyCheckIn[],
   petName: string
-): HealthAlert | null {
+): DashboardHealthAlert | null {
   // Get most recent check-in
   const latest = checkIns[0];
 

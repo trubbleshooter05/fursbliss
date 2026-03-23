@@ -3,7 +3,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import {
   getMonthlyRecommendationCount,
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Pet not found" }, { status: 404 });
     }
 
-    const isPremium = isSubscriptionActive(user);
+    const isPremium = isEffectivePremium(user, { featureUnlock: true });
     if (!isPremium) {
       const [trackingDays, monthlyCount] = await Promise.all([
         getTrackingDaysForPet(session.user.id, parsed.data.petId),

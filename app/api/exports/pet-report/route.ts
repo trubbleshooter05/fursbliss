@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    if (!isSubscriptionActive(user)) {
+    if (!isEffectivePremium(user, { featureUnlock: true })) {
       return NextResponse.json(
         { message: "Vet reports are a premium feature." },
         { status: 403 }

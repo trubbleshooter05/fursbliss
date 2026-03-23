@@ -39,12 +39,14 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
   const userCount = Number(process.env.NEXT_PUBLIC_SOCIAL_PROOF_DOG_COUNT ?? "1300");
   const initialPlan =
     searchParams?.plan === "yearly" || searchParams?.plan === "premium" ? "yearly" : "monthly";
+  const showIntroOffer = Boolean(process.env.STRIPE_INTRO_COUPON_ID);
   return (
     <PricingPageClient
       initialPlan={initialPlan}
       userCount={userCount}
       source={searchParams?.from}
       resultId={searchParams?.resultId}
+      showIntroOffer={showIntroOffer}
     />
   );
 }

@@ -12,11 +12,12 @@ import {
 
 type EnergyTrendChartProps = {
   data: { date: string; energy: number }[];
+  className?: string;
 };
 
-export function EnergyTrendChart({ data }: EnergyTrendChartProps) {
+export function EnergyTrendChart({ data, className }: EnergyTrendChartProps) {
   return (
-    <div className="h-64 w-full">
+    <div className={className ?? "h-64 w-full"}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />

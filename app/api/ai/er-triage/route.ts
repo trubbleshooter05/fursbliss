@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { sendServerMetaEvent } from "@/lib/meta-capi";
 
@@ -324,7 +324,7 @@ export async function POST(request: Request) {
     bathroomChanges: parsed.data.bathroomChanges,
     emergencyFlags: parsed.data.emergencyFlags,
   });
-  const isPremium = user ? isSubscriptionActive(user) : false;
+  const isPremium = user ? isEffectivePremium(user, { featureUnlock: true }) : false;
 
   if (!isPremium || !process.env.OPENAI_API_KEY) {
     return NextResponse.json({

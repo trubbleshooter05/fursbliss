@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { runHealthAlertEngineForPet } from "@/lib/health-alerts/engine";
 
 const logSchema = z.object({
   petId: z.string().min(1),
@@ -74,6 +75,10 @@ export async function POST(request: Request) {
         },
       });
     }
+
+    void runHealthAlertEngineForPet(parsed.data.petId).catch((err) => {
+      console.error("[logs] health alert engine", err);
+    });
 
     return NextResponse.json(log);
   } catch (error) {

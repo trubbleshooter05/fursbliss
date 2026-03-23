@@ -38,6 +38,7 @@ type PricingPageClientProps = {
   userCount: number;
   source?: string;
   resultId?: string;
+  showIntroOffer?: boolean;
 };
 
 export function PricingPageClient({
@@ -45,6 +46,7 @@ export function PricingPageClient({
   userCount,
   source,
   resultId,
+  showIntroOffer = false,
 }: PricingPageClientProps) {
   const computedInitialPlan = initialPlan;
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(computedInitialPlan);
@@ -141,7 +143,14 @@ export function PricingPageClient({
               <div className="grid gap-3 rounded-2xl bg-white/12 p-4 md:grid-cols-2">
                 <div className="rounded-xl border border-white/20 bg-white/10 p-3">
                   <p className="text-xs uppercase tracking-[0.12em] text-white/80">Monthly</p>
-                  <p className="mt-1 text-2xl font-semibold">$9/month</p>
+                  {showIntroOffer ? (
+                    <>
+                      <p className="mt-1 text-2xl font-semibold">$4.99/mo for 3 months</p>
+                      <p className="mt-0.5 text-xs text-white/80">then $9/month</p>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-2xl font-semibold">$9/month</p>
+                  )}
                 </div>
                 <div className="rounded-xl border border-white/35 bg-white/20 p-3">
                   <p className="inline-flex rounded-full bg-amber-300 px-2 py-1 text-xs font-semibold text-slate-900">

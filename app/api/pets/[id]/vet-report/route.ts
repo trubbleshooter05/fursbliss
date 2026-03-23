@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
+import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { generateVetReportPDF } from "@/lib/generate-vet-report-pdf";
 
@@ -33,7 +33,14 @@ export interface VetReadyReport {
     vetVisitsReported: number;
   };
   supplements: Array<{ name: string; dosage: string; startDate: string }>;
-  alerts: Array<{ date: string; level: "red" | "yellow" | "green"; reason: string }>;
+  alerts: Array<{
+    date: string;
+    severity: string;
+    title: string;
+    summary: string;
+    recommendation: string;
+    type: string;
+  }>;
   photos: Array<{ id: string; category: string; bodyArea: string | null; takenAt: string; imageUrl: string; notes: string | null }>;
 }
 
@@ -313,7 +320,7 @@ export async function GET(
       return new Response(JSON.stringify({ message: "User not found" }), { status: 404 });
     }
 
-    if (!isSubscriptionActive(user)) {
+    if (!isEffectivePremium(user, { featureUnlock: true })) {
       return new Response(JSON.stringify({ message: "Vet reports are a premium feature." }), { status: 403 });
     }
 
@@ -384,7 +391,14 @@ export async function GET(
           where: { petId, createdAt: { gte: thirtyDaysAgo } },
           orderBy: { createdAt: "desc" },
           take: 10,
-          select: { createdAt: true, alertLevel: true, alertReason: true },
+          select: {
+            createdAt: true,
+            severity: true,
+            title: true,
+            message: true,
+            recommendation: true,
+            alertType: true,
+          },
         }),
         prisma.petPhoto.findMany({
           where: { petId, takenAt: { gte: thirtyDaysAgo } },
@@ -515,8 +529,11 @@ export async function GET(
       ].slice(0, 8),
       alerts: alertHistory.map((a) => ({
         date: a.createdAt.toLocaleDateString("en-US"),
-        level: a.alertLevel as "red" | "yellow" | "green",
-        reason: a.alertReason,
+        severity: a.severity,
+        title: a.title,
+        summary: a.message,
+        recommendation: a.recommendation,
+        type: a.alertType,
       })),
       photos: petPhotos.map((p) => ({
         id: p.id,

@@ -24,85 +24,86 @@ enum EmailSequenceStepStatus {
 }
 
 model User {
-  id                 String   @id @default(cuid())
-  email              String   @unique
-  name               String?
-  image              String?
-  password           String
-  emailVerified      DateTime?
-  subscriptionStatus String   @default("free") // "free" or "premium"
-  subscriptionId     String?  @unique
-  subscriptionPlan   String?
-  subscriptionEndsAt DateTime?
-  stripeCustomerId   String?
-  role               String   @default("user") // "user" or "admin"
-  referralCode       String?  @unique
-  referredById       String?
-  referredBy         User?    @relation("UserReferrals", fields: [referredById], references: [id])
-  referredUsers      User[]   @relation("UserReferrals")
-  emailPreferences   Json?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @default(now()) @updatedAt
-  pets               Pet[]
-  notifications      Notification[]
-  referrals          Referral[]
-  quizSubmissions    QuizSubmission[]
+  id                       String                    @id @default(cuid())
+  email                    String                    @unique
+  name                     String?
+  image                    String?
+  password                 String
+  emailVerified            DateTime?
+  subscriptionStatus       String                    @default("free") // "free" or "premium"
+  subscriptionId           String?                   @unique
+  subscriptionPlan         String?
+  subscriptionEndsAt       DateTime?
+  stripeCustomerId         String?
+  role                     String                    @default("user") // "user" or "admin"
+  referralCode             String?                   @unique
+  referredById             String?
+  referredBy               User?                     @relation("UserReferrals", fields: [referredById], references: [id])
+  referredUsers            User[]                    @relation("UserReferrals")
+  emailPreferences         Json?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @default(now()) @updatedAt
+  pets                     Pet[]
+  notifications            Notification[]
+  referrals                Referral[]
+  quizSubmissions          QuizSubmission[]
   emailSequenceEnrollments EmailSequenceEnrollment[]
-  emailLogs          EmailLog[]
-  vetReports         VetReport[]
-  petPhotos          PetPhoto[]
+  emailLogs                EmailLog[]
+  vetReports               VetReport[]
+  petPhotos                PetPhoto[]
+  healthAlerts             HealthAlert[]
 }
 
 model Pet {
-  id                String      @id @default(cuid())
-  userId            String
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name              String
-  species           String      @default("dog")
-  breed             String
-  age               Int
-  dateOfBirth       DateTime?
-  weight            Float
-  sex               String?
-  symptoms          Json        // array of symptoms
-  photoUrl          String?
-  isActive          Boolean     @default(true)
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @default(now()) @updatedAt
-  healthLogs        HealthLog[]
-  recommendations   Recommendation[]
-  weightLogs        WeightLog[]
-  medications       Medication[]
-  doseSchedules     DoseSchedule[]
-  photoLogs         PhotoLog[]
-  supplements       PetSupplement[]
-  gutHealthLogs     GutHealthLog[]
-  aiInsights        AIInsight[]
+  id                   String                @id @default(cuid())
+  userId               String
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                 String
+  species              String                @default("dog")
+  breed                String
+  age                  Int
+  dateOfBirth          DateTime?
+  weight               Float
+  sex                  String?
+  symptoms             Json // array of symptoms
+  photoUrl             String?
+  isActive             Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @default(now()) @updatedAt
+  healthLogs           HealthLog[]
+  recommendations      Recommendation[]
+  weightLogs           WeightLog[]
+  medications          Medication[]
+  doseSchedules        DoseSchedule[]
+  photoLogs            PhotoLog[]
+  supplements          PetSupplement[]
+  gutHealthLogs        GutHealthLog[]
+  aiInsights           AIInsight[]
   longevityDrugProfile LongevityDrugProfile?
-  vetShareLinks     VetShareLink[]
-  weeklyCheckIns    WeeklyCheckIn[]
-  healthAlerts      HealthAlert[]
-  vetReports        VetReport[]
-  petPhotos         PetPhoto[]
+  vetShareLinks        VetShareLink[]
+  weeklyCheckIns       WeeklyCheckIn[]
+  healthAlerts         HealthAlert[]
+  vetReports           VetReport[]
+  petPhotos            PetPhoto[]
 }
 
 model HealthLog {
-  id             String   @id @default(cuid())
-  petId          String
-  pet            Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  date           DateTime @default(now())
-  energyLevel    Int      // 1-10 scale
-  appetite       String?
-  mood           String?
-  mobilityLevel  Int?
-  moodLevel      Int?
-  appetiteLevel  Int?
-  symptoms       String?
-  notes          String?
-  weight         Float?
-  photoUrl       String?
-  improvements   Boolean  @default(false)
-  createdAt      DateTime @default(now())
+  id            String   @id @default(cuid())
+  petId         String
+  pet           Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  date          DateTime @default(now())
+  energyLevel   Int // 1-10 scale
+  appetite      String?
+  mood          String?
+  mobilityLevel Int?
+  moodLevel     Int?
+  appetiteLevel Int?
+  symptoms      String?
+  notes         String?
+  weight        Float?
+  photoUrl      String?
+  improvements  Boolean  @default(false)
+  createdAt     DateTime @default(now())
 
   @@index([petId, date(sort: Desc)])
 }
@@ -127,50 +128,50 @@ model WeightLog {
 }
 
 model Medication {
-  id        String   @id @default(cuid())
-  petId     String
-  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  name      String
+  id           String    @id @default(cuid())
+  petId        String
+  pet          Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  name         String
   prescribedBy String?
-  dosage    String
-  frequency String
-  startDate DateTime?
-  endDate   DateTime?
-  reason    String?
-  notes     String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
+  dosage       String
+  frequency    String
+  startDate    DateTime?
+  endDate      DateTime?
+  reason       String?
+  notes        String?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
 }
 
 model DoseSchedule {
-  id            String   @id @default(cuid())
-  petId         String
-  pet           Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  supplementId  String?
-  supplement    PetSupplement? @relation(fields: [supplementId], references: [id], onDelete: Cascade)
-  supplementName String
-  dosage        String
-  frequency     String
-  times         Json
-  scheduledTime String?
-  daysOfWeek    String?
-  notes         String?
-  active        Boolean  @default(true)
+  id              String           @id @default(cuid())
+  petId           String
+  pet             Pet              @relation(fields: [petId], references: [id], onDelete: Cascade)
+  supplementId    String?
+  supplement      PetSupplement?   @relation(fields: [supplementId], references: [id], onDelete: Cascade)
+  supplementName  String
+  dosage          String
+  frequency       String
+  times           Json
+  scheduledTime   String?
+  daysOfWeek      String?
+  notes           String?
+  active          Boolean          @default(true)
   lastCompletedAt DateTime?
-  createdAt     DateTime @default(now())
+  createdAt       DateTime         @default(now())
   doseCompletions DoseCompletion[]
 }
 
 model PhotoLog {
-  id         String   @id @default(cuid())
-  petId      String
-  pet        Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  petId       String
+  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
   healthLogId String?
-  imageUrl   String
-  category   String?
-  caption    String?
-  aiAnalysis String?
-  createdAt  DateTime @default(now())
+  imageUrl    String
+  category    String?
+  caption     String?
+  aiAnalysis  String?
+  createdAt   DateTime @default(now())
 }
 
 model Notification {
@@ -202,39 +203,39 @@ model PasswordResetToken {
 }
 
 model Referral {
-  id            String   @id @default(cuid())
-  code          String
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invitedEmail  String?
-  redeemedById  String?
-  redeemedAt    DateTime?
-  createdAt     DateTime @default(now())
+  id           String    @id @default(cuid())
+  code         String
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitedEmail String?
+  redeemedById String?
+  redeemedAt   DateTime?
+  createdAt    DateTime  @default(now())
 }
 
 model PetSupplement {
-  id        String   @id @default(cuid())
-  petId     String
-  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  name      String
-  brand     String?
-  dosage    String
-  frequency String
-  startDate DateTime?
-  endDate   DateTime?
-  isActive  Boolean  @default(true)
-  category  String
-  notes     String?
-  createdAt DateTime @default(now())
+  id            String         @id @default(cuid())
+  petId         String
+  pet           Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+  name          String
+  brand         String?
+  dosage        String
+  frequency     String
+  startDate     DateTime?
+  endDate       DateTime?
+  isActive      Boolean        @default(true)
+  category      String
+  notes         String?
+  createdAt     DateTime       @default(now())
   doseSchedules DoseSchedule[]
 }
 
 model DoseCompletion {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   scheduleId  String
   schedule    DoseSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  completedAt DateTime @default(now())
-  skipped     Boolean  @default(false)
+  completedAt DateTime     @default(now())
+  skipped     Boolean      @default(false)
   notes       String?
 }
 
@@ -264,29 +265,29 @@ model AIInsight {
 }
 
 model LongevityDrugProfile {
-  id                  String   @id @default(cuid())
-  petId               String   @unique
-  pet                 Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  loy002Eligible      Boolean  @default(false)
-  loy002Interest      Boolean  @default(false)
+  id                  String             @id @default(cuid())
+  petId               String             @unique
+  pet                 Pet                @relation(fields: [petId], references: [id], onDelete: Cascade)
+  loy002Eligible      Boolean            @default(false)
+  loy002Interest      Boolean            @default(false)
   loy002Notes         String?
-  onRapamycin         Boolean  @default(false)
+  onRapamycin         Boolean            @default(false)
   rapamycinDosage     String?
   rapamycinStartDate  DateTime?
   rapamycinPrescriber String?
   rapamycinFrequency  String?
   currentDrugs        String?
-  bloodworkUploaded   Boolean  @default(false)
+  bloodworkUploaded   Boolean            @default(false)
   lastBloodworkDate   DateTime?
   doseLogs            RapamycinDoseLog[]
 }
 
 model RapamycinDoseLog {
-  id            String   @id @default(cuid())
+  id            String               @id @default(cuid())
   drugProfileId String
   drugProfile   LongevityDrugProfile @relation(fields: [drugProfileId], references: [id], onDelete: Cascade)
-  date          DateTime @default(now())
-  given         Boolean  @default(true)
+  date          DateTime             @default(now())
+  given         Boolean              @default(true)
   sideEffects   String?
   notes         String?
 }
@@ -418,55 +419,83 @@ model EmailSequenceStep {
 }
 
 model EmailEvent {
-  id         String   @id @default(cuid())
-  messageId  String
-  eventType  String
-  eventAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  messageId   String
+  eventType   String
+  eventAt     DateTime @default(now())
   payloadJson Json
-  createdAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
 
   @@index([messageId])
   @@index([eventType, eventAt])
 }
 
 model WeeklyCheckIn {
-  id             String   @id @default(cuid())
-  userId         String
-  petId          String
-  pet            Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  weekStartDate  DateTime // Monday of the week being reported
-  newSymptoms    Boolean  @default(false)
-  symptomDetails String?
-  energyLevel    String   // "better", "same", "worse"
-  appetite       String   // "better", "same", "worse"
-  vetVisit       Boolean  @default(false)
+  id              String   @id @default(cuid())
+  userId          String
+  petId           String
+  pet             Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  weekStartDate   DateTime // Monday of the week being reported
+  newSymptoms     Boolean  @default(false)
+  symptomDetails  String?
+  energyLevel     String // "better", "same", "worse"
+  appetite        String // "better", "same", "worse"
+  vetVisit        Boolean  @default(false)
   vetVisitDetails String?
-  notes          String?
-  createdAt      DateTime @default(now())
+  notes           String?
+  createdAt       DateTime @default(now())
 
   @@index([petId, weekStartDate])
   @@index([userId, createdAt])
 }
 
+/// Proactive alerts: trends, breed risks, symptom patterns (replaces legacy red/yellow rows)
 model HealthAlert {
-  id          String    @id @default(cuid())
-  petId       String
-  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
-  userId      String
-  alertLevel  String    // "red", "yellow", "green"
-  alertReason String    // Human-readable description
-  createdAt   DateTime  @default(now())
-  resolvedAt  DateTime?
+  id             String           @id @default(cuid())
+  petId          String
+  pet            Pet              @relation(fields: [petId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alertType      String // trend_decline | breed_risk | symptom_pattern | vet_reminder
+  severity       String // info | warning | urgent
+  title          String
+  message        String
+  recommendation String
+  metric         String? // mobility | appetite | energy
+  trendData      Json?
+  read           Boolean          @default(false)
+  emailSent      Boolean          @default(false)
+  breedRiskId    String?
+  breedRisk      BreedHealthRisk? @relation(fields: [breedRiskId], references: [id], onDelete: SetNull)
+  createdAt      DateTime         @default(now())
 
-  @@index([petId, resolvedAt])
-  @@index([userId, alertLevel, resolvedAt])
+  @@unique([petId, breedRiskId])
+  @@index([petId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([petId, read])
+}
+
+model BreedHealthRisk {
+  id             String        @id @default(cuid())
+  breed          String
+  condition      String
+  riskLevel      String
+  ageOnset       Int
+  description    String
+  recommendation String
+  createdAt      DateTime      @default(now())
+  healthAlerts   HealthAlert[]
+
+  @@unique([breed, condition])
+  @@index([breed])
 }
 
 model EmailLog {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emailType String   // "health-alert" | "weekly-checkin" | "email-drip"
+  emailType String // "health-alert" | "weekly-checkin" | "email-drip"
   sentAt    DateTime @default(now())
 
   @@index([userId, sentAt])
@@ -491,8 +520,8 @@ model PetPhoto {
   petId     String
   userId    String
   imageUrl  String
-  category  String   // "lump", "skin", "eye", "teeth", "wound", "mobility", "other"
-  bodyArea  String?  // "left_hip", "right_ear", "abdomen", "mouth", etc.
+  category  String // "lump", "skin", "eye", "teeth", "wound", "mobility", "other"
+  bodyArea  String? // "left_hip", "right_ear", "abdomen", "mouth", etc.
   notes     String?
   takenAt   DateTime
   createdAt DateTime @default(now())

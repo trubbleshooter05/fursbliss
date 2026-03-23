@@ -247,3 +247,37 @@ export async function sendSevenDayInsightEmail(
 
   return sendEmail({ to: email, subject, html, text });
 }
+
+/** One-shot product email: proactive health insights launch (existing users, first pet name in subject). */
+export async function sendHealthInsightsLaunchEmail(
+  to: string,
+  dogName: string,
+  petId: string,
+  options?: { idempotencyKey?: string }
+) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
+  const openUrl = `${appUrl}/pets/${petId}#health-alerts`;
+  const subject = `We added something to ${dogName}'s profile`;
+  const body =
+    "FursBliss now analyzes your daily logs and alerts you when it detects declining trends — mobility drops, breed-specific risks, symptom patterns. If you've been logging, you may already have insights waiting.";
+  const text = `${body}\n\nOpen FursBliss →\n${openUrl}\n`;
+  const html = `
+    <div style="font-family: system-ui, -apple-system, sans-serif; color: #111827; line-height: 1.6; max-width: 560px;">
+      <p style="margin: 0 0 16px;">${body}</p>
+      <p style="margin: 0;">
+        <a href="${openUrl}" style="color: #059669; font-weight: 600;">Open FursBliss →</a>
+      </p>
+      <p style="margin: 24px 0 0; font-size: 12px; color: #6B7280;">
+        You’re receiving this because you have a FursBliss account.
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    text,
+    idempotencyKey: options?.idempotencyKey,
+  });
+}

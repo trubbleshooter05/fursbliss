@@ -15,6 +15,11 @@ const comparisonRows = [
   { feature: "Daily health tracking dashboard", free: "Basic view", premium: "Full dashboard + history" },
   { feature: "Health history", free: "Last 30 days only", premium: "Full history forever" },
   { feature: "AI-powered health trend alerts", free: "Not included", premium: "Included" },
+  {
+    feature: "Proactive health insights (trends, breed risks, symptom patterns)",
+    free: "Preview: alert titles only",
+    premium: "Full recommendations, vet-ready next steps, email alerts for urgent issues",
+  },
   { feature: "Red/Yellow/Green health flags", free: "Not included", premium: "Included" },
   { feature: "Pattern detection alerts", free: "Preview only", premium: "Full details" },
   {

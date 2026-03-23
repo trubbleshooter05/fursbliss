@@ -98,8 +98,24 @@ export default async function PetDetailPage({ params, searchParams }: PetDetailP
     pet.healthLogs.map((log) => log.date.toISOString().slice(0, 10))
   ).size;
 
+  const unreadHealthInsights = await prisma.healthAlert.count({
+    where: { petId: id, userId, read: false },
+  });
+
   return (
     <div className="space-y-8">
+      {unreadHealthInsights > 0 ? (
+        <Link
+          href="#health-alerts"
+          className="flex items-center justify-between gap-3 rounded-xl border border-amber-400/80 bg-amber-100 px-4 py-3 text-amber-950 shadow-sm transition hover:bg-amber-200/90"
+        >
+          <span className="text-sm font-semibold">
+            {unreadHealthInsights} new health insight{unreadHealthInsights === 1 ? "" : "s"} available
+          </span>
+          <span className="text-sm font-medium text-amber-900 underline">View →</span>
+        </Link>
+      ) : null}
+
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold text-slate-900">{pet.name}</h1>

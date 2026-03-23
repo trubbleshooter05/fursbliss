@@ -11,7 +11,8 @@
     "lint": "next lint",
     "seed": "ts-node prisma/seed.ts",
     "db:stats": "npx tsx scripts/db-stats.ts",
-    "seed:breed-risks": "npx tsx prisma/seed-breed-risks.ts"
+    "seed:breed-risks": "npx tsx prisma/seed-breed-risks.ts",
+    "email:health-insights-launch": "npx tsx scripts/send-health-insights-launch-email.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

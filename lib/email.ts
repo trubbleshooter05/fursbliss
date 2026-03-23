@@ -248,6 +248,19 @@ export async function sendSevenDayInsightEmail(
   return sendEmail({ to: email, subject, html, text });
 }
 
+/** Public site URL for outbound emails — never use localhost (dev .env would break real users’ links). */
+export function getPublicAppUrlForEmails(): string {
+  const explicit = process.env.EMAIL_PUBLIC_APP_URL?.trim();
+  if (explicit) {
+    return explicit.replace(/\/$/, "");
+  }
+  const nu = process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
+  if (nu.length > 0 && !/localhost|127\.0\.0\.1/i.test(nu)) {
+    return nu.replace(/\/$/, "");
+  }
+  return "https://www.fursbliss.com";
+}
+
 /** One-shot product email: proactive health insights launch (existing users, first pet name in subject). */
 export async function sendHealthInsightsLaunchEmail(
   to: string,
@@ -255,7 +268,7 @@ export async function sendHealthInsightsLaunchEmail(
   petId: string,
   options?: { idempotencyKey?: string }
 ) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
+  const appUrl = getPublicAppUrlForEmails();
   const openUrl = `${appUrl}/pets/${petId}#health-alerts`;
   const subject = `We added something to ${dogName}'s profile`;
   const body =

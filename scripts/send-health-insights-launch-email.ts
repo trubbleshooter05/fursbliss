@@ -7,7 +7,7 @@
  */
 import "./load-env";
 import { prisma } from "../lib/prisma";
-import { sendHealthInsightsLaunchEmail } from "../lib/email";
+import { getPublicAppUrlForEmails, sendHealthInsightsLaunchEmail } from "../lib/email";
 
 const SEND = process.argv.includes("--send");
 const limitArg = process.argv.find((a) => a.startsWith("--limit="));
@@ -47,7 +47,9 @@ async function main() {
       console.log(`  - ${u.email} → ${p.name} (${p.id})`);
     }
     if (recipients.length > 15) console.log(`  ... and ${recipients.length - 15} more`);
-    console.log("\nRe-run with --send to actually send (requires RESEND_API_KEY, NEXT_PUBLIC_APP_URL).");
+    console.log(
+      "\nRe-run with --send to actually send (requires RESEND_API_KEY). Links use production URL (localhost in .env is ignored)."
+    );
     return;
   }
 
@@ -61,12 +63,14 @@ async function main() {
     process.exit(1);
   }
 
+  console.log(`Links will use: ${getPublicAppUrlForEmails()}\n`);
+
   let ok = 0;
   let fail = 0;
   let skipped = 0;
   for (const u of recipients) {
     const pet = u.pets[0]!;
-    const idempotencyKey = `health-insights-launch-2026-03:${u.id}`;
+    const idempotencyKey = `health-insights-launch-2026-03-v2:${u.id}`;
     try {
       const result = await sendHealthInsightsLaunchEmail(u.email, pet.name, pet.id, { idempotencyKey });
       if (result.queued) {

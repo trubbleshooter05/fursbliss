@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { runHealthAlertEngineForAllEligiblePets } from "@/lib/health-alerts/engine";
 import { ProactiveHealthAlertEmail } from "@/components/emails/proactive-health-alert-email";
 import { logEmailSent } from "@/lib/email-throttle";
+import { getPublicAppUrlForEmails } from "@/lib/email";
 import { isEffectivePremium } from "@/lib/subscription";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
     let notificationsCreated = 0;
     let emailsSent = 0;
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
+    const appUrl = getPublicAppUrlForEmails();
 
     for (const a of newAlerts) {
       if (a.severity === "warning" || a.severity === "urgent") {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reportCronFailure } from "@/lib/cron-monitoring";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import {
@@ -118,6 +119,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  try {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
   const startedAt = Date.now();
   const dueSteps = await getDueEmailSequenceSteps(MAX_STEPS_PER_RUN);
@@ -373,4 +375,11 @@ export async function GET(request: Request) {
     deferred,
     runtimeMs: Date.now() - startedAt,
   });
+  } catch (error) {
+    reportCronFailure("email-drip", error);
+    return NextResponse.json(
+      { success: false, error: String(error) },
+      { status: 500 }
+    );
+  }
 }

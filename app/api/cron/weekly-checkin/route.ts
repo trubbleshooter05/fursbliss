@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reportCronFailure } from "@/lib/cron-monitoring";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { WeeklyCheckInEmail, WeeklyCheckInEmailText } from "@/components/emails/weekly-checkin-email";
@@ -160,6 +161,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[Weekly Check-In] Cron job error:", error);
+    reportCronFailure("weekly-checkin", error);
     return NextResponse.json(
       { message: "Cron job failed", error: String(error) },
       { status: 500 }

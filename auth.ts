@@ -1,3 +1,4 @@
+// Auth.js / next-auth v5 is still pre-stable — pin versions in lockfile and re-test Google + credentials after upgrades.
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { reportCronFailure } from "@/lib/cron-monitoring";
 import { prisma } from "@/lib/prisma";
 import { runHealthAlertEngineForAllEligiblePets } from "@/lib/health-alerts/engine";
 import { ProactiveHealthAlertEmail } from "@/components/emails/proactive-health-alert-email";
@@ -139,6 +140,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[Health Alerts] Error:", error);
+    reportCronFailure("health-alerts", error);
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }

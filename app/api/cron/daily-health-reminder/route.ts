@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reportCronFailure } from "@/lib/cron-monitoring";
 import { prisma } from "@/lib/prisma";
 import { sendDailyHealthReminderEmail } from "@/lib/email";
 
@@ -15,6 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  try {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -97,4 +99,11 @@ export async function POST(request: Request) {
     usersProcessed: users.length,
     emailsQueued,
   });
+  } catch (error) {
+    reportCronFailure("daily-health-reminder", error);
+    return NextResponse.json(
+      { success: false, error: String(error) },
+      { status: 500 }
+    );
+  }
 }

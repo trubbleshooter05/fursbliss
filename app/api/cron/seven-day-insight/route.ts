@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reportCronFailure } from "@/lib/cron-monitoring";
 import { prisma } from "@/lib/prisma";
 import { sendSevenDayInsightEmail } from "@/lib/email";
 
@@ -15,6 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  try {
   // Find users who have 7+ logged days for their primary pet and haven't received the 7-day email
   const usersWithSevenDays = await prisma.user.findMany({
     where: {
@@ -130,4 +132,11 @@ export async function POST(request: Request) {
     usersChecked: usersWithSevenDays.length,
     emailsSent,
   });
+  } catch (error) {
+    reportCronFailure("seven-day-insight", error);
+    return NextResponse.json(
+      { success: false, error: String(error) },
+      { status: 500 }
+    );
+  }
 }

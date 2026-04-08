@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reportCronFailure } from "@/lib/cron-monitoring";
 import { prisma } from "@/lib/prisma";
 
 function isAuthorized(request: Request) {
@@ -15,6 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  try {
   const now = new Date();
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -76,4 +78,11 @@ export async function POST(request: Request) {
     candidatesChecked: candidates.length,
     awarded,
   });
+  } catch (error) {
+    reportCronFailure("trial-extension", error);
+    return NextResponse.json(
+      { success: false, error: String(error) },
+      { status: 500 }
+    );
+  }
 }

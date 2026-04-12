@@ -8,6 +8,15 @@ export type BlogPostMeta = {
 
 export const blogPosts: BlogPostMeta[] = [
   {
+    slug: "loy-002-tas-wave-manufacturing-next-step",
+    title:
+      "The LOY-002 TAS Wave: Why the Story Is Everywhere—and Why Manufacturing Still Gates Approval",
+    excerpt:
+      "Target Animal Safety is FDA-accepted; CMC/manufacturing is still the last major section. What the coverage wave means, what it doesn’t, and how FursBliss helps you get approval-ready at home.",
+    date: "2026-04-11",
+    updatedAt: "2026-04-11",
+  },
+  {
     slug: "loy-002-fda-timeline",
     title: "LOY-002 FDA Approval Timeline: Manufacturing & Realistic Dates (2026–2028)",
     excerpt:

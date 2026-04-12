@@ -2,33 +2,45 @@
 
 ## ✅ BLOG POSTS - Submit These URLs
 
-All blog posts are now in the sitemap and should be submitted to GSC for faster indexing:
+All blog posts are in `lib/content/blog-posts.ts` (and therefore in `sitemap.xml`). Submit new or high-priority URLs in GSC for faster indexing:
 
-1. **Rapamycin for Dogs Guide** (NEW - just added to sitemap)
+1. **LOY-002 TAS wave / manufacturing next step** (newest)
+   ```
+   https://www.fursbliss.com/blog/loy-002-tas-wave-manufacturing-next-step
+   ```
+   Published: Apr 11, 2026
+
+2. **LOY-002 FDA timeline (manufacturing step)**
+   ```
+   https://www.fursbliss.com/blog/loy-002-fda-timeline
+   ```
+   Published: Mar 22, 2026
+
+3. **Rapamycin for Dogs Guide**
    ```
    https://www.fursbliss.com/blog/rapamycin-for-dogs-2026-guide
    ```
    Published: Feb 20, 2026
 
-2. **LOY-002 vs Rapamycin Comparison**
+4. **LOY-002 vs Rapamycin Comparison**
    ```
    https://www.fursbliss.com/blog/loy-002-vs-rapamycin-triad-2026-update
    ```
    Published: Feb 14, 2026
 
-3. **Loyal Series C Funding**
+5. **Loyal Series C Funding**
    ```
    https://www.fursbliss.com/blog/loyal-series-c-funding-feb-2026
    ```
    Published: Feb 11, 2026
 
-4. **How to Spot Fake Dog Health Advice**
+6. **How to Spot Fake Dog Health Advice**
    ```
    https://www.fursbliss.com/blog/how-to-spot-fake-dog-health-advice-social-media
    ```
    Published: Feb 8, 2026
 
-5. **Loyal Series C $100M** (older post)
+7. **Loyal Series C $100M** (older post)
    ```
    https://www.fursbliss.com/blog/loyal-series-c-100m-loy-002-update
    ```
@@ -111,14 +123,14 @@ I found one blog post folder that exists but wasn't in the sitemap:
 3. Click "URL Inspection" in left sidebar
 4. Paste each blog post URL above
 5. Click "Request Indexing"
-6. Repeat for all 4-5 blog posts
+6. Repeat for any new or updated URLs (or run **Sitemaps → resubmit** `sitemap.xml` after deploy)
 
-**Priority order:**
-1. Rapamycin guide (newest, high SEO value)
-2. ER Triage tool (conversion page)
-3. LOY-002 vs Rapamycin (comparison content)
+**Priority order (after each deploy):**
+1. Newest blog post(s) — e.g. LOY-002 TAS wave (timely news)
+2. LOY-002 FDA timeline (pillar timeline content)
+3. ER Triage tool (conversion page)
 4. Quiz (conversion page)
-5. Other blog posts
+5. Other blog posts as needed
 
 ## ✅ AUTOMATIC INDEXING
 
@@ -137,4 +149,4 @@ This sitemap is automatically submitted to Google by Next.js and includes:
 - Longevity drugs hub
 - Quiz, triage, walks-left
 
-**Last updated:** March 5, 2026 (just pushed the rapamycin post addition)
+**Last updated:** April 11, 2026 (LOY-002 TAS wave post; align list with `blog-posts.ts` + deploy, then GSC URL inspection or sitemap ping)

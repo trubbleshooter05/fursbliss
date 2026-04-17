@@ -8,6 +8,14 @@ export type BlogPostMeta = {
 
 export const blogPosts: BlogPostMeta[] = [
   {
+    slug: "loy-002-fda-status-2026",
+    title: "LOY-002 FDA Status (2026 Update): What Dog Owners Should Know",
+    excerpt:
+      "A factual snapshot of LOY-002’s FDA pathway: which sections are accepted, what’s still pending (CMC), and estimates labeled as estimates—not guarantees. Not veterinary advice.",
+    date: "2026-04-12",
+    updatedAt: "2026-04-12",
+  },
+  {
     slug: "loy-002-tas-wave-manufacturing-next-step",
     title:
       "The LOY-002 TAS Wave: Why the Story Is Everywhere—and Why Manufacturing Still Gates Approval",

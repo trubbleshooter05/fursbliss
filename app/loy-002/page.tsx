@@ -46,6 +46,18 @@ export default function Loy002Page() {
             efficacy and safety sections accepted and manufacturing review still in progress.
             Conditional approval could potentially land in late 2026 to 2027 depending on review.
           </p>
+          <p className="text-base">
+            <Link
+              href="/blog/loy-002-fda-status-2026"
+              className="font-semibold text-emerald-700 underline underline-offset-4 hover:text-emerald-800"
+            >
+              Read: LOY-002 FDA status (2026 update) on the FursBliss blog
+            </Link>
+            <span className="text-muted-foreground">
+              {" "}
+              — factual overview of what’s accepted, what’s pending, and how to read timelines.
+            </span>
+          </p>
         </section>
 
         <Card className="rounded-2xl border-border bg-card">

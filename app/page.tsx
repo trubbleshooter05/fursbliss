@@ -114,6 +114,13 @@ const howItWorks = [
 
 const publicPreviewItems = [
   {
+    title: "LOY-002 FDA status (2026 update)",
+    description:
+      "See which regulatory sections are accepted, what’s still pending (manufacturing/CMC), and how to read timelines conservatively.",
+    href: "/blog/loy-002-fda-status-2026",
+    cta: "Read FDA status guide",
+  },
+  {
     title: "Read urgent symptom guides",
     description: "Get fast, plain-English answers for common panic symptoms and next-step urgency.",
     href: "/symptoms",
@@ -238,6 +245,15 @@ export default async function Home() {
               </div>
               <p className="text-sm text-white/85">
                 Join 1,200+ dog owners preparing for LOY-002
+              </p>
+              <p className="text-sm text-white/95">
+                <Link
+                  href="/blog/loy-002-fda-status-2026"
+                  className="font-semibold text-white underline decoration-white/60 underline-offset-4 transition hover:decoration-white"
+                >
+                  LOY-002 FDA status (2026): what’s accepted vs. still pending
+                </Link>
+                <span className="text-white/80"> — read the factual blog breakdown</span>
               </p>
             </AnimateIn>
 
@@ -450,6 +466,15 @@ export default async function Home() {
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Join now to get timeline alerts and be ready before demand spikes.
+                </p>
+                <p className="mt-3 text-sm">
+                  <Link
+                    href="/blog/loy-002-fda-status-2026"
+                    className="font-semibold text-emerald-800 underline underline-offset-4 hover:text-emerald-900"
+                  >
+                    LOY-002 FDA status (2026 update)
+                  </Link>
+                  <span className="text-muted-foreground"> — conservative, factual breakdown on the blog</span>
                 </p>
               </div>
               <Button size="lg" className="bg-accent text-accent-foreground hover:scale-[1.02] transition-all duration-300" asChild>

@@ -1,1 +1,24 @@
-# Vercel should not run Prisma migrations automatically
+# Version control & OS noise
+.git
+.DS_Store
+
+# Dependencies — installed on Vercel during build
+node_modules
+
+# Next.js — cache only; source lives elsewhere; build outputs fresh on Vercel
+.next/cache
+
+# TypeScript incremental build artifacts
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Logs
+*.log
+
+# Local research / scratch (not app runtime)
+market-intel
+
+# Test coverage & temp dirs
+coverage
+tmp
+temp

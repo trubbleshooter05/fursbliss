@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -151,12 +152,20 @@ export default async function LongevityDrugsPage() {
             manufacturing review remaining before XCA filing. Conditional approval
             could arrive as early as 2026 depending on manufacturing review timing.
           </p>
-          <a
-            href="https://www.businesswire.com/news/home/20260113476778/"
-            className="inline-block text-sm font-medium text-emerald-700 hover:underline"
-          >
-            Source: BusinessWire Jan 2026 update
-          </a>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
+            <a
+              href="https://www.businesswire.com/news/home/20260113476778/"
+              className="inline-block text-sm font-medium text-emerald-700 hover:underline"
+            >
+              Source: BusinessWire Jan 2026 update
+            </a>
+            <Link
+              href="/blog/loy-002-fda-status-2026"
+              className="inline-block text-sm font-medium text-emerald-800 hover:underline"
+            >
+              FursBliss explainer: LOY-002 milestone breakdown
+            </Link>
+          </div>
           </AnimateIn>
           </div>
         </section>

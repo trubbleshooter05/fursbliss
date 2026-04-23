@@ -1,0 +1,25 @@
+{
+  "id": "market-intel-daily",
+  "name": "Market Intel Daily",
+  "prompt": "Discover high-potential SaaS opportunities from trends, Reddit, HN, Autocomplete, Product Hunt",
+  "skills": ["research/market-intel"],
+  "skill": "research/market-intel",
+  "model": "openai/gpt-4o-mini",
+  "provider": "openai",
+  "base_url": "https://api.openai.com/v1",
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 11 * * *",
+    "display": "Daily 11:00 AM"
+  },
+  "enabled": true,
+  "state": "scheduled",
+  "deliver": "telegram",
+  "timeout_seconds": 300,
+  "on_failure": {
+    "retry_count": 1,
+    "retry_delay_minutes": 10,
+    "notify": true
+  },
+  "capture_logs": true
+}

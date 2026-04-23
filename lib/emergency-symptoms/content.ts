@@ -4,6 +4,7 @@ export const SYMPTOM_PAGE_ORDER = [
   "vomiting-yellow-foam",
   "vomiting-white-foam",
   "fever",
+  "dog-fever",
   "vomiting",
   "make-dog-throw-up",
   "choking",
@@ -19,9 +20,9 @@ export type SymptomSlug = (typeof SYMPTOM_PAGE_ORDER)[number];
 const pages: Record<SymptomSlug, SymptomPageDefinition> = {
   "vomiting-yellow-foam": {
     slug: "vomiting-yellow-foam",
-    metaTitle: "Dog Vomiting Yellow Foam: Emergency or Wait? | FursBliss",
+    metaTitle: "Dog Vomiting Yellow Foam: Should You Worry? | FursBliss",
     metaDescription:
-      "Yellow foam vomit in dogs often means bile on an empty stomach—but it can also signal illness. Learn red flags, when to call the vet, and safe next steps.",
+      "Yellow foam usually isn’t a diagnosis—it’s a clue. See when to monitor vs when to call today, what to tell your vet, and a free checker to sort urgency.",
     h1: "Dog Vomiting Yellow Foam: Should You Worry?",
     quickAnswer: {
       urgency: "monitor",
@@ -67,9 +68,9 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
 
   "vomiting-white-foam": {
     slug: "vomiting-white-foam",
-    metaTitle: "Dog Vomiting White Foam: Causes & When to Call the Vet | FursBliss",
+    metaTitle: "Dog Vomiting White Foam: Should You Worry? | FursBliss",
     metaDescription:
-      "Dog vomiting white foam: common causes (saliva, nausea, cough-then-gag) vs ER signs. Plain-English red flags, what to do next, and a free symptom checker—informational only.",
+      "White foam can be scary fast. Learn cough vs vomit, ER red flags, what to film for your vet, and when “one gag” is different from repeat episodes.",
     h1: "Dog Vomiting White Foam: What It Can Mean",
     quickAnswer: {
       urgency: "monitor",
@@ -115,9 +116,9 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
 
   fever: {
     slug: "fever",
-    metaTitle: "Dog Fever Treatment: Safe Steps & When to Call the Vet | FursBliss",
+    metaTitle: "Dog Fever: What to Do Before You Treat at Home | FursBliss",
     metaDescription:
-      "Dog fever treatment is not a DIY project. Learn safe steps, why human pain/fever meds are dangerous, vomiting+fever cues, and when same-day vet contact is reasonable.",
+      "Think your dog has a fever? Skip guesswork and risky human meds. Learn how to confirm, what warrants same-day care, and what to say on the phone.",
     h1: "Dog Fever Treatment: What to Know Before You Act",
     quickAnswer: {
       urgency: "vet-soon",
@@ -158,7 +159,54 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
           "Offer water unless your vet has restricted fluids, keep your dog comfortable, and call for triage—especially if appetite drops, breathing changes, or energy is off.",
       },
     ],
-    relatedSlugs: ["should-i-go-to-the-vet", "vomiting", "rapid-breathing-at-rest"],
+    relatedSlugs: ["dog-fever", "should-i-go-to-the-vet", "vomiting", "rapid-breathing-at-rest"],
+  },
+
+  "dog-fever": {
+    slug: "dog-fever",
+    metaTitle: "Dog Fever Treatment: What to Do First | FursBliss",
+    metaDescription:
+      "Dog fever treatment starts with your vet—not kitchen cures. Safe first steps, toxic human drugs to avoid, and when fever plus vomiting means faster escalation.",
+    h1: "Dog Fever Treatment: What to Do First",
+    quickAnswer: {
+      urgency: "vet-soon",
+      body:
+        "“Dog fever treatment” at home rarely fixes the underlying problem—and some human fever reducers are dangerous for dogs. Your vet can interpret a temperature with symptoms and guide next steps. This page is educational, not a prescription.",
+    },
+    vetNowBullets: [
+      "Collapse, seizures, trouble breathing, or won’t respond normally",
+      "Heat exposure, hot car, or heavy panting with distress",
+      "Non-stop vomiting or diarrhea with weakness—especially puppies",
+      "Known toxin or medication overdose",
+    ],
+    commonReasons: [
+      "Infection (many sources—often needs testing, not guessing)",
+      "Inflammation, pain, or immune-related illness",
+      "Stress or excitement can nudge temperature—context matters",
+    ],
+    nextSteps: [
+      "If you can take a rectal temperature safely, write the number, time, and symptoms before you call.",
+      "Offer water unless your vet has told you to restrict fluids.",
+      "Do not give ibuprofen, acetaminophen, or other human meds unless your vet prescribes.",
+    ],
+    faqs: [
+      {
+        question: "Can I treat dog fever with medicine I have at home?",
+        answer:
+          "Only if your veterinarian tells you exactly what to use and how much. Many human products are toxic to dogs.",
+      },
+      {
+        question: "Is a warm nose proof of fever?",
+        answer:
+          "No—nose and ear warmth are unreliable. A pet rectal thermometer is the practical check when your vet agrees it’s appropriate.",
+      },
+      {
+        question: "Does fever plus vomiting change urgency?",
+        answer:
+          "Often yes—dehydration and overlapping signs can worsen quickly. Mention both when you call.",
+      },
+    ],
+    relatedSlugs: ["fever", "should-i-go-to-the-vet", "vomiting"],
   },
 
   vomiting: {
@@ -210,9 +258,9 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
 
   "make-dog-throw-up": {
     slug: "make-dog-throw-up",
-    metaTitle: "How Do I Make a Dog Throw Up? Vet-Only Guidance | FursBliss",
+    metaTitle: "Should You Make Your Dog Throw Up? Read This First | FursBliss",
     metaDescription:
-      "How do I make a dog throw up is a high-stakes question. Learn why home induction is not a default move, what can go wrong, and what to do instead with poison control or your vet.",
+      "Inducing vomit can help—or harm—depending on timing and substance. See when only a vet or poison line should say yes, and what to do instead.",
     h1: "How Do I Make a Dog Throw Up? What Dog Owners Should Know",
     quickAnswer: {
       urgency: "emergency",
@@ -255,9 +303,9 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
 
   choking: {
     slug: "choking",
-    metaTitle: "Dog Choking: What to Do in the Next Few Minutes | FursBliss",
+    metaTitle: "Dog Choking: What to Do Immediately | FursBliss",
     metaDescription:
-      "Dog choking what to do: tell airway distress from coughing, when to go to the ER, why vomit-induction is usually wrong, and when poisoning is a different emergency.",
+      "True choking is minutes-level urgency. Learn airway vs cough, why “make them vomit” is usually wrong, and what to tell the ER en route.",
     h1: "Dog Choking: What to Do",
     quickAnswer: {
       urgency: "emergency",
@@ -302,9 +350,9 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
 
   "ate-chocolate": {
     slug: "ate-chocolate",
-    metaTitle: "Dog Ate Chocolate: What to Do (Size, Type & Urgency)",
+    metaTitle: "Dog Ate Chocolate? What to Do Right Now | FursBliss",
     metaDescription:
-      "Chocolate risk depends on dose and type. Learn what info your vet or poison hotline needs, why timing matters, and when to go straight to the ER.",
+      "Type, amount, and your dog’s size decide risk—not panic level. Grab wrappers, read this checklist, then call your vet or poison control with facts.",
     h1: "Dog Ate Chocolate: What to Do",
     quickAnswer: {
       urgency: "emergency",
@@ -347,9 +395,9 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
 
   "should-i-go-to-the-vet": {
     slug: "should-i-go-to-the-vet",
-    metaTitle: "Should I Take My Dog to the Vet? Red Flags & What to Say | FursBliss",
+    metaTitle: "Should I Take My Dog to the Vet? When It’s an Emergency | FursBliss",
     metaDescription:
-      "Should I take my dog to the vet is easier to answer when you separate true emergencies from “call today” issues. Learn red flags, what to log, and how to brief your clinic.",
+      "Split “ER now” from “call today” from “watch.” Red-flag list, what to log in 60 seconds, and a free checker to brief your clinic—not replace it.",
     h1: "Should I Take My Dog to the Vet?",
     quickAnswer: {
       urgency: "monitor",
@@ -388,14 +436,14 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
           "Onset time, frequency, last meal, anything eaten or chewed, current energy level, gum color if you can check safely, and any medications your dog takes.",
       },
     ],
-    relatedSlugs: ["vomiting", "breathing-heavy", "fever", "ate-chocolate"],
+    relatedSlugs: ["vomiting", "breathing-heavy", "fever", "dog-fever", "ate-chocolate"],
   },
 
   "breathing-heavy": {
     slug: "breathing-heavy",
-    metaTitle: "Senior Dog Breathing Heavy: When to Worry | FursBliss",
+    metaTitle: "Dog Breathing Heavy: When It’s an Emergency | FursBliss",
     metaDescription:
-      "Senior dog breathing heavy after play can be normal. New heavy breathing at rest, blue gums, or labored effort needs a same-day vet call. Links to fast breathing at rest and night panting.",
+      "Exercise vs rest matters. New labored breathing, blue gums, or belly effort often needs same-day care—especially seniors. See what to film and when to go in.",
     h1: "Senior Dog Breathing Heavy: When to Worry",
     quickAnswer: {
       urgency: "vet-soon",
@@ -439,9 +487,9 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
 
   "rapid-breathing-at-rest": {
     slug: "rapid-breathing-at-rest",
-    metaTitle: "Dog Rapid Breathing at Rest: When to Call the Vet | FursBliss",
+    metaTitle: "Fast Breathing at Rest: Should You Worry? | FursBliss",
     metaDescription:
-      "Dog rapid breathing at rest is not something to ignore when it is new. Learn ER vs same-day cues, what to count for your vet, and links to heavy breathing and night panting guides.",
+      "Calm dog, fast breaths, new pattern? That’s not something to sleep on. ER vs vet-today cues, a simple home count, and when to skip measuring and go in.",
     h1: "Dog Rapid Breathing at Rest: What It Can Mean",
     quickAnswer: {
       urgency: "vet-soon",
@@ -483,9 +531,9 @@ const pages: Record<SymptomSlug, SymptomPageDefinition> = {
 
   "excessive-panting-at-night": {
     slug: "excessive-panting-at-night",
-    metaTitle: "Dog Excessive Panting at Night: Causes to Discuss With Your Vet",
+    metaTitle: "Dog Panting All Night: Should You Worry? | FursBliss",
     metaDescription:
-      "Night panting can be pain, anxiety, heat, or illness. Learn non-alarmist next steps, what to log, and when an overnight ER visit is reasonable.",
+      "Heat vs pain vs heart or lung strain—night panting has more than one story. What to log on video, when to call before morning, and ER signs not to ignore.",
     h1: "Dog Excessive Panting at Night: Should You Worry?",
     quickAnswer: {
       urgency: "monitor",

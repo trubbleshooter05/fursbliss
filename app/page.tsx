@@ -20,6 +20,15 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { SocialCtaBanner } from "@/components/site/social-cta-banner";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
+import { getSymptomPage } from "@/lib/emergency-symptoms/content";
+
+const COMMON_EMERGENCY_SLUGS = [
+  "vomiting-yellow-foam",
+  "make-dog-throw-up",
+  "ate-chocolate",
+  "choking",
+  "breathing-heavy",
+] as const;
 
 const features = [
   {
@@ -199,6 +208,9 @@ const WEBSITE_JSON_LD = {
 
 export default async function Home() {
   const latestResearchPosts = getBlogPostsSortedByDateDesc().slice(0, 3);
+  const commonEmergencyGuides = COMMON_EMERGENCY_SLUGS.map((slug) => getSymptomPage(slug)).filter(
+    (p): p is NonNullable<typeof p> => Boolean(p)
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -307,6 +319,40 @@ export default async function Home() {
             </AnimateIn>
           </div>
         </section>
+
+        <AnimateIn>
+          <section
+            className="rounded-3xl border border-border bg-card px-6 py-8 md:px-8 md:py-10"
+            aria-labelledby="common-emergencies-heading"
+          >
+            <h2
+              id="common-emergencies-heading"
+              className="font-display text-2xl tracking-tight text-foreground md:text-3xl"
+            >
+              Common Dog Emergencies
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-snug text-muted-foreground">
+              High-intent guides with clear red flags and next steps. Each page links to related symptoms, the full hub,
+              and the{" "}
+              <Link href="/check" className="font-medium text-emerald-700 hover:underline">
+                free checker
+              </Link>
+              .
+            </p>
+            <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {commonEmergencyGuides.map((g) => (
+                <li key={g.slug}>
+                  <Link
+                    href={`/symptoms/${g.slug}`}
+                    className="block rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground transition hover:border-primary"
+                  >
+                    {g.h1}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </AnimateIn>
 
         <section className="space-y-10" id="features">
           <AnimateIn className="space-y-3">

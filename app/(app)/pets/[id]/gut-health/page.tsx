@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,7 +83,12 @@ export default function GutHealthPage() {
         <Badge className="w-fit bg-emerald-500/10 text-emerald-600">Gut health</Badge>
         <h1 className="text-3xl font-semibold text-slate-900">Gut health log</h1>
         <p className="text-muted-foreground">
-          Track stool quality, gas, and appetite changes over time.
+          Track stool quality, gas, and appetite changes over time. For senior dogs, longevity drug news
+          can feel noisy—see{" "}
+          <Link href="/blog/loy-002-fda-status-2026" className="font-medium text-emerald-700 hover:underline">
+            LOY-002: current FDA status (plain English)
+          </Link>{" "}
+          for a steady reference alongside symptom logs.
         </p>
       </div>
 

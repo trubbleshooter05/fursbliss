@@ -26,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${base}/breeds/${slug}`,
     lastModified: now,
     changeFrequency: "weekly" as const,
-    priority: 0.7,
+    priority: 0.5,
   }));
 
   const primaryRoutes: MetadataRoute.Sitemap = [
@@ -52,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${base}/breeds`,
       lastModified: now,
       changeFrequency: "weekly",
-      priority: 0.7,
+      priority: 0.5,
     },
     {
       url: `${base}/trends`,
@@ -137,14 +137,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${base}/symptoms`,
       lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.85,
+      changeFrequency: "daily",
+      priority: 0.9,
     },
     ...Array.from(symptomSlugSet).map((slug) => ({
       url: `${base}/symptoms/${slug}`,
       lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.82,
+      changeFrequency: "daily" as const,
+      priority: 0.9,
     })),
   ];
 

@@ -96,6 +96,12 @@ export default async function ErTriageForDogsPage() {
           <p className="text-muted-foreground">
             Not every symptom needs a costly ER trip, but some signs need immediate care. FursBliss helps
             dog owners review urgency with a structured, safety-first triage flow before they decide.
+            Managing chronic issues in senior dogs? Our{" "}
+            <Link href="/blog/loy-002-fda-status-2026" className="font-medium text-emerald-700 hover:underline">
+              LOY-002 FDA filing status primer
+            </Link>{" "}
+            explains how investigational longevity therapies fit alongside everyday symptom triage—not as
+            a substitute for emergency care.
           </p>
           <p className="text-sm font-medium text-foreground">
             No login required • Takes 60 seconds

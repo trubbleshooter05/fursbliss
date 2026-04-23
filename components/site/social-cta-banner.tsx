@@ -31,10 +31,10 @@ function BannerInner() {
     <div className="relative z-50 bg-[#14919B] text-white px-4 py-3 text-center text-sm font-medium">
       <span className="mr-2">👋 Saw us on {label}?</span>
       <Link
-        href="/triage"
+        href="/check"
         className="underline underline-offset-2 font-bold hover:text-white/80 transition-colors"
       >
-        Start your dog&apos;s free health check →
+        Check Symptoms Now →
       </Link>
       <button
         onClick={() => setDismissed(true)}

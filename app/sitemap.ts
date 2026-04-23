@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { breedPages } from "@/lib/breed-pages";
 import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
+import { getSymptomSlugs } from "@/lib/emergency-symptoms/content";
 import { symptomPages } from "@/lib/symptom-pages";
 import { prisma } from "@/lib/prisma";
 
@@ -90,6 +91,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${base}/check`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.88,
+    },
+    {
       url: `${base}/community`,
       lastModified: now,
       changeFrequency: "weekly",
@@ -122,6 +129,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  const symptomSlugSet = new Set<string>([
+    ...symptomPages.map((page) => page.slug),
+    ...getSymptomSlugs(),
+  ]);
   const symptomEntries: MetadataRoute.Sitemap = [
     {
       url: `${base}/symptoms`,
@@ -129,8 +140,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.85,
     },
-    ...symptomPages.map((page) => ({
-      url: `${base}/symptoms/${page.slug}`,
+    ...Array.from(symptomSlugSet).map((slug) => ({
+      url: `${base}/symptoms/${slug}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.82,

@@ -4,11 +4,13 @@ import Image from "next/image";
 import {
   CheckCircle2,
   ChevronRight,
+  Droplets,
   LineChart,
   ShieldCheck,
   Sparkles,
   Stethoscope,
   TriangleAlert,
+  Wind,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +19,6 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SocialCtaBanner } from "@/components/site/social-cta-banner";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { CountUp } from "@/components/ui/count-up";
-import { HeroDashboardMock } from "@/components/hero/hero-dashboard-mock";
 import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
 
 const features = [
@@ -114,17 +114,24 @@ const howItWorks = [
 
 const publicPreviewItems = [
   {
+    title: "60-second symptom checker",
+    description:
+      "Answer a few questions and get a simple band: emergency, vet soon, or monitor—plus text you can copy for your clinic.",
+    href: "/check",
+    cta: "Check Symptoms Now",
+  },
+  {
+    title: "Browse dog emergency symptoms",
+    description: "Search-style guides for vomiting, breathing changes, toxins, choking, and more.",
+    href: "/symptoms",
+    cta: "Open symptom hub",
+  },
+  {
     title: "LOY-002 FDA status (2026 update)",
     description:
       "See which regulatory sections are accepted, what’s still pending (manufacturing/CMC), and how to read timelines conservatively.",
     href: "/blog/loy-002-fda-status-2026",
     cta: "Read FDA status guide",
-  },
-  {
-    title: "Read urgent symptom guides",
-    description: "Get fast, plain-English answers for common panic symptoms and next-step urgency.",
-    href: "/symptoms",
-    cta: "Open symptom guide",
   },
   {
     title: "Run the 60-second quiz",
@@ -160,25 +167,25 @@ const loyaltyTimeline = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
+  title: "Dog Emergency Symptom Hub — Should I Take My Dog to the Vet? | FursBliss",
   description:
-    "Prepare your dog for LOY-002 — the first FDA dog longevity drug. Track health, check eligibility, and get launch alerts. Free to start.",
+    "Fast, search-friendly guides and a 60-second symptom checker to help you decide if your dog needs emergency care, a vet visit soon, or close monitoring at home.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
+    title: "Dog Emergency Symptom Hub — Should I Take My Dog to the Vet? | FursBliss",
     description:
-      "Prepare your dog for LOY-002 — the first FDA dog longevity drug. Track health, check eligibility, and get launch alerts. Free to start.",
+      "Fast, search-friendly guides and a 60-second symptom checker to help you decide if your dog needs emergency care, a vet visit soon, or close monitoring at home.",
     url: "/",
     type: "website",
     images: ["/og-default.jpg"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "FursBliss — Dog Longevity Tracking & LOY-002 Readiness Platform",
+    title: "Dog Emergency Symptom Hub — Should I Take My Dog to the Vet? | FursBliss",
     description:
-      "Prepare your dog for LOY-002 — the first FDA dog longevity drug. Track health, check eligibility, and get launch alerts. Free to start.",
+      "Fast, search-friendly guides and a 60-second symptom checker to help you decide if your dog needs emergency care, a vet visit soon, or close monitoring at home.",
     images: ["/og-default.jpg"],
   },
 };
@@ -207,24 +214,24 @@ export default async function Home() {
         <section className="hero-gradient dot-grid-bg relative overflow-hidden rounded-[1.5rem] border border-white/15 px-4 py-10 text-white sm:px-6 sm:py-12 md:rounded-[2rem] md:px-10 md:py-14 lg:px-14">
           <Image
             src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1800&q=80"
-            alt="Senior dog with owner"
+            alt="Dog with owner"
             fill
             priority
             sizes="100vw"
             className="object-cover opacity-30"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0D2B2B]/95 via-[#0D6E6E]/84 to-[#14919B]/75" />
-          <div className="relative z-10 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div className="relative z-10 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
             <AnimateIn className="space-y-6">
               <Badge className="border border-white/25 bg-white/10 text-white">
                 <TriangleAlert className="mr-1 h-3.5 w-3.5" />
-                Prepare for the first FDA dog longevity drug
+                Dog emergency symptom hub
               </Badge>
-              <h1 className="max-w-3xl font-display text-[2rem] leading-[1.04] tracking-[-0.035em] text-white sm:text-4xl md:text-6xl">
-                The First Dog Longevity Drug Is Coming. Is Your Dog Ready?
+              <h1 className="max-w-3xl font-display text-[2rem] leading-[1.06] tracking-[-0.035em] text-white sm:text-4xl md:text-5xl">
+                Should I take my dog to the vet right now?
               </h1>
               <p className="max-w-2xl text-base text-white/90 sm:text-lg">
-                LOY-002 could get FDA conditional approval as early as late 2026. Build your dog&apos;s health baseline now — so you&apos;re prepared on day one, not scrambling after.
+                Get a quick recommendation based on your dog&apos;s symptoms, plus clear next steps in under 60 seconds.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button
@@ -232,7 +239,7 @@ export default async function Home() {
                   className="shimmer-cta w-full bg-accent text-accent-foreground hover:scale-[1.02] hover:brightness-110 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/loy-002">Check Your Dog&apos;s Eligibility</Link>
+                  <Link href="/check">Check Symptoms Now</Link>
                 </Button>
                 <Button
                   size="lg"
@@ -240,65 +247,66 @@ export default async function Home() {
                   className="w-full border-white/35 bg-white/5 text-white hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/signup">Get Launch Alerts (Free)</Link>
+                  <Link href="/symptoms">Browse Dog Emergency Symptoms</Link>
                 </Button>
               </div>
-              <p className="text-sm text-white/85">
-                Join 1,200+ dog owners preparing for LOY-002
-              </p>
-              <p className="text-sm text-white/95">
-                <Link
-                  href="/blog/loy-002-fda-status-2026"
-                  className="font-semibold text-white underline decoration-white/60 underline-offset-4 transition hover:decoration-white"
-                >
-                  LOY-002 FDA status (2026): what’s accepted vs. still pending
-                </Link>
-                <span className="text-white/80"> — read the factual blog breakdown</span>
-              </p>
+              <aside className="max-w-2xl rounded-2xl border border-white/20 bg-black/20 p-4 text-sm leading-relaxed text-white/90 backdrop-blur-sm">
+                <strong className="text-white">Safety note:</strong> This tool is for informational support only and
+                does not replace a veterinarian. If your dog is collapsing, choking, having trouble breathing,
+                seizing, or you suspect poisoning, contact a veterinarian or emergency clinic immediately.
+              </aside>
             </AnimateIn>
 
-            <AnimateIn delay={0.12}>
-              <HeroDashboardMock />
+            <AnimateIn delay={0.1} className="grid gap-3">
+              <Link
+                href="/symptoms/vomiting"
+                className="group rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/15"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
+                    <Droplets className="h-5 w-5" aria-hidden />
+                  </span>
+                  <div>
+                    <p className="font-display text-lg font-semibold text-white">Vomiting / diarrhea</p>
+                    <p className="mt-1 text-sm text-white/80">GI upset, repeated episodes, and what “wait vs go” usually means.</p>
+                    <p className="mt-2 text-sm font-medium text-white underline decoration-white/50 underline-offset-4 group-hover:decoration-white">
+                      Open guide →
+                    </p>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                href="/symptoms/breathing-heavy"
+                className="group rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/15"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
+                    <Wind className="h-5 w-5" aria-hidden />
+                  </span>
+                  <div>
+                    <p className="font-display text-lg font-semibold text-white">Breathing / panting</p>
+                    <p className="mt-1 text-sm text-white/80">Heavy breathing, fast resting breaths, and overnight panting.</p>
+                    <p className="mt-2 text-sm font-medium text-white underline decoration-white/50 underline-offset-4 group-hover:decoration-white">
+                      Open guide →
+                    </p>
+                  </div>
+                </div>
+              </Link>
+              <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+                <p className="font-display text-lg font-semibold text-white">Poisoning / choking</p>
+                <p className="mt-1 text-sm text-white/80">Toxins like chocolate and true choking need different first steps.</p>
+                <div className="mt-3 flex flex-col gap-2 text-sm font-medium">
+                  <Link href="/symptoms/ate-chocolate" className="text-white underline decoration-white/50 underline-offset-4 hover:decoration-white">
+                    Suspected poisoning (example: chocolate) →
+                  </Link>
+                  <Link href="/symptoms/choking" className="text-white underline decoration-white/50 underline-offset-4 hover:decoration-white">
+                    Choking / airway emergency →
+                  </Link>
+                </div>
+              </div>
             </AnimateIn>
           </div>
-
-          <AnimateIn delay={0.22} className="relative z-10 mt-8">
-            <div className="grid gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-white/90 md:grid-cols-3">
-              <p className="rounded-xl bg-white/5 px-3 py-2 text-center">🔬 Backed by FDA-reviewed research</p>
-              <p className="rounded-xl bg-white/5 px-3 py-2 text-center">🐕 1,300+ dogs in clinical trials</p>
-              <p className="rounded-xl bg-white/5 px-3 py-2 text-center">🆓 Free forever plan</p>
-            </div>
-          </AnimateIn>
         </section>
-
-        <AnimateIn>
-          <section className="grid gap-4 rounded-3xl bg-[var(--color-section-dark)] px-8 py-10 text-white md:grid-cols-3">
-            <div className="text-center md:border-r md:border-white/15">
-              <p className="stat-number text-4xl font-bold text-white md:text-5xl">
-                <CountUp to={1300} suffix="+" />
-              </p>
-              <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/70">
-                Dogs enrolled in STAY
-              </p>
-            </div>
-            <div className="text-center md:border-r md:border-white/15">
-              <p className="stat-number text-4xl font-bold text-white md:text-5xl">
-                <CountUp to={250} prefix="$" suffix="M+" />
-              </p>
-              <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/70">
-                Total funding raised
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="stat-number text-4xl font-bold text-white md:text-5xl">
-                <CountUp to={70} />
-              </p>
-              <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/70">
-                Active trial clinics
-              </p>
-            </div>
-          </section>
-        </AnimateIn>
 
         <section className="space-y-10" id="features">
           <AnimateIn className="space-y-3">
@@ -679,11 +687,11 @@ export default async function Home() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p className="text-sm text-muted-foreground">
-            Join dog owners preparing for LOY-002. Start your readiness check in under 2 minutes.
+            Not sure how urgent it is? Run the free 60-second symptom check—emergency, vet soon, or monitor.
           </p>
           <Button className="min-h-11 w-full sm:w-auto" asChild>
-            <Link href="/quiz">
-              Take the 2-Min Quiz
+            <Link href="/check">
+              Check Symptoms Now
               <ChevronRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 
@@ -36,14 +37,11 @@ export async function POST(request: Request) {
       });
 
       if (petCount >= 1) {
-        return NextResponse.json(
-          { 
-            message: "Free tier supports 1 pet profile. Upgrade for more.",
-            errorCode: "TIER_LIMIT_PET_COUNT",
-            tierGate: "second-dog"
-          },
-          { status: 403 }
-        );
+        return jsonForbidden(request, {
+          message: "Free tier supports 1 pet profile. Upgrade for more.",
+          errorCode: "TIER_LIMIT_PET_COUNT",
+          tierGate: "second-dog",
+        });
       }
     }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 
@@ -25,10 +26,7 @@ export async function POST(request: Request) {
   }
 
   if (!isEffectivePremium(user, { featureUnlock: true })) {
-    return NextResponse.json(
-      { message: "Vet share links are a premium feature." },
-      { status: 403 }
-    );
+    return jsonForbidden(request, { message: "Vet share links are a premium feature." });
   }
 
   const body = await request.json();

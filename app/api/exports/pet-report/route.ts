@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
@@ -29,10 +30,7 @@ export async function GET(request: Request) {
     }
 
     if (!isEffectivePremium(user, { featureUnlock: true })) {
-      return NextResponse.json(
-        { message: "Vet reports are a premium feature." },
-        { status: 403 }
-      );
+      return jsonForbidden(request, { message: "Vet reports are a premium feature." });
     }
 
     const limiter = rateLimit(request, `export-pet-report:${session.user.id}`, {

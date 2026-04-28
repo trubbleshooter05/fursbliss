@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 
@@ -68,10 +69,9 @@ export async function POST(request: Request) {
       where: { pet: { userId: session.user.id }, active: true },
     });
     if (existingCount >= 1) {
-      return NextResponse.json(
-        { message: "Upgrade to Premium to add more than one active dose schedule." },
-        { status: 403 }
-      );
+      return jsonForbidden(request, {
+        message: "Upgrade to Premium to add more than one active dose schedule.",
+      });
     }
   }
 

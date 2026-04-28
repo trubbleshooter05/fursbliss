@@ -1,3 +1,5 @@
+import { isLikelySearchCrawlerUserAgent } from "@/lib/search-bots";
+
 type RateLimitOptions = {
   limit: number;
   windowMs: number;
@@ -23,6 +25,11 @@ export function rateLimit(
   key: string,
   { limit, windowMs }: RateLimitOptions
 ) {
+  if (isLikelySearchCrawlerUserAgent(request.headers.get("user-agent"))) {
+    const now = Date.now();
+    return { success: true, remaining: limit, resetAt: now + windowMs };
+  }
+
   const now = Date.now();
   const entryKey = `${key}:${getClientIp(request)}`;
   const existing = rateLimitStore.get(entryKey);

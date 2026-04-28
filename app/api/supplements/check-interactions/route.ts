@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
@@ -74,10 +75,9 @@ export async function POST(request: Request) {
     });
 
     if (checksThisMonth >= 1) {
-      return NextResponse.json(
-        { message: "Free plan includes 1 interaction check per month. Upgrade for unlimited checks." },
-        { status: 403 }
-      );
+      return jsonForbidden(request, {
+        message: "Free plan includes 1 interaction check per month. Upgrade for unlimited checks.",
+      });
     }
   }
 

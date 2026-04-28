@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { getStartupAdvisorPrompt } from "@/lib/startup-advisor-prompts";
 
 const requestSchema = z.object({
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (session.user.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonForbidden(request, { error: "Forbidden" });
   }
 
   const apiKey = process.env.OPENAI_API_KEY;

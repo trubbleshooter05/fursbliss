@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
@@ -37,10 +38,7 @@ export async function POST(request: Request) {
   }
 
   if (!isEffectivePremium(user, { featureUnlock: true })) {
-    return NextResponse.json(
-      { message: "Photo AI analysis is a premium feature." },
-      { status: 403 }
-    );
+    return jsonForbidden(request, { message: "Photo AI analysis is a premium feature." });
   }
 
   const limiter = rateLimit(request, `ai-photo:${session.user.id}`, {

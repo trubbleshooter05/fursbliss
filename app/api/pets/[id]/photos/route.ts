@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 import { put } from "@vercel/blob";
@@ -46,13 +47,10 @@ export async function POST(
       where: { petId, userId: session.user.id },
     });
     if (count >= FREE_PHOTO_LIMIT) {
-      return NextResponse.json(
-        {
-          message: `Free accounts can store up to ${FREE_PHOTO_LIMIT} photos per pet. Upgrade to Premium for unlimited photo storage.`,
-          limitReached: true,
-        },
-        { status: 403 }
-      );
+      return jsonForbidden(request, {
+        message: `Free accounts can store up to ${FREE_PHOTO_LIMIT} photos per pet. Upgrade to Premium for unlimited photo storage.`,
+        limitReached: true,
+      });
     }
   }
 

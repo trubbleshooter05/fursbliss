@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { responseForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 
@@ -21,7 +22,11 @@ export async function POST(
     });
 
     if (!user || !isEffectivePremium(user, { featureUnlock: true })) {
-      return new Response(JSON.stringify({ message: "Premium required." }), { status: 403 });
+      return responseForbidden(
+        request,
+        JSON.stringify({ message: "Premium required." }),
+        { headers: { "Content-Type": "application/json" } }
+      );
     }
 
     const { id: petId } = await params;

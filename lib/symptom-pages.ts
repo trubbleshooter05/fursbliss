@@ -757,6 +757,102 @@ export const symptomPages: SymptomPageContent[] = [
       },
     ],
   },
+  {
+    slug: "puppy-wont-stop-biting",
+    h1: "My Puppy Won't Stop Biting Me — Is This Normal or a Problem?",
+    symptomQuestion: "Puppy won't stop biting",
+    quickAnswer:
+      "Most puppy biting is normal teething and play behavior, but hard biting that escalates, breaks skin, or comes with fear, guarding, or sudden behavior change deserves veterinary or trainer guidance.",
+    metaBrief:
+      "Puppy biting is often normal, but intensity, context, and sudden changes determine whether you should seek help.",
+    urgencyLevel: "green",
+    urgencyLabel: "Usually behavior support, urgent only with injury or sudden change",
+    symptomParam: "puppy biting",
+    intro: [
+      "Puppies explore with their mouths, especially during teething and high-energy play. That does not make the biting pleasant, but it usually means your puppy needs clearer outlets, rest, and consistent redirection rather than punishment. The pattern matters: when it happens, how hard the bites are, and whether your puppy can calm down.",
+      "Biting that suddenly appears in a previously gentle puppy, happens when touched, or comes with growling over food, toys, or resting spots can point to pain, fear, or resource guarding. Track episodes and context so you can separate normal puppy chaos from a behavior or health issue that needs professional help.",
+    ],
+    commonCauses: [
+      "Teething discomfort and normal mouthy play",
+      "Overtiredness, overstimulation, or too little nap structure",
+      "Insufficient chew outlets or inconsistent redirection",
+      "Fear, handling sensitivity, or resource guarding",
+      "Pain or illness causing sudden irritability",
+    ],
+    emergencyRedFlags: [
+      "Bites break skin repeatedly or target faces/hands with escalating force",
+      "Sudden biting paired with yelping, limping, fever, or refusal to eat",
+      "Guarding food, toys, or resting spaces with stiff posture and growling",
+    ],
+    canWaitSignals: [
+      "Soft play biting during predictable high-energy times",
+      "Puppy redirects to toys and settles after rest or a calmer routine",
+    ],
+    homeCare: [
+      "Offer appropriate chews and redirect before your puppy gets frantic",
+      "Add enforced naps when biting spikes late in play sessions",
+      "Track triggers, time of day, bite intensity, and calming response",
+      "Ask your vet or a positive-reinforcement trainer if biting escalates",
+    ],
+    relatedSlugs: ["dog-not-eating", "dog-lethargic", "dog-limping"],
+    faq: [
+      {
+        question: "Will puppy biting go away on its own?",
+        answer: "It often improves with maturity, but consistent redirection, sleep, and chew outlets make a major difference.",
+      },
+      {
+        question: "Can pain make a puppy bite more?",
+        answer: "Yes. Sudden irritability, handling sensitivity, or biting with other symptoms should be discussed with a veterinarian.",
+      },
+    ],
+  },
+  {
+    slug: "dog-kennel-cough-care",
+    h1: "How Can I Help a Dog With Kennel Cough?",
+    symptomQuestion: "Dog kennel cough care",
+    quickAnswer:
+      "Mild kennel-cough-like signs often need rest, isolation from other dogs, and veterinary guidance. Trouble breathing, fever, lethargy, or poor appetite should be checked promptly.",
+    metaBrief:
+      "Kennel cough can be mild, but breathing changes, fever, and low energy raise urgency.",
+    urgencyLevel: "yellow",
+    urgencyLabel: "Monitor closely, vet soon if worsening",
+    symptomParam: "kennel cough",
+    intro: [
+      "Kennel cough is a common shorthand for infectious respiratory disease in dogs. It can sound dramatic: dry honking cough, gagging after excitement, or coughing after leash pressure. Many cases are mild, but some dogs develop pneumonia or more serious respiratory illness, especially puppies, seniors, and dogs with heart or airway problems.",
+      "The safest approach is to reduce irritation, avoid exposing other dogs, and watch for systemic signs. If your dog is breathing harder than normal, seems weak, has a fever, or stops eating, do not treat it as a routine cough. A quick symptom log helps your vet understand timing and severity.",
+    ],
+    commonCauses: [
+      "Exposure to infectious respiratory pathogens at boarding, daycare, grooming, or dog parks",
+      "Airway irritation from pulling on a collar, smoke, dust, or dry air",
+      "Underlying respiratory or heart disease that makes coughing more concerning",
+    ],
+    emergencyRedFlags: [
+      "Labored breathing, blue/pale gums, or collapse",
+      "Cough with fever, marked lethargy, or refusal to eat",
+      "Puppy, senior dog, or immune-compromised dog with worsening cough",
+    ],
+    canWaitSignals: [
+      "Occasional dry cough with normal energy, appetite, and breathing",
+      "Symptoms are not worsening while you arrange routine veterinary advice",
+    ],
+    homeCare: [
+      "Use a harness instead of collar pressure and keep activity calm",
+      "Keep your dog away from other dogs until your vet clears them",
+      "Avoid smoke, fragrance, and dusty rooms",
+      "Track cough frequency, appetite, temperature, and breathing effort",
+    ],
+    relatedSlugs: ["dog-breathing-heavy", "dog-lethargic", "dog-not-eating"],
+    faq: [
+      {
+        question: "Can kennel cough become serious?",
+        answer: "Yes. Most cases are mild, but pneumonia and breathing problems can occur, especially in higher-risk dogs.",
+      },
+      {
+        question: "Should I give cough medicine?",
+        answer: "Only if your veterinarian recommends it. Human cough medicines can be unsafe for dogs.",
+      },
+    ],
+  },
 ];
 
 export const symptomPageMap = Object.fromEntries(symptomPages.map((page) => [page.slug, page])) as Record<

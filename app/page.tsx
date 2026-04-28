@@ -67,7 +67,7 @@ const testimonials = [
     owner: "Senior Lab owner",
   },
   {
-    quote: "I'm finally prepared for when LOY-002 becomes available.",
+    quote: "The checker told us to go in — I’m glad we didn’t wait until morning.",
     owner: "Mixed breed owner",
   },
 ];
@@ -76,28 +76,26 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    description: "Get notified when LOY-002 launches.",
+    description: "Fast answers when something seems wrong — no credit card.",
     features: [
-      "1 pet profile",
-      "Unlimited daily health logs",
-      "3 AI recommendations per month",
-      "LOY-002 launch updates",
+      "Instant symptom checker (60-second triage)",
+      "Access to all emergency guides",
+      "Clear \u2018go to vet now vs monitor\u2019 guidance",
     ],
-    cta: "Get notified",
+    cta: "Start free",
     href: "/signup",
     highlight: false,
   },
   {
     name: "Premium",
     price: "$9",
-    description: "Get prepared before launch day.",
+    description: "Full history and reports for your vet, plus early access to new tools.",
     features: [
-      "Complete health history for your vet",
-      "Vet-ready documentation and reports",
-      "Tracked LOY-002 eligibility over time",
-      "AI-powered interaction checker",
+      "Downloadable vet-ready reports",
+      "Full symptom + health history tracking",
+      "Priority access to new tools",
     ],
-    cta: "Get prepared",
+    cta: "View pricing",
     href: "/pricing",
     highlight: true,
   },
@@ -588,7 +586,7 @@ export default async function Home() {
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Pricing</p>
             <h2 className="text-4xl font-display text-foreground md:text-5xl">Simple plans for every pet family</h2>
             <p className="text-muted-foreground">
-              Free users get notified. Premium users get prepared.
+              Free when you need triage now; Premium when you want everything documented for your vet.
             </p>
           </AnimateIn>
           <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-2">

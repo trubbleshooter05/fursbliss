@@ -97,6 +97,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.88,
     },
     {
+      url: `${base}/daily-care-plan`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
+      url: `${base}/vet-visit-prep`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
       url: `${base}/community`,
       lastModified: now,
       changeFrequency: "weekly",
@@ -148,5 +160,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  return [...primaryRoutes, ...blogEntries, ...breedEntries, ...symptomEntries];
+  const byUrl = new Map<string, MetadataRoute.Sitemap[number]>();
+  for (const entry of [...primaryRoutes, ...blogEntries, ...breedEntries, ...symptomEntries]) {
+    byUrl.set(entry.url, entry);
+  }
+
+  return Array.from(byUrl.values());
 }

@@ -27,7 +27,6 @@ const comparisonRows = [
     free: "Basic suggestions",
     premium: "Personalized with dosages",
   },
-  { feature: "LOY-002 readiness action plan", free: "Eligibility snapshot", premium: "Step-by-step action plan" },
   { feature: "AI Vet-Ready Summary Report (shareable link)", free: "Preview only", premium: "Full report + shareable link" },
   { feature: "Photo Symptom Timeline", free: "3 photos per pet", premium: "Unlimited photos" },
   { feature: "Next vet check countdown", free: "Not included", premium: "Included" },
@@ -37,6 +36,18 @@ const comparisonRows = [
     premium: "Risk timeline + life-stage plan",
   },
 ];
+
+const freePlanBullets = [
+  "Instant symptom checker (60-second triage)",
+  "Access to all emergency guides",
+  "Clear \u2018go to vet now vs monitor\u2019 guidance",
+] as const;
+
+const premiumPlanBullets = [
+  "Downloadable vet-ready reports",
+  "Full symptom + health history tracking",
+  "Priority access to new tools",
+] as const;
 
 type PricingPageClientProps = {
   initialPlan?: "monthly" | "yearly";
@@ -103,10 +114,10 @@ export function PricingPageClient({
           <h1 className="font-display text-4xl tracking-[-0.03em] text-foreground sm:text-5xl md:text-6xl">
             {source === "triage"
               ? "Complete your triage upgrade"
-              : "Choose the plan that gives your dog a longer, healthier life"}
+              : "Help for right now — and a clear path if symptoms come back"}
           </h1>
           <p className="mx-auto max-w-3xl text-muted-foreground">
-            Transparent pricing. No surprises. Upgrade when you are ready for personalized longevity guidance.
+            Transparent pricing. No surprises. Start free when you need fast triage; upgrade when you want full history and vet-ready reports.
           </p>
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-card p-1 text-xs sm:text-sm">
             <button
@@ -138,11 +149,36 @@ export function PricingPageClient({
         </AnimateIn>
 
         <AnimateIn>
+          <Card className="rounded-3xl border border-border bg-card">
+            <CardHeader className="space-y-2 p-5 sm:p-6">
+              <CardTitle className="font-display text-3xl tracking-[-0.02em] text-foreground">Free</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                For worried pet parents who need a fast, calm answer before the clinic opens.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-5 p-5 pt-0 sm:p-6 sm:pt-0">
+              <div className="grid gap-2">
+                {freePlanBullets.map((line) => (
+                  <p key={line} className="flex items-center gap-2 text-sm text-foreground">
+                    <Check className="h-4 w-4 shrink-0 text-primary" /> {line}
+                  </p>
+                ))}
+              </div>
+              <Button asChild variant="outline" className="min-h-12 w-full">
+                <Link href="/signup">Create free account</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </AnimateIn>
+
+        <AnimateIn>
           <Card className="rounded-3xl border border-orange-200/70 bg-gradient-to-br from-[#2B134E] via-[#4A206D] to-[#D0643B] text-white shadow-[0_20px_60px_-30px_rgba(74,32,109,0.75)]">
             <CardHeader className="space-y-2 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/75">Most popular</p>
               <CardTitle className="font-display text-4xl tracking-[-0.03em]">Premium</CardTitle>
-              <p className="text-sm text-white/85">Full longevity planning, health alerts, and AI vet-ready reports.</p>
+              <p className="text-sm text-white/85">
+                Deeper tracking, downloadable reports, and tools you can bring straight to your vet.
+              </p>
             </CardHeader>
             <CardContent className="space-y-5 p-5 pt-0 sm:p-6 sm:pt-0">
               <div className="grid gap-3 rounded-2xl bg-white/12 p-4 md:grid-cols-2">
@@ -170,9 +206,9 @@ export function PricingPageClient({
               </div>
 
               <div className="grid gap-2">
-                {comparisonRows.map((row) => (
-                  <p key={row.feature} className="flex items-center gap-2 text-sm text-white/95">
-                    <Check className="h-4 w-4" /> {row.feature}
+                {premiumPlanBullets.map((line) => (
+                  <p key={line} className="flex items-center gap-2 text-sm text-white/95">
+                    <Check className="h-4 w-4 shrink-0" /> {line}
                   </p>
                 ))}
               </div>
@@ -240,11 +276,26 @@ export function PricingPageClient({
             </CardHeader>
             <CardContent className="p-5 pt-0 sm:p-6 sm:pt-0">
               <p className="text-sm text-muted-foreground">
-                Start free and upgrade when you&apos;re ready to unlock AI insights, health alerts, and your vet-ready summary report.
+                Start free for instant triage and guides. Upgrade when you want full history, alerts, and reports to share with your vet.
               </p>
               <Button asChild variant="outline" className="mt-4 min-h-11">
                 <Link href="/signup">Create free account</Link>
               </Button>
+            </CardContent>
+          </Card>
+        </AnimateIn>
+
+        <AnimateIn>
+          <Card className="rounded-3xl border border-border bg-card">
+            <CardHeader className="p-5 sm:p-6">
+              <CardTitle className="font-display text-2xl text-foreground">Future Longevity Tools</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 p-5 pt-0 sm:p-6 sm:pt-0">
+              <p className="text-sm text-muted-foreground">
+                Following investigational programs like Loyal&apos;s LOY-002? Premium includes LOY-002 readiness support: a
+                one-time eligibility snapshot on Free, and a step-by-step action plan when you&apos;re tracking toward
+                launch. Not a substitute for veterinary care.
+              </p>
             </CardContent>
           </Card>
         </AnimateIn>

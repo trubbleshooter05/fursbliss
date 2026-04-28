@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { responseForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
@@ -321,7 +322,11 @@ export async function GET(
     }
 
     if (!isEffectivePremium(user, { featureUnlock: true })) {
-      return new Response(JSON.stringify({ message: "Vet reports are a premium feature." }), { status: 403 });
+      return responseForbidden(
+        request,
+        JSON.stringify({ message: "Vet reports are a premium feature." }),
+        { headers: { "Content-Type": "application/json" } }
+      );
     }
 
     const limiter = rateLimit(request, `vet-report:${session.user.id}`, {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { buildLongevityReadinessReportPayload } from "@/lib/longevity/report";
 import { renderLongevityReadinessPdf } from "@/lib/reports/longevity-pdf";
@@ -99,13 +100,10 @@ export async function GET(request: Request, context: RouteContext) {
 
     if (submission.userId !== session.user.id) {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
-      return NextResponse.json(
-        {
-          message: "Save this quiz to your account before downloading the report.",
-          signupUrl: buildSignupCarryOverUrl(baseUrl, submission),
-        },
-        { status: 403 }
-      );
+      return jsonForbidden(request, {
+        message: "Save this quiz to your account before downloading the report.",
+        signupUrl: buildSignupCarryOverUrl(baseUrl, submission),
+      });
     }
 
     const breedProfile = await prisma.breedProfile.findFirst({

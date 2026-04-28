@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import OpenAI from "openai";
 import { auth } from "@/auth";
+import { jsonForbidden } from "@/lib/http-forbidden";
 import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
@@ -79,27 +80,21 @@ export async function POST(request: Request) {
       ]);
 
       if (trackingDays < 7) {
-        return NextResponse.json(
-          {
-            message: "Complete 7 days of tracking to unlock AI recommendations",
-            code: "TRACKING_GATE",
-            trackingDays,
-          },
-          { status: 403 }
-        );
+        return jsonForbidden(request, {
+          message: "Complete 7 days of tracking to unlock AI recommendations",
+          code: "TRACKING_GATE",
+          trackingDays,
+        });
       }
 
       if (monthlyCount >= 3) {
-        return NextResponse.json(
-          {
-            message: "Monthly free limit reached",
-            code: "MONTHLY_LIMIT_REACHED",
-            monthlyCount,
-            monthlyLimit: 3,
-            nextResetAt: nextMonthlyResetDate().toISOString(),
-          },
-          { status: 403 }
-        );
+        return jsonForbidden(request, {
+          message: "Monthly free limit reached",
+          code: "MONTHLY_LIMIT_REACHED",
+          monthlyCount,
+          monthlyLimit: 3,
+          nextResetAt: nextMonthlyResetDate().toISOString(),
+        });
       }
     }
 

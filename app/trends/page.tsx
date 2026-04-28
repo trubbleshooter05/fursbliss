@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AnimateIn } from "@/components/ui/animate-in";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Pet Wellness Trends | FursBliss",
   description:
@@ -14,9 +16,14 @@ export const metadata: Metadata = {
 };
 
 export default async function TrendsPage() {
-  const pets = await prisma.pet.findMany({
-    select: { breed: true, symptoms: true },
-  });
+  const pets = await prisma.pet
+    .findMany({
+      select: { breed: true, symptoms: true },
+    })
+    .catch((error) => {
+      console.error("Failed to load wellness trends; using empty state", error);
+      return [];
+    });
 
   const breedCounts = pets.reduce<Record<string, number>>((acc, pet) => {
     acc[pet.breed] = (acc[pet.breed] ?? 0) + 1;

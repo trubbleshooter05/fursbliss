@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { breedPages } from "@/lib/breed-pages";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Dog Breed Health & Longevity Profiles | FursBliss",
   description:
@@ -32,9 +32,14 @@ export const metadata: Metadata = {
 };
 
 export default async function BreedsPage() {
-  const profiles = await prisma.breedProfile.findMany({
-    orderBy: { breed: "asc" },
-  });
+  const profiles = await prisma.breedProfile
+    .findMany({
+      orderBy: { breed: "asc" },
+    })
+    .catch((error) => {
+      console.error("Failed to load breed profiles; using static fallback", error);
+      return [];
+    });
 
   const fromProfiles = profiles.map((profile) => ({
     slug: profile.seoSlug,

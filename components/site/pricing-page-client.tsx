@@ -113,11 +113,12 @@ export function PricingPageClient({
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Pricing</p>
           <h1 className="font-display text-4xl tracking-[-0.03em] text-foreground sm:text-5xl md:text-6xl">
             {source === "triage"
-              ? "Complete your triage upgrade"
+              ? "Get a vet-ready report before you call"
               : "Help for right now — and a clear path if symptoms come back"}
           </h1>
           <p className="mx-auto max-w-3xl text-muted-foreground">
-            Transparent pricing. No surprises. Start free when you need fast triage; upgrade when you want full history and vet-ready reports.
+            Start with free symptom triage. Upgrade when you want organized health history,
+            downloadable reports, and calmer handoffs to your clinic.
           </p>
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-card p-1 text-xs sm:text-sm">
             <button
@@ -177,7 +178,7 @@ export function PricingPageClient({
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/75">Most popular</p>
               <CardTitle className="font-display text-4xl tracking-[-0.03em]">Premium</CardTitle>
               <p className="text-sm text-white/85">
-                Deeper tracking, downloadable reports, and tools you can bring straight to your vet.
+                Deeper tracking, downloadable reports, and a clearer record you can bring straight to your vet.
               </p>
             </CardHeader>
             <CardContent className="space-y-5 p-5 pt-0 sm:p-6 sm:pt-0">

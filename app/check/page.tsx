@@ -51,6 +51,23 @@ export default function CheckPage() {
 
         <EmergencyChecker />
 
+        <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+            Vet-ready next step
+          </p>
+          <h2 className="mt-2 font-display text-xl font-semibold tracking-tight text-foreground">
+            Turn your answers into a clinic-ready report
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            If you need to call a vet, the fastest help comes from clear details: symptoms,
+            timing, appetite, bathroom changes, and what changed today. FursBliss Premium keeps
+            that history organized so you can share it without scrambling.
+          </p>
+          <Button asChild className="mt-4 min-h-11 w-full">
+            <Link href="/pricing?source=triage">Get the vet-ready report plan</Link>
+          </Button>
+        </section>
+
         <p className="text-center text-sm text-muted-foreground">
           <Link href="/symptoms" className="font-medium text-emerald-700 hover:underline">
             Browse all symptom guides

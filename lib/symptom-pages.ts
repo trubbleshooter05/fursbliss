@@ -807,6 +807,152 @@ export const symptomPages: SymptomPageContent[] = [
     ],
   },
   {
+    slug: "worried-my-dad-is-going-to-let-my-cat-outside",
+    h1: "My Indoor Cat Might Be Let Outside — How Dangerous Is It?",
+    symptomQuestion: "Indoor cat might get outside",
+    quickAnswer:
+      "An indoor cat getting outside can become urgent if they are lost, injured, exposed to toxins, or unvaccinated. Prevention matters, and a quick plan helps you act fast if they slip out.",
+    metaBrief:
+      "Indoor cats can face injury, parasites, toxins, and getting lost if they are suddenly let outside.",
+    urgencyLevel: "yellow",
+    urgencyLabel: "Prevent now, escalate quickly if your cat escapes",
+    symptomParam: "cat outside risk",
+    intro: [
+      "If your cat is normally indoors, being let outside is not a harmless change of scenery. Indoor cats may panic, hide, run into roads, fight with other animals, or be exposed to parasites and toxins they have never encountered. The risk is higher for kittens, senior cats, anxious cats, and cats without up-to-date vaccines or microchip details.",
+      "The money-saving move is prevention: clear household rules, door routines, microchip registration, and a current photo. If your cat does get out, fast action in the first few hours matters. A health and safety log also helps you brief a vet if your cat returns with a wound, limp, coughing, vomiting, or behavior change.",
+    ],
+    commonCauses: [
+      "A family member believes cats should be allowed outdoors without understanding indoor-cat risk",
+      "Doors, windows, balconies, or garages left open during busy household moments",
+      "Unclear pet-care rules when someone else watches the cat",
+      "Curiosity, stress, or mating behavior in unspayed/unneutered cats",
+    ],
+    emergencyRedFlags: [
+      "Cat returns limping, bleeding, breathing strangely, drooling, vomiting, or hiding in pain",
+      "Possible car strike, dog attack, toxin exposure, or fight wound",
+      "Cat is missing overnight, very young, senior, sick, or not vaccinated",
+    ],
+    canWaitSignals: [
+      "Cat never got outside and you are setting prevention rules now",
+      "Cat briefly stepped out but returned immediately and is acting completely normal",
+    ],
+    homeCare: [
+      "Make a written indoor-only rule and post it near doors used by guests or family",
+      "Check window screens, balcony access, and garage doors",
+      "Confirm microchip registration, collar ID, vaccine status, and a recent clear photo",
+      "Use FursBliss to log any symptoms if your cat returns after being outside",
+    ],
+    relatedSlugs: ["what-does-this-mean-for-my-cats-health-and-how-can", "dog-ate-something-toxic", "dog-limping"],
+    faq: [
+      {
+        question: "Should an indoor cat be allowed outside sometimes?",
+        answer: "Only with a controlled plan, such as a secure harness or catio. Sudden unsupervised outdoor access is much riskier.",
+      },
+      {
+        question: "What should I do first if my cat gets out?",
+        answer: "Search nearby hiding places calmly, put food and familiar scent items near the door, alert neighbors, and watch for injury when they return.",
+      },
+    ],
+  },
+  {
+    slug: "advice-on-my-puppy",
+    h1: "I Need Advice on My Puppy — What Signs Should I Not Ignore?",
+    symptomQuestion: "Puppy advice and warning signs",
+    quickAnswer:
+      "Puppies can change quickly. Low energy, repeated vomiting or diarrhea, trouble breathing, not eating, pale gums, or possible toxin exposure should be treated as urgent.",
+    metaBrief:
+      "Puppies can decline faster than adult dogs, so warning signs deserve quicker triage.",
+    urgencyLevel: "yellow",
+    urgencyLabel: "Puppies need quicker escalation than adult dogs",
+    symptomParam: "puppy warning signs",
+    intro: [
+      "New puppy questions are often messy because normal puppy behavior and early illness can look similar at first. Napping, chewing, and accidents may be normal. But puppies have less reserve than adult dogs, so dehydration, parasites, toxins, infections, and low blood sugar can become serious quickly.",
+      "Instead of guessing from one behavior, look at the cluster: appetite, water intake, energy, breathing, stool, vomiting, gum color, and whether your puppy can settle. FursBliss is useful here because a simple daily log makes patterns obvious and gives your vet a clearer timeline if something changes.",
+    ],
+    commonCauses: [
+      "Normal adjustment, teething, sleep disruption, or training confusion",
+      "Diet change, parasites, or mild stomach upset",
+      "Vaccine reactions, respiratory infection, or contagious puppy illness",
+      "Toxin exposure, swallowed objects, or injury during play",
+    ],
+    emergencyRedFlags: [
+      "Repeated vomiting or diarrhea, especially with low energy",
+      "Not eating, weakness, shaking, pale gums, or collapse",
+      "Trouble breathing, blue gums, suspected toxin, or swallowed object",
+      "Very young or not fully vaccinated puppy with fever, cough, or severe lethargy",
+    ],
+    canWaitSignals: [
+      "Puppy is eating, drinking, playful, breathing normally, and symptoms are mild",
+      "A behavior issue is predictable and improves with rest, routine, or redirection",
+    ],
+    homeCare: [
+      "Track meals, water, stool, vomiting, sleep, and energy for 24 hours",
+      "Keep the puppy away from unsafe chews, plants, medications, and dropped food",
+      "Call your vet sooner than you would for an adult dog if symptoms cluster",
+      "Use the checker to organize symptoms before calling your vet",
+    ],
+    relatedSlugs: ["puppy-wont-stop-biting", "dog-not-eating", "dog-diarrhea-blood"],
+    faq: [
+      {
+        question: "When should I call the vet for a puppy?",
+        answer: "Call quickly for vomiting, diarrhea, low energy, not eating, breathing changes, toxin risk, or anything that feels sudden and unusual.",
+      },
+      {
+        question: "Is it okay to wait overnight?",
+        answer: "If a puppy has low energy, repeated GI signs, or breathing issues, do not wait overnight. Puppies can decline quickly.",
+      },
+    ],
+  },
+  {
+    slug: "what-does-this-mean-for-my-cats-health-and-how-can",
+    h1: "What Does This Mean for My Cat's Health — and How Can I Fix It?",
+    symptomQuestion: "Cat health warning signs",
+    quickAnswer:
+      "A single odd behavior may be minor, but appetite changes, hiding, breathing changes, vomiting, diarrhea, limping, straining to pee, or sudden behavior shifts should be triaged promptly.",
+    metaBrief:
+      "Cat health clues are often subtle, so behavior, appetite, litter box, and breathing changes matter.",
+    urgencyLevel: "yellow",
+    urgencyLabel: "Watch patterns closely, urgent with red flags",
+    symptomParam: "cat health signs",
+    intro: [
+      "Cats are talented at hiding discomfort, which makes vague questions like “what does this mean?” surprisingly important. Small changes in appetite, grooming, hiding, litter box habits, or breathing can be early signs of pain, urinary problems, stomach upset, stress, dental disease, or infection.",
+      "The fastest way to make the question useful is to turn it into a timeline: what changed, when it started, whether eating and litter box habits changed, and whether your cat is hiding or acting painful. That turns a confusing moment into something a vet can actually use.",
+    ],
+    commonCauses: [
+      "Stress, household change, or conflict with another pet",
+      "Dental pain, nausea, parasites, or mild infection",
+      "Urinary discomfort, constipation, or digestive upset",
+      "Injury, arthritis, toxin exposure, or a hidden wound",
+    ],
+    emergencyRedFlags: [
+      "Straining to pee, crying in the litter box, or no urine output",
+      "Open-mouth breathing, collapse, pale/blue gums, or severe weakness",
+      "Repeated vomiting, not eating, major hiding, or sudden severe pain",
+      "Possible toxin exposure, fall, fight wound, or car strike",
+    ],
+    canWaitSignals: [
+      "A mild behavior change with normal appetite, breathing, and litter box use",
+      "Symptoms improve quickly and do not repeat while you monitor closely",
+    ],
+    homeCare: [
+      "Write down appetite, water intake, litter box output, vomiting, and hiding",
+      "Take photos or short videos of visible symptoms for your vet",
+      "Keep food, medication, plants, and cleaners out of reach",
+      "Use FursBliss to keep a concise symptom log before calling your vet",
+    ],
+    relatedSlugs: ["worried-my-dad-is-going-to-let-my-cat-outside", "dog-not-eating", "dog-ate-something-toxic"],
+    faq: [
+      {
+        question: "What cat symptom is most urgent?",
+        answer: "Trouble breathing and urinary blockage signs are emergencies. Repeated vomiting, collapse, and not eating are also serious.",
+      },
+      {
+        question: "Why does my cat hide when sick?",
+        answer: "Hiding is a common cat response to pain, stress, or illness, so pair it with appetite, litter box, and breathing changes.",
+      },
+    ],
+  },
+  {
     slug: "dog-kennel-cough-care",
     h1: "How Can I Help a Dog With Kennel Cough?",
     symptomQuestion: "Dog kennel cough care",

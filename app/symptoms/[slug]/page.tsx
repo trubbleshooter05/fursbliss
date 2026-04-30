@@ -136,7 +136,7 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(medicalJsonLd) }} />
 
         <section className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Dog symptom guide</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Pet symptom guide</p>
           <h1 className="font-display text-4xl tracking-[-0.03em] text-foreground md:text-5xl">{page.h1}</h1>
         </section>
 

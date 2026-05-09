@@ -19,6 +19,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SocialCtaBanner } from "@/components/site/social-cta-banner";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { PetTopicsWidget } from "@/components/PetTopicsWidget";
 import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
 import { getSymptomPage } from "@/lib/emergency-symptoms/content";
 
@@ -317,6 +318,8 @@ export default async function Home() {
             </AnimateIn>
           </div>
         </section>
+
+        <PetTopicsWidget />
 
         <AnimateIn>
           <section

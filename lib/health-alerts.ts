@@ -221,6 +221,33 @@ function checkYellowAlerts(
     }
   }
 
+  // 2b. Sustained weight loss: 2+ lbs — compare most recent weight to earliest
+  //     available weight that is at least 30 days older (captures 60-day drift
+  //     even when the baseline log pre-dates the 60-day window).
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const weightedEntries = allEntries
+    .filter((e) => e.weight != null)
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  if (weightedEntries.length >= 2) {
+    const latestEntry = weightedEntries[weightedEntries.length - 1];
+    // Find the oldest entry that is at least 30 days before the latest
+    const baselineEntry = weightedEntries.find(
+      (e) => e.date <= thirtyDaysAgo && e !== latestEntry
+    );
+    if (baselineEntry) {
+      const lostLbs = baselineEntry.weight! - latestEntry.weight!;
+      if (lostLbs >= 2) {
+        return {
+          level: "yellow",
+          reason: `WATCH CLOSELY: ${petName} showing changes`,
+          actionable: `${petName} has lost ${lostLbs.toFixed(1)} lbs over the past ~2 months. Mention this at your next vet visit, or call sooner if other symptoms appear.`,
+        };
+      }
+    }
+  }
+
   // 3. Energy marked "low" 4+ days in a row
   const lowEnergyStreak = checkLowEnergyStreak(last7Days);
   if (lowEnergyStreak >= 4) {

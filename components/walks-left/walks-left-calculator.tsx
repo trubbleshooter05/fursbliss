@@ -129,6 +129,10 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
   const [ageYears, setAgeYears] = useState(8);
   const [ageMonths, setAgeMonths] = useState(0);
   const [weightLbs, setWeightLbs] = useState(45);
+  const [dietQuality, setDietQuality] = useState<"poor" | "average" | "excellent">("average");
+  const [exerciseLevel, setExerciseLevel] = useState<"low" | "moderate" | "high">("moderate");
+  const [vetVisits, setVetVisits] = useState<"never" | "occasional" | "annual" | "biannual">("annual");
+  const [indoorOutdoor, setIndoorOutdoor] = useState<"indoor" | "mixed" | "outdoor">("mixed");
   const [result, setResult] = useState<WalksLeftResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [waitlistEmail, setWaitlistEmail] = useState("");
@@ -220,7 +224,16 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
 
     const expectancy = getLifeExpectancyForBreed(normalizedBreed, weightLbs);
     const currentAge = ageYears + ageMonths / 12;
-    let remainingYears = Number((expectancy.mid - currentAge).toFixed(2));
+
+    // Apply lifestyle modifiers to life expectancy midpoint
+    let lifestyleMultiplier = 1.0;
+    lifestyleMultiplier += dietQuality === "excellent" ? 0.06 : dietQuality === "poor" ? -0.08 : 0;
+    lifestyleMultiplier += exerciseLevel === "high" ? 0.05 : exerciseLevel === "low" ? -0.06 : 0;
+    lifestyleMultiplier += vetVisits === "biannual" ? 0.04 : vetVisits === "never" ? -0.10 : vetVisits === "annual" ? 0.02 : 0;
+    lifestyleMultiplier += indoorOutdoor === "indoor" ? 0.03 : indoorOutdoor === "outdoor" ? -0.03 : 0;
+    const adjustedMid = expectancy.mid * Math.max(0.7, Math.min(1.2, lifestyleMultiplier));
+
+    let remainingYears = Number((adjustedMid - currentAge).toFixed(2));
     let everyDayGift = false;
     if (remainingYears < 0) {
       remainingYears = 0.5;
@@ -534,6 +547,99 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                   />
                 </div>
 
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/80">Lifestyle factors (refine your estimate)</p>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white/90">Diet quality</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["poor", "average", "excellent"] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setDietQuality(opt)}
+                          className={`rounded-lg border px-3 py-2 text-sm capitalize transition ${
+                            dietQuality === opt
+                              ? "border-[#ff8b5b] bg-[#ff8b5b]/20 text-white"
+                              : "border-white/15 text-white/70 hover:bg-white/10"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white/90">Exercise level</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["low", "moderate", "high"] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setExerciseLevel(opt)}
+                          className={`rounded-lg border px-3 py-2 text-sm capitalize transition ${
+                            exerciseLevel === opt
+                              ? "border-[#ff8b5b] bg-[#ff8b5b]/20 text-white"
+                              : "border-white/15 text-white/70 hover:bg-white/10"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white/90">Vet checkups</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { value: "never", label: "Rarely" },
+                        { value: "occasional", label: "Occasionally" },
+                        { value: "annual", label: "Annually" },
+                        { value: "biannual", label: "Twice a year" },
+                      ] as const).map(({ value, label }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setVetVisits(value)}
+                          className={`rounded-lg border px-3 py-2 text-sm transition ${
+                            vetVisits === value
+                              ? "border-[#ff8b5b] bg-[#ff8b5b]/20 text-white"
+                              : "border-white/15 text-white/70 hover:bg-white/10"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white/90">Living environment</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { value: "indoor", label: "Mostly indoor" },
+                        { value: "mixed", label: "Mixed" },
+                        { value: "outdoor", label: "Mostly outdoor" },
+                      ] as const).map(({ value, label }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setIndoorOutdoor(value)}
+                          className={`rounded-lg border px-3 py-2 text-sm transition ${
+                            indoorOutdoor === value
+                              ? "border-[#ff8b5b] bg-[#ff8b5b]/20 text-white"
+                              : "border-white/15 text-white/70 hover:bg-white/10"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <Button
                   onClick={onCalculate}
                   className="min-h-12 w-full bg-[#ff8b5b] text-black hover:brightness-110"
@@ -587,7 +693,7 @@ export function WalksLeftCalculator({ prefill }: { prefill?: PrefillValues }) {
                     ))}
                   </div>
                   <p className="mt-4 text-xs text-white/75">
-                    Based on average {result.breed} life expectancy of {result.expectancy.low}-{result.expectancy.high} years.
+                    Based on average {result.breed} life expectancy of {result.expectancy.low}–{result.expectancy.high} years, adjusted for your dog&apos;s diet, exercise, vet care, and environment.
                   </p>
                 </CardContent>
               </Card>

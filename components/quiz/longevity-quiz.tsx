@@ -365,8 +365,11 @@ export function LongevityQuiz({
             <p className="text-center text-lg font-semibold text-slate-900">
               {dogName}&apos;s Score: {result.score}/100
             </p>
-            <p className="text-sm text-muted-foreground">{interpretation}</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-center text-sm text-sky-800">
+              This score reflects longevity readiness — how set up {dogName} is for long-term health tracking — not a verdict on current health.
+            </p>
+            <p className="text-base text-foreground/80">{interpretation}</p>
+            <p className="text-sm text-foreground/65">
               Dogs like {breed} who track daily health signals score {trackingLift} points higher on average.
             </p>
           </CardHeader>
@@ -491,7 +494,6 @@ export function LongevityQuiz({
 
             <FaqSection />
 
-            <UpgradeCta dogName={dogName} ctaHref={premiumHref} userCount={userCount} sectionId="upgrade-bottom" />
             <StickyUpgradeBar dogName={dogName} ctaHref={premiumHref} targetId="plan-section" />
           </>
         ) : (

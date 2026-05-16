@@ -40,11 +40,11 @@ export default function CheckPage() {
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             Dog symptom checker
           </h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Under 60 seconds. Three possible outcomes:{" "}
-            <strong className="text-foreground">emergency</strong>,{" "}
-            <strong className="text-foreground">vet soon</strong>, or{" "}
-            <strong className="text-foreground">monitor</strong>. If your dog is collapsing, choking, struggling to
+          <p className="text-base leading-relaxed text-foreground/80">
+            In under 60 seconds, you will arrive at three possible outcomes:{" "}
+            <strong className="text-foreground">a vet emergency</strong>,{" "}
+            <strong className="text-foreground">a possibility</strong>, or{" "}
+            <strong className="text-foreground">monitoring symptoms</strong>. If your dog is collapsing, choking, struggling to
             breathe, seizuring, or may have been poisoned, skip this and call a vet or ER now.
           </p>
         </section>
@@ -58,7 +58,7 @@ export default function CheckPage() {
           <h2 className="mt-2 font-display text-xl font-semibold tracking-tight text-foreground">
             Turn your answers into a clinic-ready report
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-base leading-relaxed text-foreground/75">
             If you need to call a vet, the fastest help comes from clear details: symptoms,
             timing, appetite, bathroom changes, and what changed today. FursBliss Premium keeps
             that history organized so you can share it without scrambling.

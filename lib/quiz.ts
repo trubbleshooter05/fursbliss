@@ -15,25 +15,29 @@ export function calculateLongevityScore(input: {
   concerns: string[];
   breedAvgLifespan: number;
 }) {
-  let score = 30;
+  // Base score: healthy dogs start at a positive baseline
+  let score = 55;
 
+  // Senior dogs already being proactive get a boost
   if (input.age >= 10 && input.weight >= 14) {
-    score += 20;
+    score += 10;
   } else if (input.age >= 7) {
-    score += 10;
-  }
-
-  const runway = input.breedAvgLifespan - input.age;
-  if (runway > 3) {
-    score += 15;
-  } else if (runway > 1) {
-    score += 10;
-  } else {
     score += 5;
   }
 
-  if (input.concerns.includes("loy002")) {
+  // Plenty of runway ahead = more time to benefit from longevity planning
+  const runway = input.breedAvgLifespan - input.age;
+  if (runway > 5) {
     score += 10;
+  } else if (runway > 2) {
+    score += 7;
+  } else {
+    score += 3;
+  }
+
+  // Owner is proactively researching longevity topics (positive signal)
+  if (input.concerns.includes("loy002")) {
+    score += 8;
   }
   if (input.concerns.length >= 2) {
     score += 5;

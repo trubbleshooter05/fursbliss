@@ -30,21 +30,21 @@ export default function SignupPage({ searchParams }: SignupPageProps) {
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <AnimateIn className="relative overflow-hidden rounded-3xl border border-border">
           <Image
-            src="https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1400&q=80"
-            alt="Happy senior dog with owner"
+            src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1400&q=80"
+            alt="Labrador retriever with owner outdoors"
             fill
             sizes="(max-width: 1024px) 100vw, 640px"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0D2B2B]/88 to-[#0D6E6E]/68" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0D2B2B]/95 to-[#0D6E6E]/85" />
           <div className="relative space-y-4 p-6 text-white sm:p-8 md:p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/90">
             Get started
           </p>
           <h1 className="font-display text-3xl tracking-[-0.03em] sm:text-4xl md:text-5xl">
             Create your FursBliss account in minutes.
           </h1>
-          <p className="text-white/80">
+          <p className="text-base text-white/95">
             Start tracking daily health, schedule logs, and unlock AI supplement
             recommendations today.
           </p>
@@ -58,7 +58,7 @@ export default function SignupPage({ searchParams }: SignupPageProps) {
           <CardContent className="space-y-6">
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center">
               <p className="text-sm font-medium text-foreground">Want to see value first?</p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Try the free quiz — no signup required. Get your dog&apos;s readiness score in 2 minutes.
               </p>
               <Button variant="outline" size="sm" className="mt-3 w-full" asChild>

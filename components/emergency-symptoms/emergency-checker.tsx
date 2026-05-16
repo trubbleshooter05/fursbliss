@@ -9,11 +9,21 @@ import { Card, CardContent } from "@/components/ui/card";
 type MainSymptom =
   | "vomiting"
   | "vomiting-white-foam"
+  | "diarrhea"
+  | "not-eating"
+  | "coughing"
+  | "limping"
+  | "shaking"
+  | "excessive-thirst"
+  | "itching"
+  | "ear-issues"
+  | "eye-issues"
   | "breathing"
   | "breathing-rest"
   | "toxin"
   | "choking"
   | "lethargy"
+  | "weight-loss"
   | "fever"
   | "other";
 
@@ -62,47 +72,49 @@ function computeOutcome(
 
 function symptomGuideHref(main: MainSymptom): string {
   switch (main) {
-    case "vomiting":
-      return "/symptoms/vomiting";
-    case "vomiting-white-foam":
-      return "/symptoms/vomiting-white-foam";
-    case "breathing":
-      return "/symptoms/breathing-heavy";
-    case "breathing-rest":
-      return "/symptoms/rapid-breathing-at-rest";
-    case "toxin":
-      return "/symptoms/ate-chocolate";
-    case "choking":
-      return "/symptoms/choking";
-    case "lethargy":
-      return "/symptoms/should-i-go-to-the-vet";
-    case "fever":
-      return "/symptoms/fever";
-    default:
-      return "/symptoms/should-i-go-to-the-vet";
+    case "vomiting": return "/symptoms/vomiting";
+    case "vomiting-white-foam": return "/symptoms/vomiting-white-foam";
+    case "diarrhea": return "/symptoms/vomiting";
+    case "not-eating": return "/symptoms/should-i-go-to-the-vet";
+    case "coughing": return "/symptoms/should-i-go-to-the-vet";
+    case "limping": return "/symptoms/should-i-go-to-the-vet";
+    case "shaking": return "/symptoms/should-i-go-to-the-vet";
+    case "excessive-thirst": return "/symptoms/should-i-go-to-the-vet";
+    case "itching": return "/symptoms/should-i-go-to-the-vet";
+    case "ear-issues": return "/symptoms/should-i-go-to-the-vet";
+    case "eye-issues": return "/symptoms/should-i-go-to-the-vet";
+    case "weight-loss": return "/symptoms/should-i-go-to-the-vet";
+    case "breathing": return "/symptoms/breathing-heavy";
+    case "breathing-rest": return "/symptoms/rapid-breathing-at-rest";
+    case "toxin": return "/symptoms/ate-chocolate";
+    case "choking": return "/symptoms/choking";
+    case "lethargy": return "/symptoms/should-i-go-to-the-vet";
+    case "fever": return "/symptoms/fever";
+    default: return "/symptoms/should-i-go-to-the-vet";
   }
 }
 
 function symptomGuideLinkLabel(main: MainSymptom): string {
   switch (main) {
-    case "vomiting":
-      return "Open the vomiting & stomach upset guide";
-    case "vomiting-white-foam":
-      return "Open the white foam vomiting guide";
-    case "breathing":
-      return "Open the breathing & panting guide";
-    case "breathing-rest":
-      return "Open the rapid breathing at rest guide";
-    case "toxin":
-      return "Open the suspected poisoning guide";
-    case "choking":
-      return "Open the choking guide";
-    case "lethargy":
-      return "Open the “should I go to the vet?” guide";
-    case "fever":
-      return "Open the fever guide";
-    default:
-      return "Open the general urgency guide";
+    case "vomiting": return "Open the vomiting & stomach upset guide";
+    case "vomiting-white-foam": return "Open the white foam vomiting guide";
+    case "diarrhea": return "Open the digestive upset guide";
+    case "not-eating": return "Open the appetite & urgency guide";
+    case "coughing": return "Open the coughing & breathing guide";
+    case "limping": return "Open the pain & mobility guide";
+    case "shaking": return "Open the trembling & shaking guide";
+    case "excessive-thirst": return "Open the thirst & urinary guide";
+    case "itching": return "Open the skin & allergy guide";
+    case "ear-issues": return "Open the ear health guide";
+    case "eye-issues": return "Open the eye health guide";
+    case "weight-loss": return "Open the weight & nutrition guide";
+    case "breathing": return "Open the breathing & panting guide";
+    case "breathing-rest": return "Open the rapid breathing at rest guide";
+    case "toxin": return "Open the suspected poisoning guide";
+    case "choking": return "Open the choking guide";
+    case "lethargy": return "Open the “should I go to the vet?” guide";
+    case "fever": return "Open the fever guide";
+    default: return "Open the general urgency guide";
   }
 }
 
@@ -136,9 +148,19 @@ export function EmergencyChecker() {
       {
         vomiting: "Main concern: Vomiting / stomach upset",
         "vomiting-white-foam": "Main concern: Vomiting white foam",
+        diarrhea: "Main concern: Diarrhea / loose stools",
+        "not-eating": "Main concern: Not eating / loss of appetite",
+        coughing: "Main concern: Coughing / gagging / honking",
+        limping: "Main concern: Limping / favoring a leg",
+        shaking: "Main concern: Shaking / trembling",
+        "excessive-thirst": "Main concern: Drinking much more water than usual",
+        itching: "Main concern: Itching / scratching / skin irritation",
+        "ear-issues": "Main concern: Ear problems — head shaking, odor, discharge",
+        "eye-issues": "Main concern: Eye problems — discharge, redness, squinting",
+        "weight-loss": "Main concern: Noticeable weight loss",
         breathing: "Main concern: Breathing looks off / panting",
         "breathing-rest": "Main concern: Fast breathing while at rest",
-        fever: "Main concern: Fever / hot / shivering",
+        fever: "Main concern: Fever / very hot to touch / shivering",
         toxin: "Main concern: Suspected poisoning / dangerous substance",
         choking: "Main concern: Choking / gagging",
         lethargy: "Main concern: Very low energy / won’t get up",
@@ -188,26 +210,46 @@ export function EmergencyChecker() {
             <div>
               <label className="block text-sm font-medium text-foreground">What symptom are you seeing?</label>
               <select
-                className="mt-2 w-full rounded-lg border border-input bg-background p-2 text-sm"
+                className="mt-2 w-full rounded-lg border border-input bg-background p-3 text-base"
                 value={main}
                 onChange={(e) => setMain(e.target.value as MainSymptom)}
               >
-                <option value="vomiting">Vomiting / stomach upset</option>
-                <option value="vomiting-white-foam">Vomiting white foam</option>
-                <option value="breathing">Breathing looks off / panting</option>
-                <option value="breathing-rest">Fast breathing while at rest (quiet, not exercising)</option>
-                <option value="fever">Fever / very hot to touch / shivering</option>
-                <option value="toxin">Suspected poisoning / ate something dangerous</option>
-                <option value="choking">Choking / gagging</option>
-                <option value="lethargy">Very low energy / won’t get up</option>
-                <option value="other">Something else</option>
+                <optgroup label="Digestive">
+                  <option value="vomiting">Vomiting / stomach upset</option>
+                  <option value="vomiting-white-foam">Vomiting white foam</option>
+                  <option value="diarrhea">Diarrhea / loose stools</option>
+                  <option value="not-eating">Not eating / loss of appetite</option>
+                </optgroup>
+                <optgroup label="Movement &amp; Behaviour">
+                  <option value="limping">Limping / favoring a leg</option>
+                  <option value="shaking">Shaking / trembling</option>
+                  <option value="lethargy">Very low energy / won’t get up</option>
+                  <option value="coughing">Coughing / gagging / honking sound</option>
+                </optgroup>
+                <optgroup label="Skin, Ears &amp; Eyes">
+                  <option value="itching">Itching / scratching / skin irritation</option>
+                  <option value="ear-issues">Ear problems — head shaking, odor, discharge</option>
+                  <option value="eye-issues">Eye problems — discharge, redness, squinting</option>
+                </optgroup>
+                <optgroup label="Eating &amp; Weight">
+                  <option value="excessive-thirst">Drinking much more water than usual</option>
+                  <option value="weight-loss">Noticeable weight loss</option>
+                </optgroup>
+                <optgroup label="Urgent / Emergency">
+                  <option value="breathing">Breathing looks off / panting heavily</option>
+                  <option value="breathing-rest">Fast breathing at rest (not exercising)</option>
+                  <option value="fever">Fever / very hot to touch / shivering</option>
+                  <option value="toxin">Suspected poisoning / ate something dangerous</option>
+                  <option value="choking">Choking / gagging on object</option>
+                </optgroup>
+                <option value="other">Something else not listed</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-foreground">How long has this been happening?</label>
               <select
-                className="mt-2 w-full rounded-lg border border-input bg-background p-2 text-sm"
+                className="mt-2 w-full rounded-lg border border-input bg-background p-3 text-base"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value as Duration)}
               >
@@ -221,7 +263,7 @@ export function EmergencyChecker() {
             <div>
               <label className="block text-sm font-medium text-foreground">Acting normal otherwise?</label>
               <select
-                className="mt-2 w-full rounded-lg border border-input bg-background p-2 text-sm"
+                className="mt-2 w-full rounded-lg border border-input bg-background p-3 text-base"
                 value={acting}
                 onChange={(e) => setActing(e.target.value as ActingNormal)}
               >
@@ -234,7 +276,7 @@ export function EmergencyChecker() {
             <div>
               <label className="block text-sm font-medium text-foreground">Age group</label>
               <select
-                className="mt-2 w-full rounded-lg border border-input bg-background p-2 text-sm"
+                className="mt-2 w-full rounded-lg border border-input bg-background p-3 text-base"
                 value={age}
                 onChange={(e) => setAge(e.target.value as AgeGroup)}
               >
@@ -247,7 +289,7 @@ export function EmergencyChecker() {
             <div>
               <label className="block text-sm font-medium text-foreground">How bad does it seem right now?</label>
               <select
-                className="mt-2 w-full rounded-lg border border-input bg-background p-2 text-sm"
+                className="mt-2 w-full rounded-lg border border-input bg-background p-3 text-base"
                 value={severity}
                 onChange={(e) => setSeverity(e.target.value as Severity)}
               >

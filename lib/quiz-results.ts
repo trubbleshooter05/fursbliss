@@ -3,24 +3,24 @@ import { getLifeExpectancyForBreed } from "@/lib/breed-data";
 export type QuizScoreBand = "critical" | "improve" | "optimize" | "excellent";
 
 export function getQuizScoreBand(score: number): QuizScoreBand {
-  if (score <= 30) return "critical";
-  if (score <= 50) return "improve";
-  if (score <= 70) return "optimize";
+  if (score <= 45) return "critical";
+  if (score <= 64) return "improve";
+  if (score <= 79) return "optimize";
   return "excellent";
 }
 
 export function getScoreInterpretation(score: number, dogName: string) {
   const band = getQuizScoreBand(score);
   if (band === "critical") {
-    return `⚠️ ${dogName} needs attention. There are important steps you can take right now.`;
+    return `${dogName} could benefit from more active monitoring. A few simple changes can make a real difference.`;
   }
   if (band === "improve") {
-    return `🟡 ${dogName} has room to improve. Small changes could add months to years.`;
+    return `Good start — ${dogName} has a healthy baseline with clear room to build on.`;
   }
   if (band === "optimize") {
-    return `💛 ${dogName} is on the right track. Let's optimize for maximum longevity.`;
+    return `${dogName} is on a strong path. A little more consistency here could add real quality time.`;
   }
-  return `💚 ${dogName} is in great shape! Stay ahead with ongoing monitoring.`;
+  return `${dogName} is in great shape for the long haul. Keep the habits going.`;
 }
 
 function hashString(value: string) {

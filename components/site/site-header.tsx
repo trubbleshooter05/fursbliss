@@ -47,8 +47,8 @@ export function SiteHeader() {
     >
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <PawPrint className="h-5 w-5" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary" title="Go to FursBliss home">
+            <PawPrint className="h-5 w-5" aria-label="FursBliss home" />
           </span>
           <span className="font-display text-xl tracking-tight">FursBliss</span>
         </Link>

@@ -33,15 +33,15 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             sizes="(max-width: 1024px) 100vw, 640px"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0D2B2B]/88 to-[#0D6E6E]/68" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0D2B2B]/95 to-[#0D6E6E]/85" />
           <div className="relative space-y-4 p-6 text-white sm:p-8 md:p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/90">
             Welcome back
           </p>
           <h1 className="font-display text-3xl tracking-[-0.03em] sm:text-4xl md:text-5xl">
             Sign in to continue tracking your pet&apos;s health.
           </h1>
-          <p className="text-white/80">
+          <p className="text-base text-white/95">
             Access your dashboard, log daily health, and unlock AI insights with
             FursBliss.
           </p>
@@ -55,7 +55,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           <CardContent className="space-y-6">
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center">
               <p className="text-sm font-medium text-foreground">New to FursBliss?</p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Try the free quiz first — no signup required. See your dog&apos;s readiness score in 2 minutes.
               </p>
               <Button variant="outline" size="sm" className="mt-3 w-full" asChild>

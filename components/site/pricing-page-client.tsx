@@ -214,6 +214,16 @@ export function PricingPageClient({
                 ))}
               </div>
 
+              <div className="rounded-xl border border-white/20 bg-white/10 p-4 space-y-2">
+                <p className="text-sm font-semibold text-white">What you get that free advice apps don&apos;t provide</p>
+                <ul className="space-y-1.5 text-sm text-white/90">
+                  <li className="flex gap-2"><span className="shrink-0">→</span><span>Your dog&apos;s full health history in one place — not just answers to one question</span></li>
+                  <li className="flex gap-2"><span className="shrink-0">→</span><span>Automatic alerts when patterns change (weight loss, energy drops, recurring symptoms)</span></li>
+                  <li className="flex gap-2"><span className="shrink-0">→</span><span>A shareable vet report you can send before you even arrive at the clinic</span></li>
+                  <li className="flex gap-2"><span className="shrink-0">→</span><span>Breed-specific risk timelines — not generic advice for every dog</span></li>
+                </ul>
+              </div>
+
               <Button
                 className="min-h-12 w-full bg-white text-[#2B134E] hover:bg-white/90"
                 onClick={async () => {

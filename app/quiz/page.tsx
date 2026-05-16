@@ -89,16 +89,16 @@ export default async function QuizPage({ searchParams }: QuizPageProps) {
             backgroundSize: "20px 20px, 100% 100%",
           }}
         >
-          <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+          <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 sm:text-sm">
             A $250M+-backed longevity drug for dogs could arrive in 2026.
           </p>
-          <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-sky-800/90">
+          <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-sky-800/90 sm:text-sm">
             Longevity readiness quiz
           </p>
-          <h1 className="relative mt-3 font-display text-4xl tracking-[-0.03em] text-slate-900 md:text-5xl">
+          <h1 className="relative mt-3 font-display text-3xl tracking-[-0.03em] text-slate-900 sm:text-4xl md:text-5xl">
             How ready is your dog for the longevity revolution?
           </h1>
-          <p className="relative mt-3 max-w-2xl text-slate-700">
+          <p className="relative mt-3 max-w-2xl text-base text-slate-800">
             Answer 3 quick questions and get a personalized readiness score with practical next steps.
           </p>
         </section>

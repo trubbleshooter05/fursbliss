@@ -145,7 +145,7 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
             <CardTitle className="text-2xl">Quick Answer</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm leading-snug text-foreground">{page.quickAnswer}</p>
+            <p className="text-base leading-relaxed text-foreground">{page.quickAnswer}</p>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/80">
               {page.urgencyLabel}
             </p>
@@ -166,11 +166,11 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
         <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
           <h2 className="font-display text-3xl tracking-[-0.02em] text-foreground">What this symptom can mean</h2>
           {page.intro.map((paragraph) => (
-            <p key={paragraph} className="text-sm leading-snug text-muted-foreground">
+            <p key={paragraph} className="text-base leading-relaxed text-foreground/75">
               {paragraph}
             </p>
           ))}
-          <ul className="space-y-2 text-sm leading-snug text-muted-foreground">
+          <ul className="space-y-2 text-base leading-relaxed text-foreground/75">
             <li className="flex gap-2">
               <span className="text-foreground">•</span>
               <span>Educational only—not a diagnosis. Signs can change fast, especially overnight.</span>
@@ -187,7 +187,7 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
 
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-foreground">Common causes</h3>
-            <ul className="space-y-2 text-sm leading-snug text-muted-foreground">
+            <ul className="space-y-2 text-base leading-relaxed text-foreground/75">
               {page.commonCauses.map((item) => (
                 <li key={item}>• {item}</li>
               ))}
@@ -197,7 +197,7 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
           <div className="space-y-3 rounded-xl border border-rose-200/90 bg-rose-50/60 p-4 md:p-5">
             <p className="text-xs font-bold uppercase tracking-wide text-rose-800">Emergency — act on these</p>
             <h3 className="text-lg font-semibold text-foreground">When it IS an emergency</h3>
-            <ul className="space-y-2 text-sm leading-snug text-muted-foreground">
+            <ul className="space-y-2 text-base leading-relaxed text-foreground/75">
               {page.emergencyRedFlags.map((item) => (
                 <li key={item}>• {item}</li>
               ))}
@@ -207,7 +207,7 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
           <div className="space-y-3 rounded-xl border border-emerald-200/90 bg-emerald-50/50 p-4 md:p-5">
             <p className="text-xs font-bold uppercase tracking-wide text-emerald-900">Safer to monitor — not immediate ER</p>
             <h3 className="text-lg font-semibold text-foreground">When it may be okay to wait briefly</h3>
-            <ul className="space-y-2 text-sm leading-snug text-muted-foreground">
+            <ul className="space-y-2 text-base leading-relaxed text-foreground/75">
               {page.canWaitSignals.map((item) => (
                 <li key={item}>• {item}</li>
               ))}
@@ -216,7 +216,7 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
 
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-foreground">What you can do at home while monitoring</h3>
-            <ul className="space-y-2 text-sm leading-snug text-muted-foreground">
+            <ul className="space-y-2 text-base leading-relaxed text-foreground/75">
               {page.homeCare.map((item) => (
                 <li key={item}>• {item}</li>
               ))}
@@ -224,22 +224,9 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
           </div>
         </section>
 
-        <Card className="rounded-2xl border border-border bg-muted/40">
-          <CardContent className="space-y-4 p-6">
-            <h2 className="font-display text-lg font-semibold text-foreground">Turn this guide into a decision</h2>
-            <p className="text-sm leading-snug text-muted-foreground">
-              Same checklist for every symptom page: timing, severity, and red flags—then emergency, vet soon, or
-              monitor.
-            </p>
-            <Button asChild className="min-h-12 w-full sm:w-auto">
-              <Link href="/check">Check your dog&apos;s symptoms now</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
         <section className="space-y-3 rounded-2xl border border-border bg-card p-6">
           <h2 className="font-display text-2xl tracking-[-0.02em] text-foreground">Related symptom guides</h2>
-          <p className="text-sm leading-snug text-muted-foreground">
+          <p className="text-base leading-relaxed text-foreground/75">
             Overlapping signs on our emergency hub—then use the hub or checker for a structured pass.
           </p>
           <div className="grid gap-3 md:grid-cols-2">
@@ -273,40 +260,11 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
             {page.faq.map((item) => (
               <div key={item.question}>
                 <p className="text-sm font-semibold text-foreground">{item.question}</p>
-                <p className="text-sm leading-snug text-muted-foreground">{item.answer}</p>
+                <p className="text-base leading-relaxed text-foreground/75">{item.answer}</p>
               </div>
             ))}
           </div>
         </section>
-
-        <Card className="rounded-2xl border-2 border-primary/40 bg-primary/10 shadow-sm">
-          <CardContent className="space-y-4 p-6 md:p-8">
-            <p className="font-display text-lg font-bold text-foreground md:text-xl">
-              Still deciding? Run the checker—emergency, vet soon, or monitor, plus text for your clinic.
-            </p>
-            <Button asChild className="min-h-12 w-full text-base sm:w-auto" size="lg">
-              <Link href="/check">Go to symptom checker</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl border-border bg-muted/30">
-          <CardContent className="space-y-3 p-6">
-            <p className="text-sm text-muted-foreground">
-              Senior dog context: read the{" "}
-              <Link href="/blog/loy-002-fda-status-2026" className="font-medium text-emerald-700 hover:underline">
-                latest on LOY-002 FDA review status
-              </Link>{" "}
-              before you interpret headlines or timelines.
-            </p>
-            <p className="text-sm font-semibold text-foreground">
-              Is your dog ready for the new FDA longevity drug? Take the free 2-minute quiz →
-            </p>
-            <Button asChild className="min-h-12">
-              <Link href="/quiz">Take the free 2-minute quiz →</Link>
-            </Button>
-          </CardContent>
-        </Card>
 
         <p className="text-xs leading-6 text-muted-foreground">
           This information is for educational purposes only and is not a substitute for professional

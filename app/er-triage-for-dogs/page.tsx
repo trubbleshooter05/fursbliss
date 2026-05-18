@@ -181,6 +181,16 @@ export default async function ErTriageForDogsPage() {
             </div>
           </div>
         </section>
+
+        <section className="rounded-3xl border border-border bg-card p-6 md:p-8">
+          <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-foreground mb-2">Looking up a specific symptom?</h2>
+          <p className="text-sm text-muted-foreground mb-3">
+            Our dedicated symptom library has in-depth guides for common dog health concerns.
+          </p>
+          <a href="https://symptom.fursbliss.com" className="text-sm font-medium text-primary hover:underline">
+            Browse dog symptom guides at symptom.fursbliss.com →
+          </a>
+        </section>
       </main>
       <SiteFooter />
     </div>

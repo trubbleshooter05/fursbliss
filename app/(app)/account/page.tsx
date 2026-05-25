@@ -9,6 +9,7 @@ import { generateReferralCode } from "@/lib/auth-tokens";
 import { normalizeEmailPreferences } from "@/lib/email-preferences";
 import { EmailPreferencesForm } from "@/components/account/email-preferences-form";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { CheckoutSuccessTracker } from "./checkout-success-tracker";
 
 type AccountPageProps = {
   searchParams?: {
@@ -107,6 +108,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   return (
     <div className="space-y-6">
+      {checkoutSuccess && checkoutSessionId ? (
+        <CheckoutSuccessTracker
+          sessionId={checkoutSessionId}
+          plan={user.subscriptionPlan === "yearly" ? "yearly" : "monthly"}
+        />
+      ) : null}
       <AnimateIn className="space-y-2">
         <h1 className="font-display text-4xl tracking-[-0.02em] text-foreground">Account</h1>
         <p className="text-muted-foreground">

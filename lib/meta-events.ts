@@ -1,5 +1,7 @@
 "use client";
 
+import { buildCheckoutAttributionParams } from "@/lib/attribution";
+
 type MetaEventParams = Record<string, unknown>;
 export type MetaEventStatus = "sent" | "dropped";
 
@@ -231,14 +233,44 @@ export async function trackPurchaseCompleted({
     source,
   };
   const base = eventIdBase ?? `purchase-${Date.now()}`;
+
+  // Meta Pixel (preserved exactly as before)
   const fbq = (typeof window !== "undefined"
     ? (window as Window & { fbq?: (...args: unknown[]) => void }).fbq
     : undefined);
   if (fbq) {
-    // Explicit direct fire on Stripe success landing.
     fbq("track", "Purchase", payload, { eventID: `${base}:purchase` });
     fbq("trackCustom", "CompletedPurchase", payload, { eventID: `${base}:completed` });
   }
+
+  // GA4 purchase + subscription_started (deduplicated via sessionStorage)
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    const dedupeKey = `ga4_purchase_fired_${base}`;
+    if (!sessionStorage.getItem(dedupeKey)) {
+      sessionStorage.setItem(dedupeKey, "1");
+      window.gtag("event", "purchase", {
+        transaction_id: base,
+        value,
+        currency: "USD",
+        items: [
+          {
+            item_id: "fursbliss-premium",
+            item_name: contentName,
+            price: value,
+            quantity: 1,
+          },
+        ],
+      });
+      window.gtag("event", "subscription_started", {
+        transaction_id: base,
+        value,
+        currency: "USD",
+        source,
+        item_name: contentName,
+      });
+    }
+  }
+
   await Promise.allSettled([
     trackMetaEvent("Purchase", payload, { eventId: `${base}:purchase` }),
     trackMetaCustomEvent("CompletedPurchase", payload, { eventId: `${base}:completed` }),
@@ -252,24 +284,23 @@ export async function trackCheckoutAndRedirect(href: string, input: CheckoutTrac
       ? crypto.randomUUID()
       : `checkout-${Date.now()}`);
   const mergedInput = { ...input, eventIdBase };
-  
+
+  // Append first-touch attribution params so the checkout API can persist them to Stripe
+  const attributionParams = buildCheckoutAttributionParams();
+  const hrefWithAttribution = attributionParams ? `${href}${attributionParams}` : href;
+
   const isMobile = typeof navigator !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
-  // CRITICAL: For mobile, fire everything synchronously and wait for ALL promises
+
   if (isMobile) {
-    // Fire both client and server tracking in parallel
-    const serverPromise = sendServerCheckoutStart(mergedInput, href);
+    const serverPromise = sendServerCheckoutStart(mergedInput, hrefWithAttribution);
     const clientPromise = trackCheckoutStarted(mergedInput);
-    // Wait for BOTH to complete (not void)
     await Promise.allSettled([serverPromise, clientPromise]);
-    // Extra safety buffer for mobile
     await wait(800);
   } else {
-    // Desktop: fire and minimal wait
     void trackCheckoutStarted(mergedInput);
-    void sendServerCheckoutStart(mergedInput, href);
+    void sendServerCheckoutStart(mergedInput, hrefWithAttribution);
     await wait(300);
   }
-  
-  window.location.assign(href);
+
+  window.location.assign(hrefWithAttribution);
 }

@@ -7,6 +7,7 @@ import { MetaEventDebug } from "@/components/meta-event-debug";
 import { GoogleAnalyticsInit } from "@/components/google-analytics-init";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { ExitIntentPopup } from "@/components/site/exit-intent-popup";
+import { AttributionTracker } from "@/components/attribution-tracker";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -86,6 +87,7 @@ export default function RootLayout({
         />
         <GoogleAnalyticsInit />
         <GoogleAnalytics />
+        <AttributionTracker />
         <MetaPixel />
         <MetaEventDebug />
         {children}

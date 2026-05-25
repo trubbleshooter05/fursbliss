@@ -28,6 +28,14 @@ export async function GET(request: Request) {
   const source = searchParams.get("source") ?? "pricing";
   const returnTo = sanitizePath(searchParams.get("returnTo"), "/account?success=true");
   const cancelTo = sanitizePath(searchParams.get("cancelTo"), "/pricing");
+
+  // Attribution — persisted from first landing page through checkout
+  const utmSource = searchParams.get("utm_source") ?? "";
+  const utmMedium = searchParams.get("utm_medium") ?? "";
+  const utmCampaign = searchParams.get("utm_campaign") ?? "";
+  const landingPage = searchParams.get("landing_page") ?? "";
+  const referrer = searchParams.get("referrer") ?? "";
+  const gaClientId = searchParams.get("ga_client_id") ?? "";
   const session = await auth();
   const userId = session?.user?.id ?? null;
   const ip =
@@ -128,7 +136,16 @@ export async function GET(request: Request) {
       },
     },
     payment_method_collection: "always",
-    metadata: { plan: selectedPlan, source },
+    metadata: {
+      plan: selectedPlan,
+      source,
+      utm_source: utmSource,
+      utm_medium: utmMedium,
+      utm_campaign: utmCampaign,
+      landing_page: landingPage,
+      referrer,
+      ga_client_id: gaClientId,
+    },
     success_url: `${appUrl()}${user ? successPath : guestSuccessPath}`,
     cancel_url: `${appUrl()}${cancelTo}`,
   });

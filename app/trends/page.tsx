@@ -74,10 +74,11 @@ export default async function TrendsPage() {
             Trends
           </p>
           <h1 className="font-display text-5xl tracking-[-0.03em] text-foreground md:text-6xl">
-            Community wellness insights
+            Pet wellness trends
           </h1>
           <p className="max-w-3xl text-muted-foreground">
-            Aggregated, anonymized insights from the FursBliss community.
+            Aggregated, anonymized wellness patterns from the FursBliss community—breeds,
+            symptoms, and tracking behaviors in one place.
           </p>
           <p className="text-xs text-muted-foreground">
             Trend data should support questions for your veterinarian, not replace

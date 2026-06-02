@@ -13,6 +13,24 @@ export const metadata: Metadata = {
   title: "Pet Wellness Trends | FursBliss",
   description:
     "Explore anonymized wellness trends across breeds, symptoms, and longevity-focused tracking behaviors.",
+  alternates: {
+    canonical: "/trends",
+  },
+  openGraph: {
+    title: "Pet Wellness Trends | FursBliss",
+    description:
+      "Explore anonymized wellness trends across breeds, symptoms, and longevity-focused tracking behaviors.",
+    url: "/trends",
+    type: "website",
+    images: ["/og-default.jpg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pet Wellness Trends | FursBliss",
+    description:
+      "Explore anonymized wellness trends across breeds, symptoms, and longevity-focused tracking behaviors.",
+    images: ["/og-default.jpg"],
+  },
 };
 
 export default async function TrendsPage() {

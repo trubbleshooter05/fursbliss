@@ -58,7 +58,7 @@ export async function POST(
       },
     });
 
-    const baseUrl = process.env.NEXTAUTH_URL ?? "https://fursbliss.com";
+    const baseUrl = process.env.NEXTAUTH_URL ?? "https://www.fursbliss.com";
     const url = `${baseUrl}/vet-report/${vetReport.id}`;
 
     return new Response(JSON.stringify({ url, id: vetReport.id, expiresAt: expiresAt.toISOString() }), {

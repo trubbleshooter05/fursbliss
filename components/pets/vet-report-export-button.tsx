@@ -295,7 +295,7 @@ export function VetReportExportButton({
         link = data.url;
         setShareUrl(link);
       } catch {
-        link = `https://fursbliss.com`;
+        link = `https://www.fursbliss.com`;
       }
     }
 

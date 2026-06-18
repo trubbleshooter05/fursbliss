@@ -8,23 +8,23 @@ import { SiteHeader } from "@/components/site/site-header";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Dog Symptom Checker — Emergency, Vet Soon, or Monitor | FursBliss",
+  title: "Free Dog Symptom Checker Online — Emergency, Vet Soon, or Monitor | FursBliss",
   description:
-    "Answer a few questions about your dog’s symptoms. Get a simple urgency suggestion: emergency, vet soon, or monitor—plus a copy-ready summary for your clinic.",
+    "Free online dog symptom checker in under 60 seconds. Vomiting, diarrhea, not eating, breathing trouble, or pain—get emergency vs vet-soon vs monitor guidance (not a diagnosis).",
   alternates: { canonical: "/check" },
   openGraph: {
-    title: "Dog symptom checker | FursBliss",
+    title: "Free Dog Symptom Checker Online | FursBliss",
     description:
-      "Fast triage-style questions—not a diagnosis. For emergencies, call a veterinarian or ER immediately.",
+      "Check dog symptoms online in 60 seconds—emergency, vet soon, or monitor. Not a diagnosis; call a vet for true emergencies.",
     url: "/check",
     type: "website",
     images: ["/og-default.jpg"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dog symptom checker | FursBliss",
+    title: "Free Dog Symptom Checker Online | FursBliss",
     description:
-      "Fast triage-style questions—not a diagnosis. For emergencies, call a veterinarian or ER immediately.",
+      "Check dog symptoms online in 60 seconds—emergency, vet soon, or monitor. Not a diagnosis; call a vet for true emergencies.",
     images: ["/og-default.jpg"],
   },
 };
@@ -38,10 +38,10 @@ export default function CheckPage() {
 
         <section className="space-y-3">
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            Dog symptom checker
+            Free online dog symptom checker
           </h1>
           <p className="text-base leading-relaxed text-foreground/80">
-            In under 60 seconds, you will arrive at three possible outcomes:{" "}
+            Use this canine symptoms checker in under 60 seconds. You will arrive at three possible outcomes:{" "}
             <strong className="text-foreground">a vet emergency</strong>,{" "}
             <strong className="text-foreground">a possibility</strong>, or{" "}
             <strong className="text-foreground">monitoring symptoms</strong>. If your dog is collapsing, choking, struggling to
@@ -68,11 +68,36 @@ export default function CheckPage() {
           </Button>
         </section>
 
-        <p className="text-center text-sm text-muted-foreground">
-          <Link href="/symptoms" className="font-medium text-emerald-700 hover:underline">
-            Browse all symptom guides
-          </Link>
-        </p>
+        <section className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">More free health tools</p>
+          <ul className="mt-3 space-y-2">
+            <li>
+              <Link href="/symptoms" className="font-medium text-emerald-700 hover:underline">
+                Browse all dog symptom guides
+              </Link>
+            </li>
+            <li>
+              <Link href="/triage" className="font-medium text-emerald-700 hover:underline">
+                Full ER triage assistant (AI-assisted)
+              </Link>
+            </li>
+            <li>
+              <Link href="/er-triage-for-dogs" className="font-medium text-emerald-700 hover:underline">
+                When to go to the emergency vet
+              </Link>
+            </li>
+            <li>
+              <Link href="/vet-visit-prep" className="font-medium text-emerald-700 hover:underline">
+                Vet visit prep checklist
+              </Link>
+            </li>
+            <li>
+              <Link href="/daily-care-plan" className="font-medium text-emerald-700 hover:underline">
+                Daily care plan for senior dogs
+              </Link>
+            </li>
+          </ul>
+        </section>
 
         <div className="flex justify-center pb-6">
           <Button asChild variant="outline" className="min-h-11">

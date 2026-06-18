@@ -203,6 +203,11 @@ const WEBSITE_JSON_LD = {
   "@type": "WebSite",
   name: "FursBliss",
   url: "https://www.fursbliss.com",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://www.fursbliss.com/breeds?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export default async function Home() {
@@ -250,7 +255,7 @@ export default async function Home() {
                   className="shimmer-cta w-full bg-accent text-accent-foreground hover:scale-[1.02] hover:brightness-110 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/check">Check Symptoms Now</Link>
+                  <Link href="/check">Free Dog Symptom Checker</Link>
                 </Button>
                 <Button
                   size="lg"

@@ -42,8 +42,17 @@ export function SiteFooter() {
               <Link href="/trends" className="block transition hover:text-white">
                 Trends
               </Link>
+              <Link href="/check" className="block transition hover:text-white">
+                Symptom Checker
+              </Link>
               <Link href="/symptoms" className="block transition hover:text-white">
                 Symptom Guide
+              </Link>
+              <Link href="/daily-care-plan" className="block transition hover:text-white">
+                Daily Care Plan
+              </Link>
+              <Link href="/vet-visit-prep" className="block transition hover:text-white">
+                Vet Visit Prep
               </Link>
             </div>
           </div>

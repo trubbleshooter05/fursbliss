@@ -14,3 +14,20 @@ export function validateEnvAtStartup(): void {
     );
   }
 }
+
+export type BreadcrumbItem = { name: string; path: string };
+
+const SITE_ORIGIN = "https://www.fursbliss.com";
+
+export function buildBreadcrumbJsonLd(items: BreadcrumbItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: `${SITE_ORIGIN}${item.path}`,
+    })),
+  };
+}

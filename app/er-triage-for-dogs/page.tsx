@@ -109,7 +109,10 @@ export default async function ErTriageForDogsPage() {
           </p>
           <div className="flex flex-col gap-3">
             <Button asChild className="min-h-12 text-base">
-              <Link href="/triage">Start Free Triage Now →</Link>
+              <Link href="/check">Use the dog symptom checker →</Link>
+            </Button>
+            <Button asChild variant="outline" className="min-h-12 text-base">
+              <Link href="/triage">Or start full ER triage →</Link>
             </Button>
             <div className="flex flex-wrap gap-2">
               {symptomChips.map((chip) => (

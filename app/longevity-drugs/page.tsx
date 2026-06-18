@@ -160,10 +160,16 @@ export default async function LongevityDrugsPage() {
               Source: BusinessWire Jan 2026 update
             </a>
             <Link
+              href="/blog/loy-002-fda-timeline"
+              className="inline-block text-sm font-medium text-emerald-800 hover:underline"
+            >
+              LOY-002 FDA approval timeline
+            </Link>
+            <Link
               href="/blog/loy-002-fda-status-2026"
               className="inline-block text-sm font-medium text-emerald-800 hover:underline"
             >
-              FursBliss explainer: LOY-002 milestone breakdown
+              LOY-002 FDA status 2026
             </Link>
           </div>
           </AnimateIn>

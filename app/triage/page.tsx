@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { ErTriageWorkbench } from "@/components/triage/er-triage-workbench";
@@ -90,6 +91,36 @@ export default async function TriagePage({ searchParams }: TriagePageProps) {
           initialSymptom={initialSymptom}
           checkoutSuccess={checkoutSuccess}
         />
+        <section className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Related free tools</p>
+          <ul className="mt-3 space-y-2">
+            <li>
+              <Link href="/check" className="font-medium text-emerald-700 hover:underline">
+                Quick dog symptom checker (60 seconds)
+              </Link>
+            </li>
+            <li>
+              <Link href="/er-triage-for-dogs" className="font-medium text-emerald-700 hover:underline">
+                When to go to the emergency vet
+              </Link>
+            </li>
+            <li>
+              <Link href="/symptoms" className="font-medium text-emerald-700 hover:underline">
+                Browse symptom guides
+              </Link>
+            </li>
+            <li>
+              <Link href="/vet-visit-prep" className="font-medium text-emerald-700 hover:underline">
+                Vet visit prep checklist
+              </Link>
+            </li>
+            <li>
+              <Link href="/daily-care-plan" className="font-medium text-emerald-700 hover:underline">
+                Daily care plan for senior dogs
+              </Link>
+            </li>
+          </ul>
+        </section>
       </main>
       <SiteFooter />
     </div>

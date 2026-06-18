@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSymptomPage, getSymptomSlugs } from "@/lib/emergency-symptoms/content";
+import { buildBreadcrumbJsonLd } from "@/lib/env";
 import { symptomPageMap, symptomPages, type SymptomUrgencyLevel } from "@/lib/symptom-pages";
 
 type SymptomPageProps = {
@@ -88,10 +89,16 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
   const { slug } = await params;
   const emergencyPage = getSymptomPage(slug);
   if (emergencyPage) {
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Symptoms", path: "/symptoms" },
+      { name: emergencyPage.h1, path: `/symptoms/${slug}` },
+    ]);
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
         <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 md:py-14">
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
           <SymptomLandingTemplate page={emergencyPage} updatedIso={new Date().toISOString()} />
         </main>
         <SiteFooter />
@@ -132,6 +139,11 @@ export default async function SymptomDetailPage({ params }: SymptomPageProps) {
       <SymptomMobileStickyCta />
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl space-y-8 px-4 py-10 pb-24 sm:px-6 md:py-14 md:pb-14">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Symptoms", path: "/symptoms" },
+          { name: page.h1, path: `/symptoms/${page.slug}` },
+        ])) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(medicalJsonLd) }} />
 

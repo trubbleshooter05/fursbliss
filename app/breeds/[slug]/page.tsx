@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { breedPages } from "@/lib/breed-pages";
+import { buildBreadcrumbJsonLd } from "@/lib/env";
 
 type PageProps = {
   params: { slug: string };
@@ -59,6 +60,18 @@ export default async function BreedDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-slate-50">
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl px-6 py-16 space-y-6">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(
+              buildBreadcrumbJsonLd([
+                { name: "Home", path: "/" },
+                { name: "Breeds", path: "/breeds" },
+                { name: page.title, path: `/breeds/${params.slug}` },
+              ])
+            ),
+          }}
+        />
         <div className="relative h-64 overflow-hidden rounded-3xl border border-border">
           <Image
             src={`https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80&sig=${params.slug.length}`}

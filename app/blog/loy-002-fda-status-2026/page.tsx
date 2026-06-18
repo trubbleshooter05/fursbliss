@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { InlineEmailCapture } from "@/components/blog/inline-email-capture";
 import { BlogBottomCTA } from "@/components/blog/blog-bottom-cta";
+import { buildBreadcrumbJsonLd } from "@/lib/env";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
 const SLUG = "loy-002-fda-status-2026";
@@ -12,9 +13,9 @@ const PUBLISHED_AT = "2026-04-12T00:00:00.000Z";
 const UPDATED_AT = "2026-04-12T00:00:00.000Z";
 
 export const metadata: Metadata = {
-  title: "LOY-002 FDA Status (2026 Update): What Dog Owners Should Know | FursBliss",
+  title: "LOY-002 FDA Status 2026: Release Date & Approval Path | FursBliss",
   description:
-    "LOY-002 FDA status in 2026: what is publicly known about the conditional approval pathway, which technical sections are accepted, what is still pending, and how to think about timing—without treating estimates as guarantees.",
+    "LOY-002 FDA status in June 2026: RXE and TAS accepted, CMC manufacturing still in review. Realistic release timing, release-date questions, and what owners should know now.",
   keywords: [
     "LOY-002 FDA status 2026",
     "LOY-002 FDA",
@@ -26,18 +27,18 @@ export const metadata: Metadata = {
     canonical: `/blog/${SLUG}`,
   },
   openGraph: {
-    title: "LOY-002 FDA Status (2026 Update): What Dog Owners Should Know",
+    title: "LOY-002 FDA Status 2026: Release Date & Approval Path",
     description:
-      "Factual snapshot of LOY-002’s FDA pathway: accepted sections, pending manufacturing (CMC) work, and clearly labeled estimates—plus what owners can do while timelines evolve.",
+      "June 2026 snapshot: accepted RXE and TAS sections, pending CMC manufacturing, and realistic LOY-002 release timing—not hype.",
     url: `/blog/${SLUG}`,
     type: "article",
     images: [SHARE_IMAGE_URL],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LOY-002 FDA Status (2026 Update): What Dog Owners Should Know",
+    title: "LOY-002 FDA Status 2026: Release Date & Approval Path",
     description:
-      "A conservative, informational overview of LOY-002’s FDA status: facts, pending steps, and labeled estimates—not predictions.",
+      "June 2026 LOY-002 FDA status: accepted sections, pending manufacturing, and realistic release timing.",
     images: [SHARE_IMAGE_URL],
   },
 };
@@ -92,6 +93,18 @@ export default function Loy002FdaStatus2026Page() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
+            __html: JSON.stringify(
+              buildBreadcrumbJsonLd([
+                { name: "Home", path: "/" },
+                { name: "Blog", path: "/blog" },
+                { name: "LOY-002 FDA Status 2026", path: "/blog/loy-002-fda-status-2026" },
+              ])
+            ),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
             __html: JSON.stringify(ARTICLE_JSON_LD),
           }}
         />
@@ -113,7 +126,11 @@ export default function Loy002FdaStatus2026Page() {
             what is publicly known today—without hype. This page summarizes{" "}
             <strong className="text-foreground">documented pathway progress</strong>, separates{" "}
             <strong className="text-foreground">facts from estimates</strong>, and points to practical next steps
-            for senior dog families.
+            for senior dog families. For a step-by-step milestone timeline, see our{" "}
+            <Link href="/blog/loy-002-fda-timeline" className="font-medium text-emerald-700 hover:underline">
+              LOY-002 FDA approval timeline
+            </Link>
+            .
           </p>
         </div>
 

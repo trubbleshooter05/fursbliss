@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { InlineEmailCapture } from "@/components/blog/inline-email-capture";
 import { BlogBottomCTA } from "@/components/blog/blog-bottom-cta";
+import { buildBreadcrumbJsonLd } from "@/lib/env";
 
 const SHARE_IMAGE_URL = "/opengraph-image";
 const SLUG = "loy-002-fda-timeline";
@@ -70,6 +71,18 @@ export default function Loy002FdaTimelinePostPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
+            __html: JSON.stringify(
+              buildBreadcrumbJsonLd([
+                { name: "Home", path: "/" },
+                { name: "Blog", path: "/blog" },
+                { name: "LOY-002 FDA Timeline", path: "/blog/loy-002-fda-timeline" },
+              ])
+            ),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
             __html: JSON.stringify(ARTICLE_JSON_LD),
           }}
         />
@@ -88,7 +101,11 @@ export default function Loy002FdaTimelinePostPage() {
           </p>
           <p className="text-muted-foreground">
             Here&apos;s exactly where things stand in March 2026, what the final step involves, and what
-            you can do right now while you wait.
+            you can do right now while you wait. For a focused status snapshot, read{" "}
+            <Link href="/blog/loy-002-fda-status-2026" className="font-medium text-emerald-700 hover:underline">
+              LOY-002 FDA status 2026
+            </Link>
+            .
           </p>
         </div>
 

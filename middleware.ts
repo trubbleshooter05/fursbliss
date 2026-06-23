@@ -31,6 +31,10 @@ export function middleware(request: NextRequest) {
   }
 
   if (host === "fursbliss.com") {
+    // Stripe webhooks must not 308 — Stripe treats redirect as delivery failure.
+    if (request.nextUrl.pathname.startsWith("/api/stripe/")) {
+      return NextResponse.next();
+    }
     const url = request.nextUrl.clone();
     url.host = "www.fursbliss.com";
     return NextResponse.redirect(url, 308);

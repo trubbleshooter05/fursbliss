@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { breedPages } from "@/lib/breed-pages";
 import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
+import { getGeneratedBlogPosts } from "@/lib/generated-blog";
 import { getSymptomSlugs } from "@/lib/emergency-symptoms/content";
 import { symptomPages } from "@/lib/symptom-pages";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://www.fursbliss.com";
   const now = new Date();
   const blogPosts = getBlogPostsSortedByDateDesc();
+  const generatedBlogPosts = getGeneratedBlogPosts();
   let dbBreedSlugs: string[] = [];
   try {
     const rows = await prisma.breedProfile.findMany({
@@ -27,7 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: "weekly" as const,
     priority: 0.5,
-  }));
+  })),
+  ];
 
   const primaryRoutes: MetadataRoute.Sitemap = [
     {
@@ -128,12 +131,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${base}/blog/${post.slug}`,
-    lastModified: new Date(post.updatedAt ?? post.date),
-    changeFrequency: "monthly",
-    priority: 0.8,
-  }));
+  const blogEntries: MetadataRoute.Sitemap = [
+    ...generatedBlogPosts.map((post) => ({
+      url: `${base}/blog/${post.slug}`,
+      lastModified: new Date(post.publishedAt),
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+    })),
+    ...blogPosts.map((post) => ({
+      url: `${base}/blog/${post.slug}`,
+      lastModified: new Date(post.updatedAt ?? post.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+  ];
 
   const symptomSlugSet = new Set<string>([
     ...symptomPages.map((page) => page.slug),

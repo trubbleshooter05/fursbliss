@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
+import { getGeneratedBlogPosts } from "@/lib/generated-blog";
 
 export const metadata: Metadata = {
   title: "Dog Longevity Research & LOY-002 Updates | FursBliss Blog",
@@ -30,7 +31,16 @@ export const metadata: Metadata = {
 };
 
 export default function BlogIndexPage() {
-  const posts = getBlogPostsSortedByDateDesc();
+  const curated = getBlogPostsSortedByDateDesc();
+  const generated = getGeneratedBlogPosts().map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.description,
+    date: post.publishedAt.slice(0, 10),
+  }));
+  const posts = [...generated, ...curated].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 
   return (
     <div className="min-h-screen bg-background">

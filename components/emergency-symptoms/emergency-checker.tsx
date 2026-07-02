@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { UrgentAnswerCta } from "@/components/site/urgent-answer-cta";
 
 type MainSymptom =
   | "vomiting"
@@ -339,6 +340,7 @@ export function EmergencyChecker() {
             guideLabel={symptomGuideLinkLabel(main)}
             summary={summary}
           />
+          <UrgentAnswerCta source="check-result" variant="post-check" />
           <button
             type="button"
             onClick={reset}

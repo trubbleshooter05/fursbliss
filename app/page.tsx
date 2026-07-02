@@ -20,6 +20,8 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { SocialCtaBanner } from "@/components/site/social-cta-banner";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { PetTopicsWidget } from "@/components/PetTopicsWidget";
+import { UrgentAnswerCta } from "@/components/site/urgent-answer-cta";
+import { CheckSymptomsPromo } from "@/components/site/check-symptoms-promo";
 import { getBlogPostsSortedByDateDesc } from "@/lib/content/blog-posts";
 import { getSymptomPage } from "@/lib/emergency-symptoms/content";
 
@@ -249,23 +251,28 @@ export default async function Home() {
               <p className="max-w-2xl text-base text-white/90 sm:text-lg">
                 Get a quick recommendation based on your dog&apos;s symptoms, plus clear next steps in under 60 seconds.
               </p>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <Button
                   size="lg"
-                  className="shimmer-cta w-full bg-accent text-accent-foreground hover:scale-[1.02] hover:brightness-110 transition-all duration-300 sm:w-auto"
+                  className="shimmer-cta min-h-12 w-full bg-accent px-6 text-base text-accent-foreground hover:scale-[1.02] hover:brightness-110 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/check">Free Dog Symptom Checker</Link>
+                  <Link href="/check">
+                    Free symptom check — 60 seconds
+                    <ChevronRight className="ml-1 h-5 w-5" aria-hidden />
+                  </Link>
                 </Button>
+                <UrgentAnswerCta source="home" variant="hero" className="w-full sm:w-auto" />
                 <Button
                   size="lg"
                   variant="outline"
                   className="w-full border-white/35 bg-white/5 text-white hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 sm:w-auto"
                   asChild
                 >
-                  <Link href="/symptoms">Browse Dog Emergency Symptoms</Link>
+                  <Link href="/symptoms">Browse emergency guides</Link>
                 </Button>
               </div>
+              <p className="text-sm text-white/80">Free checker first — no account. Paid urgent answer only if you want a detailed triage write-up tonight.</p>
               <aside className="max-w-2xl rounded-2xl border border-white/20 bg-black/20 p-4 text-sm leading-relaxed text-white/90 backdrop-blur-sm">
                 <strong className="text-white">Safety note:</strong> This tool is for informational support only and
                 does not replace a veterinarian. If your dog is collapsing, choking, having trouble breathing,
@@ -274,6 +281,7 @@ export default async function Home() {
             </AnimateIn>
 
             <AnimateIn delay={0.1} className="grid gap-3">
+              <CheckSymptomsPromo variant="hero" />
               <Link
                 href="/symptoms/vomiting"
                 className="group rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/15"
@@ -324,6 +332,10 @@ export default async function Home() {
           </div>
         </section>
 
+        <AnimateIn>
+          <CheckSymptomsPromo variant="banner" />
+        </AnimateIn>
+
         <PetTopicsWidget />
 
         <AnimateIn>
@@ -357,6 +369,9 @@ export default async function Home() {
                 </li>
               ))}
             </ul>
+            <div className="mt-6">
+              <CheckSymptomsPromo variant="compact" />
+            </div>
           </section>
         </AnimateIn>
 
@@ -736,15 +751,18 @@ export default async function Home() {
           </div>
         </section>
       </main>
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-primary/30 bg-background/98 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p className="text-sm text-muted-foreground">
-            Not sure how urgent it is? Run the free 60-second symptom check—emergency, vet soon, or monitor.
-          </p>
-          <Button className="min-h-11 w-full sm:w-auto" asChild>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Free · 60 sec · No login</p>
+            <p className="text-sm font-medium text-foreground">
+              Worried right now? Get ER now, vet today, or monitor — before you scroll away.
+            </p>
+          </div>
+          <Button className="min-h-12 w-full bg-primary text-base shadow-md sm:w-auto" size="lg" asChild>
             <Link href="/check">
-              Check Symptoms Now
-              <ChevronRight className="ml-1 h-4 w-4" />
+              Check symptoms now
+              <ChevronRight className="ml-1 h-5 w-5" aria-hidden />
             </Link>
           </Button>
         </div>

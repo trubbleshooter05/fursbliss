@@ -70,7 +70,7 @@ export default function GeneratedBlogPostPage({ params }: Props) {
           </CardContent>
         </Card>
         {post.cta ? <p className="mt-6 text-muted-foreground">{post.cta}</p> : null}
-        <BlogBottomCTA />
+        <BlogBottomCTA slug={post.slug} />
         <p className="mt-8">
           <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
             ← Back to blog

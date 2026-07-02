@@ -2,13 +2,25 @@
 
 const STORAGE_KEY = "fursbliss_first_touch";
 
-type FirstTouchAttribution = {
+export type FirstTouchAttribution = {
   utm_source: string;
   utm_medium: string;
   utm_campaign: string;
   landing_page: string;
   referrer: string;
 };
+
+/** Read persisted first-touch attribution (empty fields if none stored). */
+export function getStoredAttribution(): Partial<FirstTouchAttribution> {
+  if (typeof window === "undefined" || typeof localStorage === "undefined") return {};
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) return {};
+  try {
+    return JSON.parse(stored) as FirstTouchAttribution;
+  } catch {
+    return {};
+  }
+}
 
 /** Read the GA4 client ID from the _ga cookie (format: GA1.X.{clientId}). */
 function readGaClientId(): string {

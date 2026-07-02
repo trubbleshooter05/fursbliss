@@ -8,7 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BREED_NAMES } from "@/lib/breed-data";
-import { trackCheckoutAndRedirect, trackMetaCustomEvent, trackPurchaseCompleted } from "@/lib/meta-events";
+import {
+  getUrgentFunnelSessionId,
+  markUrgentFunnelSession,
+  trackCheckoutAndRedirect,
+  trackMetaCustomEvent,
+  trackPurchaseCompleted,
+  trackUrgentAnswerDelivered,
+  trackUrgentCheckoutCompleted,
+  trackUrgentToPremiumViewed,
+} from "@/lib/meta-events";
+import { UrgentAnswerCta } from "@/components/site/urgent-answer-cta";
+import { URGENT_ANSWER_PRICE_USD } from "@/lib/stripe-prices";
 
 type PetOption = {
   id: string;
@@ -22,6 +33,8 @@ type TriageWorkbenchProps = {
   pets: PetOption[];
   initialSymptom?: string;
   checkoutSuccess?: boolean;
+  urgentReady?: boolean;
+  checkoutSessionId?: string;
 };
 
 type TriageResponse = {
@@ -121,6 +134,8 @@ export function ErTriageWorkbench({
   pets,
   initialSymptom,
   checkoutSuccess: checkoutSuccessProp = false,
+  urgentReady = false,
+  checkoutSessionId,
 }: TriageWorkbenchProps) {
   const [selectedPetId, setSelectedPetId] = useState(pets[0]?.id ?? "");
   const [guestPetName, setGuestPetName] = useState("");
@@ -138,7 +153,8 @@ export function ErTriageWorkbench({
   const [result, setResult] = useState<TriageResponse | null>(null);
   const [email, setEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [checkoutSuccess, setCheckoutSuccess] = useState(checkoutSuccessProp);
+  const [checkoutSuccess, setCheckoutSuccess] = useState(checkoutSuccessProp || urgentReady);
+  const [urgentEntitlementId, setUrgentEntitlementId] = useState<string | null>(null);
 
   const startTrackedRef = useRef(false);
   const completeTrackedRef = useRef(false);
@@ -146,7 +162,32 @@ export function ErTriageWorkbench({
   const completedPurchaseTrackedRef = useRef(false);
   const restoredAfterUpgradeRef = useRef(false);
   const premiumCardRef = useRef<HTMLDivElement | null>(null);
+  const urgentPremiumUpsellRef = useRef<HTMLDivElement | null>(null);
+  const answerDeliveredTrackedRef = useRef(false);
+  const urgentPremiumViewedTrackedRef = useRef(false);
   const hasPets = pets.length > 0;
+  useEffect(() => {
+    if (!checkoutSessionId) return;
+    let cancelled = false;
+    void fetch(`/api/urgent/entitlement?session_id=${encodeURIComponent(checkoutSessionId)}`)
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return (await response.json()) as { entitlementId?: string };
+      })
+      .then((data) => {
+        if (cancelled || !data?.entitlementId) return;
+        setUrgentEntitlementId(data.entitlementId);
+        setCheckoutSuccess(true);
+        if (checkoutSessionId) {
+          markUrgentFunnelSession(checkoutSessionId);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutSessionId]);
+
 
   const selectedPet = useMemo(() => pets.find((pet) => pet.id === selectedPetId) ?? null, [pets, selectedPetId]);
   const breedSuggestions = useMemo(() => {
@@ -169,12 +210,24 @@ export function ErTriageWorkbench({
   }, [checkoutSuccessProp]);
 
   useEffect(() => {
-    if (!checkoutSuccess || completedPurchaseTrackedRef.current) return;
+    if (completedPurchaseTrackedRef.current) return;
     const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-    const sessionId = params?.get("session_id") ?? undefined;
-    void trackPurchaseCompleted({ source: "triage", value: 9, eventIdBase: sessionId });
-    completedPurchaseTrackedRef.current = true;
-  }, [checkoutSuccess]);
+    const sessionId = params?.get("session_id") ?? checkoutSessionId ?? undefined;
+    const isUrgentReturn = params?.get("urgent") === "ready" || urgentReady;
+    const isPremiumReturn =
+      params?.get("checkout") === "success" || params?.get("upgraded") === "true";
+
+    if (isUrgentReturn && sessionId) {
+      void trackUrgentCheckoutCompleted({ source: "triage", session_id: sessionId });
+      completedPurchaseTrackedRef.current = true;
+      return;
+    }
+
+    if (checkoutSuccess && isPremiumReturn && !isUrgentReturn) {
+      void trackPurchaseCompleted({ source: "triage", value: 9, eventIdBase: sessionId });
+      completedPurchaseTrackedRef.current = true;
+    }
+  }, [checkoutSuccess, checkoutSessionId, urgentReady]);
 
   useEffect(() => {
     if (!checkoutSuccess || restoredAfterUpgradeRef.current || loading || result?.detailed) return;
@@ -264,7 +317,10 @@ export function ErTriageWorkbench({
       const response = await fetch("/api/ai/er-triage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          ...(urgentEntitlementId ? { urgentEntitlementId } : {}),
+        }),
       });
 
       const payloadResponse = (await response.json()) as TriageResponse & { message?: string };
@@ -292,6 +348,41 @@ export function ErTriageWorkbench({
     void trackMetaCustomEvent("TriageCompleted", { urgency: result.urgency.urgencyLevel });
     completeTrackedRef.current = true;
   }, [result]);
+
+  useEffect(() => {
+    if (!result?.detailed || answerDeliveredTrackedRef.current) return;
+    const params =
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const sessionId =
+      checkoutSessionId ??
+      getUrgentFunnelSessionId() ??
+      params?.get("session_id") ??
+      "";
+    const isUrgentFunnel =
+      Boolean(urgentEntitlementId) ||
+      Boolean(getUrgentFunnelSessionId()) ||
+      urgentReady ||
+      params?.get("urgent") === "ready";
+    if (!isUrgentFunnel) return;
+    trackUrgentAnswerDelivered({ session_id: sessionId, used_entitlement: true });
+    answerDeliveredTrackedRef.current = true;
+  }, [result?.detailed, urgentEntitlementId, checkoutSessionId, urgentReady]);
+
+  useEffect(() => {
+    if (!result?.detailed || urgentPremiumViewedTrackedRef.current || !urgentPremiumUpsellRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry?.isIntersecting && !urgentPremiumViewedTrackedRef.current) {
+          trackUrgentToPremiumViewed({ source: "triage-after-urgent" });
+          urgentPremiumViewedTrackedRef.current = true;
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(urgentPremiumUpsellRef.current);
+    return () => observer.disconnect();
+  }, [result?.detailed]);
 
   useEffect(() => {
     if (!result?.urgency || !result?.premiumRequired || viewedPremiumTrackedRef.current || !premiumCardRef.current) return;
@@ -354,6 +445,7 @@ export function ErTriageWorkbench({
   };
 
   const theme = urgencyTheme(result?.urgency?.urgencyLevel);
+  const urgentCheckoutHref = `/api/stripe/checkout?product=urgent&source=triage&returnTo=${encodeURIComponent("/triage?urgent=ready")}&cancelTo=%2Ftriage`;
   const checkoutHref = "/api/stripe/checkout?plan=monthly&source=triage&returnTo=%2Ftriage%3Fupgraded%3Dtrue%26checkout%3Dsuccess&cancelTo=%2Ftriage";
   const upgradeHref = checkoutHref;
   const shouldShowUpgrade = Boolean(result?.urgency && result?.premiumRequired);
@@ -626,6 +718,15 @@ export function ErTriageWorkbench({
       ) : null}
 
       {shouldShowUpgrade ? (
+        <UrgentAnswerCta
+          source="triage"
+          returnTo="/triage?urgent=ready"
+          cancelTo="/triage"
+          className="mb-4"
+        />
+      ) : null}
+
+      {shouldShowUpgrade ? (
         <Card ref={premiumCardRef} className="animate-pulse-border rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 shadow-lg">
           <CardHeader>
             <div className="flex items-start gap-2">
@@ -668,7 +769,7 @@ export function ErTriageWorkbench({
             </div>
             <Button asChild className="min-h-12 w-full bg-amber-600 text-base font-semibold hover:bg-amber-700">
               <a href={upgradeHref} onClick={handleUpgradeClick}>
-                Protect {selectedPet?.name || guestPetName || "Your Dog"} — $9/mo
+                Or protect ongoing — $9/mo subscription
               </a>
             </Button>
             <p className="text-center text-xs font-medium text-muted-foreground">
@@ -694,6 +795,30 @@ export function ErTriageWorkbench({
                 Prefer yearly? Save 45% with annual billing
               </a>
             </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {result?.detailed ? (
+        <Card
+          ref={urgentPremiumUpsellRef}
+          className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50"
+        >
+          <CardHeader>
+            <CardTitle className="font-display text-xl">Want ongoing tracking after tonight?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Premium gives you daily health logs, trend alerts, and vet-ready reports if symptoms come back.
+            </p>
+            <Button asChild className="min-h-12 w-full bg-amber-600 hover:bg-amber-700">
+              <Link
+                href="/pricing?from=urgent"
+                onClick={() => trackUrgentToPremiumViewed({ source: "triage-after-urgent" })}
+              >
+                View Premium plans
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       ) : null}

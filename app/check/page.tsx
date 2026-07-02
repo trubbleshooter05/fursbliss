@@ -6,6 +6,7 @@ import { MedicalDisclaimerBanner } from "@/components/emergency-symptoms/medical
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { Button } from "@/components/ui/button";
+import { UrgentAnswerCta } from "@/components/site/urgent-answer-cta";
 
 export const metadata: Metadata = {
   title: "Free Dog Symptom Checker Online — Emergency, Vet Soon, or Monitor | FursBliss",
@@ -51,20 +52,19 @@ export default function CheckPage() {
 
         <EmergencyChecker />
 
-        <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-            Vet-ready next step
+        <UrgentAnswerCta
+          source="check"
+          returnTo="/triage?urgent=ready"
+          cancelTo="/check"
+        />
+
+        <section className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Want ongoing tracking?</p>
+          <p className="mt-2 leading-relaxed">
+            Premium keeps symptom history, alerts, and vet-ready reports organized — for when symptoms come back.
           </p>
-          <h2 className="mt-2 font-display text-xl font-semibold tracking-tight text-foreground">
-            Turn your answers into a clinic-ready report
-          </h2>
-          <p className="mt-2 text-base leading-relaxed text-foreground/75">
-            If you need to call a vet, the fastest help comes from clear details: symptoms,
-            timing, appetite, bathroom changes, and what changed today. FursBliss Premium keeps
-            that history organized so you can share it without scrambling.
-          </p>
-          <Button asChild className="mt-4 min-h-11 w-full">
-            <Link href="/pricing?source=triage">Get the vet-ready report plan</Link>
+          <Button asChild variant="outline" className="mt-4 min-h-11 w-full">
+            <Link href="/pricing?source=check-secondary">View Premium plans</Link>
           </Button>
         </section>
 

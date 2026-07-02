@@ -69,6 +69,9 @@ export default async function TriagePage({ searchParams }: TriagePageProps) {
   const checkoutParam = Array.isArray(params.checkout) ? params.checkout[0] : params.checkout;
   const upgradedParam = Array.isArray(params.upgraded) ? params.upgraded[0] : params.upgraded;
   const checkoutSuccess = checkoutParam === "success" || upgradedParam === "true";
+  const urgentParam = Array.isArray(params.urgent) ? params.urgent[0] : params.urgent;
+  const sessionParam = Array.isArray(params.session_id) ? params.session_id[0] : params.session_id;
+  const urgentReady = urgentParam === "ready";
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,6 +93,8 @@ export default async function TriagePage({ searchParams }: TriagePageProps) {
           pets={[]}
           initialSymptom={initialSymptom}
           checkoutSuccess={checkoutSuccess}
+          urgentReady={urgentReady}
+          checkoutSessionId={typeof sessionParam === "string" ? sessionParam : undefined}
         />
         <section className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
           <p className="font-medium text-foreground">Related free tools</p>

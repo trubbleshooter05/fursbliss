@@ -4,6 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { sendServerMetaEvent } from "@/lib/meta-capi";
+import { sendGa4ServerEvent } from "@/lib/ga4-server";
+import {
+  getAnnualPriceId,
+  getMonthlyPriceId,
+  getUrgentAnswerPriceId,
+  parseCheckoutProduct,
+  URGENT_ANSWER_PRICE_USD,
+} from "@/lib/stripe-prices";
 
 function appUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com";
@@ -23,13 +31,17 @@ function appendQuery(pathValue: string, key: string, value: string): string {
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const { searchParams } = requestUrl;
+  const checkoutProduct = parseCheckoutProduct(searchParams.get("product"));
   const requestedPlan = searchParams.get("plan");
   const requestedPriceId = searchParams.get("priceId");
-  const source = searchParams.get("source") ?? "pricing";
-  const returnTo = sanitizePath(searchParams.get("returnTo"), "/account?success=true");
-  const cancelTo = sanitizePath(searchParams.get("cancelTo"), "/pricing");
+  const source = searchParams.get("source") ?? (checkoutProduct === "urgent_answer" ? "urgent" : "pricing");
+  const defaultReturn =
+    checkoutProduct === "urgent_answer" ? "/triage?urgent=ready" : "/account?success=true";
+  const defaultCancel =
+    checkoutProduct === "urgent_answer" ? "/check" : "/pricing";
+  const returnTo = sanitizePath(searchParams.get("returnTo"), defaultReturn);
+  const cancelTo = sanitizePath(searchParams.get("cancelTo"), defaultCancel);
 
-  // Attribution — persisted from first landing page through checkout
   const utmSource = searchParams.get("utm_source") ?? "";
   const utmMedium = searchParams.get("utm_medium") ?? "";
   const utmCampaign = searchParams.get("utm_campaign") ?? "";
@@ -73,7 +85,7 @@ export async function GET(request: Request) {
       if (existing && typeof existing !== "string" && existing.deleted) {
         customerId = null;
       }
-    } catch (error) {
+    } catch {
       customerId = null;
     }
   }
@@ -92,11 +104,60 @@ export async function GET(request: Request) {
     });
   }
 
-  const monthlyPriceId =
-    process.env.STRIPE_PRICE_ID_MONTHLY ??
-    process.env.STRIPE_PRICE_MONTHLY ??
-    process.env.STRIPE_PRICE_ID;
-  const annualPriceId = process.env.STRIPE_PRICE_ID_ANNUAL ?? process.env.STRIPE_PRICE_YEARLY;
+  const monthlyPriceId = getMonthlyPriceId();
+  const annualPriceId = getAnnualPriceId();
+  const urgentPriceId = getUrgentAnswerPriceId();
+
+  const baseMetadata = {
+    source,
+    utm_source: utmSource,
+    utm_medium: utmMedium,
+    utm_campaign: utmCampaign,
+    landing_page: landingPage,
+    referrer,
+    ga_client_id: gaClientId,
+  };
+
+  if (checkoutProduct === "urgent_answer") {
+    if (!urgentPriceId) {
+      return NextResponse.json({ message: "Urgent answer price not configured" }, { status: 500 });
+    }
+
+    const successPath = appendQuery(returnTo, "session_id", "{CHECKOUT_SESSION_ID}");
+    const guestSuccessPath = `/signup?checkout=success&session_id={CHECKOUT_SESSION_ID}&product=urgent_answer&redirect=${encodeURIComponent(returnTo)}`;
+
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer: customerId ?? undefined,
+      customer_creation: customerId ? undefined : "always",
+      line_items: [{ price: urgentPriceId, quantity: 1 }],
+      metadata: {
+        ...baseMetadata,
+        product: "urgent_answer",
+        plan: "urgent",
+      },
+      success_url: `${appUrl()}${user ? successPath : guestSuccessPath}`,
+      cancel_url: `${appUrl()}${cancelTo}`,
+    });
+
+    if (!checkoutSession.url) {
+      return NextResponse.json({ message: "Unable to create checkout session" }, { status: 500 });
+    }
+
+    void sendGa4ServerEvent(
+      "urgent_checkout_start",
+      {
+        source,
+        utm_source: utmSource,
+        utm_medium: utmMedium,
+        utm_campaign: utmCampaign,
+        checkout_session_id: checkoutSession.id,
+      },
+      gaClientId || undefined
+    );
+
+    return NextResponse.redirect(checkoutSession.url, { status: 303 });
+  }
 
   const plan = requestedPlan === "yearly" ? "yearly" : "monthly";
   let priceId = plan === "yearly" ? annualPriceId : monthlyPriceId;
@@ -118,9 +179,7 @@ export async function GET(request: Request) {
 
   const selectedPlan = priceId === annualPriceId ? "yearly" : "monthly";
   const successPath = appendQuery(returnTo, "session_id", "{CHECKOUT_SESSION_ID}");
-  const guestSuccessPath = `/signup?checkout=success&session_id={CHECKOUT_SESSION_ID}&redirect=${encodeURIComponent(
-    returnTo
-  )}`;
+  const guestSuccessPath = `/signup?checkout=success&session_id={CHECKOUT_SESSION_ID}&product=subscription&redirect=${encodeURIComponent(returnTo)}`;
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -137,24 +196,18 @@ export async function GET(request: Request) {
     },
     payment_method_collection: "always",
     metadata: {
+      ...baseMetadata,
+      product: "subscription",
       plan: selectedPlan,
-      source,
-      utm_source: utmSource,
-      utm_medium: utmMedium,
-      utm_campaign: utmCampaign,
-      landing_page: landingPage,
-      referrer,
-      ga_client_id: gaClientId,
     },
     success_url: `${appUrl()}${user ? successPath : guestSuccessPath}`,
     cancel_url: `${appUrl()}${cancelTo}`,
   });
 
-  // Send server-side Meta CAPI event for triage/quiz upgrade clicks
   if (source && (source.includes("triage") || source.includes("quiz"))) {
     void sendServerMetaEvent("TriageClickedUpgrade", {
       email: user?.email,
-      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
           request.headers.get("x-real-ip")?.trim() || undefined,
       userAgent: request.headers.get("user-agent") || undefined,
       customData: {

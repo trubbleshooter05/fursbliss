@@ -20,7 +20,9 @@ export function MetaPixel() {
     const sessionId = params.get("session_id");
     const checkoutSuccess = params.get("checkout") === "success";
     const upgraded = params.get("upgraded") === "true";
+    const product = params.get("product");
     if (!sessionId || (!checkoutSuccess && !upgraded)) return;
+    if (product === "urgent_answer") return;
 
     const dedupeKey = `fb:purchase-tracked:${sessionId}`;
     if (window.sessionStorage.getItem(dedupeKey) === "1") return;

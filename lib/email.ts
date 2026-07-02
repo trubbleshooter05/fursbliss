@@ -294,3 +294,25 @@ export async function sendHealthInsightsLaunchEmail(
     idempotencyKey: options?.idempotencyKey,
   });
 }
+export async function sendCheckoutClaimEmail(options: {
+  email: string;
+  signupUrl: string;
+  productLabel: string;
+}) {
+  const subject = `Claim your ${options.productLabel} on FursBliss`;
+  const text = `Thanks for your payment.
+
+Create your FursBliss account with the same email you used at checkout to unlock ${options.productLabel}:
+${options.signupUrl}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #111827;">
+      <h2>You're almost there</h2>
+      <p>Thanks for purchasing <strong>${options.productLabel}</strong>.</p>
+      <p>Create your account with the <strong>same email</strong> you used at checkout:</p>
+      <p>
+        <a href="${options.signupUrl}" style="color: #059669; font-weight: 600;">Claim your purchase</a>
+      </p>
+    </div>
+  `;
+  return sendEmail({ to: options.email, subject, html, text });
+}

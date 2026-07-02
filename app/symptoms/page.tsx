@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckSymptomsPromo } from "@/components/site/check-symptoms-promo";
 import { getFeaturedEmergencySymptomPages, getOtherEmergencySymptomPages } from "@/lib/emergency-symptoms/content";
 import { symptomPages } from "@/lib/symptom-pages";
 
@@ -39,15 +40,10 @@ export default function SymptomsHubPage() {
             </Link>
             .
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button asChild className="h-auto min-h-12 whitespace-normal px-4 py-3 text-left leading-snug">
-              <Link href="/check">Check Symptoms Now</Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto min-h-12 whitespace-normal px-4 py-3 text-left leading-snug">
-              <Link href="/triage">Full AI-assisted triage (longer form) →</Link>
-            </Button>
-          </div>
+          <CheckSymptomsPromo variant="compact" className="mt-2" />
         </section>
+
+        <CheckSymptomsPromo variant="banner" />
 
         <section className="space-y-4 rounded-3xl border border-primary/25 bg-primary/5 px-6 py-8 md:px-8 md:py-10">
           <h2 className="font-display text-2xl tracking-tight text-foreground md:text-3xl">
@@ -114,6 +110,8 @@ export default function SymptomsHubPage() {
             </Card>
           ))}
         </section>
+
+        <CheckSymptomsPromo variant="banner" />
       </main>
       <SiteFooter />
     </div>

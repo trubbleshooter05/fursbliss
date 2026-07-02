@@ -6,6 +6,11 @@ import { prisma } from "@/lib/prisma";
 import { isEffectivePremium } from "@/lib/subscription";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { sendServerMetaEvent } from "@/lib/meta-capi";
+import {
+  consumeUrgentEntitlement,
+  getActiveUrgentEntitlementForUser,
+  validateUrgentEntitlementForUse,
+} from "@/lib/urgent-answer";
 
 const requestSchema = z.object({
   petId: z.string().min(1).optional(),
@@ -19,6 +24,7 @@ const requestSchema = z.object({
   eatingDrinking: z.string().trim().optional(),
   bathroomChanges: z.string().trim().optional(),
   emergencyFlags: z.array(z.string()).default([]),
+  urgentEntitlementId: z.string().min(1).optional(),
 }).refine(
   (data) =>
     Boolean(data.petId) ||
@@ -324,12 +330,25 @@ export async function POST(request: Request) {
     bathroomChanges: parsed.data.bathroomChanges,
     emergencyFlags: parsed.data.emergencyFlags,
   });
-  const isPremium = user ? isEffectivePremium(user, { featureUnlock: true }) : false;
+  let urgentEntitlement =
+    parsed.data.urgentEntitlementId
+      ? await validateUrgentEntitlementForUse(parsed.data.urgentEntitlementId, userId)
+      : null;
 
-  if (!isPremium || !process.env.OPENAI_API_KEY) {
+  if (!urgentEntitlement && userId) {
+    urgentEntitlement = await getActiveUrgentEntitlementForUser(userId);
+  }
+
+  const hasUrgentAccess = Boolean(
+    urgentEntitlement && urgentEntitlement.status === "active" && !urgentEntitlement.consumedAt
+  );
+  const isPremium = user ? isEffectivePremium(user, { featureUnlock: true }) : false;
+  const allowDetailed = isPremium || hasUrgentAccess;
+
+  if (!allowDetailed || !process.env.OPENAI_API_KEY) {
     return NextResponse.json({
       urgency: urgencyPreview,
-      premiumRequired: true,
+      premiumRequired: !hasUrgentAccess,
       preview: [
         "Emergency triage level",
         "Immediate next steps",
@@ -388,6 +407,10 @@ Return JSON:
       });
     }
 
+    if (urgentEntitlement && !isPremium) {
+      await consumeUrgentEntitlement(urgentEntitlement.id);
+    }
+
     if (pet.id) {
       await prisma.aIInsight.create({
         data: {
@@ -414,6 +437,7 @@ Return JSON:
         pet_name: petFromDb?.name || parsed.data.petName || "unknown",
         pet_age: petFromDb?.age || parsed.data.petAge,
         premium_user: isPremium,
+        urgent_answer: hasUrgentAccess && !isPremium,
       },
       sourceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/triage`,
     });

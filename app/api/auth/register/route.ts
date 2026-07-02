@@ -9,6 +9,8 @@ import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 import { enrollUserInWelcomeSequence } from "@/lib/email/sequence";
+import { isUrgentCheckoutSession } from "@/lib/stripe-prices";
+import { linkUrgentEntitlementToUser } from "@/lib/urgent-answer";
 
 const registerSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(320),
@@ -76,6 +78,8 @@ export async function POST(request: Request) {
           subscriptionPlan: "monthly" | "yearly";
         }
       | null = null;
+    let urgentCheckoutSessionId: string | null = null;
+    let checkoutCustomerId: string | null = null;
 
     if (parsed.data.checkoutSessionId) {
       const session = await stripe.checkout.sessions.retrieve(parsed.data.checkoutSessionId, {
@@ -86,7 +90,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             message:
-              "Please use the same email used during checkout so we can activate your premium plan.",
+              "Please use the same email used during checkout so we can activate what you purchased.",
           },
           { status: 400 }
         );
@@ -98,17 +102,29 @@ export async function POST(request: Request) {
         );
       }
 
-      const subscription =
-        typeof session.subscription === "string"
-          ? await stripe.subscriptions.retrieve(session.subscription)
-          : session.subscription;
-      const interval = subscription?.items.data[0]?.price?.recurring?.interval;
-      checkoutSessionData = {
-        customerId:
-          typeof session.customer === "string" ? session.customer : session.customer?.id ?? null,
-        subscriptionId: subscription?.id ?? null,
-        subscriptionPlan: interval === "year" ? "yearly" : "monthly",
-      };
+      checkoutCustomerId =
+        typeof session.customer === "string" ? session.customer : session.customer?.id ?? null;
+
+      if (isUrgentCheckoutSession(session)) {
+        if (session.payment_status !== "paid") {
+          return NextResponse.json(
+            { message: "Payment is not complete yet. Please finish checkout first." },
+            { status: 400 }
+          );
+        }
+        urgentCheckoutSessionId = session.id;
+      } else {
+        const subscription =
+          typeof session.subscription === "string"
+            ? await stripe.subscriptions.retrieve(session.subscription)
+            : session.subscription;
+        const interval = subscription?.items.data[0]?.price?.recurring?.interval;
+        checkoutSessionData = {
+          customerId: checkoutCustomerId,
+          subscriptionId: subscription?.id ?? null,
+          subscriptionPlan: interval === "year" ? "yearly" : "monthly",
+        };
+      }
     }
 
     const referralCode = parsed.data.referralCode?.trim() ?? "";
@@ -144,8 +160,19 @@ export async function POST(request: Request) {
               subscriptionEndsAt: null,
             }
           : {}),
+        ...(checkoutCustomerId && !checkoutSessionData
+          ? { stripeCustomerId: checkoutCustomerId }
+          : {}),
       },
     });
+
+    if (urgentCheckoutSessionId) {
+      await linkUrgentEntitlementToUser(
+        urgentCheckoutSessionId,
+        user.id,
+        parsed.data.email
+      );
+    }
 
     // Mirror the Lead flow: fire CAPI with request context on successful create.
     const metaEventId = randomUUID();

@@ -1,6 +1,15 @@
 "use client";
 
-import { buildCheckoutAttributionParams } from "@/lib/attribution";
+import { buildCheckoutAttributionParams, getStoredAttribution } from "@/lib/attribution";
+import { URGENT_ANSWER_PRICE_USD } from "@/lib/stripe-prices";
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+  }
+}
+
+export const URGENT_FUNNEL_SESSION_KEY = "fursbliss_urgent_funnel_session";
 
 type MetaEventParams = Record<string, unknown>;
 export type MetaEventStatus = "sent" | "dropped";
@@ -220,6 +229,242 @@ export async function trackCheckoutStarted({
   ]);
 }
 
+
+function readGaClientIdFromCookie(): string {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(/(?:^|;)\s*_ga=([^;]+)/);
+  if (!match) return "";
+  const parts = decodeURIComponent(match[1]).split(".");
+  if (parts.length >= 4) return `${parts[2]}.${parts[3]}`;
+  return "";
+}
+
+function sendGa4ServerBeacon(eventName: string, params: Record<string, unknown>) {
+  if (typeof navigator === "undefined") return;
+  const payload = JSON.stringify({
+    event: eventName,
+    client_id: readGaClientIdFromCookie(),
+    params,
+  });
+  if (typeof navigator.sendBeacon === "function") {
+    navigator.sendBeacon("/api/analytics/ga4", new Blob([payload], { type: "application/json" }));
+    return;
+  }
+  void fetch("/api/analytics/ga4", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    keepalive: true,
+  });
+}
+
+function waitForGtag(maxMs = 2000): Promise<boolean> {
+  if (typeof window === "undefined") return Promise.resolve(false);
+  if (typeof window.gtag === "function") return Promise.resolve(true);
+
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const tick = () => {
+      if (typeof window.gtag === "function") {
+        resolve(true);
+        return;
+      }
+      if (Date.now() - started >= maxMs) {
+        resolve(false);
+        return;
+      }
+      window.setTimeout(tick, 50);
+    };
+    tick();
+  });
+}
+
+function trackGa4Event(
+  eventName: string,
+  params?: Record<string, unknown>,
+  options?: { beacon?: boolean }
+) {
+  if (typeof window === "undefined") return;
+  const payload = options?.beacon ? { ...params, transport_type: "beacon" } : params;
+  window.dataLayer = window.dataLayer || [];
+  if (typeof window.gtag === "function") {
+    window.gtag("event", eventName, payload);
+    return;
+  }
+  // gtag.js not loaded yet — queue so the tag picks it up once ready
+  window.dataLayer.push(["event", eventName, payload]);
+}
+
+function getUrgentAttributionContext(source: string) {
+  const attribution = getStoredAttribution();
+  const params = new URLSearchParams(window.location.search);
+  return {
+    source,
+    utm_source: attribution.utm_source || params.get("utm_source") || "",
+    utm_medium: attribution.utm_medium || params.get("utm_medium") || "",
+    utm_campaign: attribution.utm_campaign || params.get("utm_campaign") || "",
+  };
+}
+
+export function markUrgentFunnelSession(sessionId: string) {
+  if (typeof sessionStorage === "undefined") return;
+  sessionStorage.setItem(URGENT_FUNNEL_SESSION_KEY, sessionId);
+}
+
+export function getUrgentFunnelSessionId(): string | null {
+  if (typeof sessionStorage === "undefined") return null;
+  return sessionStorage.getItem(URGENT_FUNNEL_SESSION_KEY);
+}
+
+export async function trackUrgentCheckoutStart({ source }: { source: string }) {
+  if (typeof window === "undefined") return;
+  await waitForGtag();
+  const ctx = getUrgentAttributionContext(source);
+  trackGa4Event("urgent_checkout_start", ctx, { beacon: true });
+  sendGa4ServerBeacon("urgent_checkout_start", ctx);
+  void trackMetaCustomEvent("UrgentCheckoutStart", ctx);
+}
+
+export function trackUrgentAnswerDelivered({
+  session_id,
+  used_entitlement,
+}: {
+  session_id: string;
+  used_entitlement: boolean;
+}) {
+  if (typeof window === "undefined") return;
+  const ctx = { ...getUrgentAttributionContext("triage"), session_id, used_entitlement };
+  trackGa4Event("urgent_answer_delivered", ctx);
+  void trackMetaCustomEvent("UrgentAnswerDelivered", ctx);
+}
+
+export function trackUrgentToPremiumViewed({ source }: { source: string }) {
+  if (typeof window === "undefined") return;
+  const ctx = getUrgentAttributionContext(source);
+  trackGa4Event("urgent_to_premium_viewed", ctx);
+  void trackMetaCustomEvent("UrgentToPremiumViewed", ctx);
+}
+
+export function trackUrgentToPremiumConverted({
+  session_id,
+  plan,
+}: {
+  session_id: string;
+  plan: string;
+}) {
+  if (typeof window === "undefined") return;
+  const ctx = { ...getUrgentAttributionContext("urgent_funnel"), session_id, plan };
+  trackGa4Event("urgent_to_premium_converted", ctx);
+  void trackMetaCustomEvent("UrgentToPremiumConverted", ctx);
+  sessionStorage.removeItem(URGENT_FUNNEL_SESSION_KEY);
+}
+
+export function trackUrgentGuestClaimed({ session_id }: { session_id?: string }) {
+  if (typeof window === "undefined") return;
+  const ctx = { ...getUrgentAttributionContext("signup"), session_id: session_id ?? "" };
+  trackGa4Event("urgent_guest_claimed", ctx);
+  void trackMetaCustomEvent("UrgentGuestClaimed", ctx);
+}
+
+export async function trackUrgentCheckoutCompleted({
+  source,
+  session_id,
+  eventIdBase,
+}: {
+  source: string;
+  session_id?: string;
+  eventIdBase?: string;
+}) {
+  const value = URGENT_ANSWER_PRICE_USD;
+  const contentName = "FursBliss Urgent Symptom Answer";
+  const base = eventIdBase ?? session_id ?? `urgent-${Date.now()}`;
+  if (session_id) {
+    markUrgentFunnelSession(session_id);
+  }
+
+  const payload = {
+    currency: "USD",
+    value,
+    content_name: contentName,
+    source,
+  };
+
+  const fbq = (typeof window !== "undefined"
+    ? (window as Window & { fbq?: (...args: unknown[]) => void }).fbq
+    : undefined);
+  if (fbq) {
+    fbq("track", "Purchase", payload, { eventID: `${base}:urgent-purchase` });
+    fbq("trackCustom", "UrgentCheckoutCompleted", payload, { eventID: `${base}:urgent-completed` });
+  }
+
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    const dedupeKey = `ga4_urgent_purchase_fired_${base}`;
+    if (!sessionStorage.getItem(dedupeKey)) {
+      sessionStorage.setItem(dedupeKey, "1");
+      window.gtag("event", "purchase", {
+        transaction_id: base,
+        value,
+        currency: "USD",
+        items: [
+          {
+            item_id: "fursbliss-urgent-answer",
+            item_name: contentName,
+            price: value,
+            quantity: 1,
+          },
+        ],
+      });
+      trackGa4Event(
+        "urgent_checkout_completed",
+        {
+          ...getUrgentAttributionContext(source),
+          session_id: session_id ?? base,
+        },
+        { beacon: true }
+      );
+    }
+  }
+
+  await Promise.allSettled([
+    trackMetaEvent("Purchase", payload, { eventId: `${base}:urgent-purchase` }),
+    trackMetaCustomEvent("UrgentCheckoutCompleted", payload, { eventId: `${base}:urgent-completed` }),
+  ]);
+}
+
+export async function trackUrgentCheckoutAndRedirect(href: string, input: { source: string }) {
+  const eventIdBase =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `urgent-checkout-${Date.now()}`;
+  const mergedInput = {
+    source: input.source,
+    value: URGENT_ANSWER_PRICE_USD,
+    contentName: "FursBliss Urgent Symptom Answer",
+    eventIdBase,
+  };
+
+  await trackUrgentCheckoutStart({ source: input.source });
+  await wait(150);
+
+  const attributionParams = buildCheckoutAttributionParams();
+  const hrefWithAttribution = attributionParams ? `${href}${attributionParams}` : href;
+  const isMobile =
+    typeof navigator !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    const serverPromise = sendServerCheckoutStart(mergedInput, hrefWithAttribution);
+    const clientPromise = trackCheckoutStarted(mergedInput);
+    await Promise.allSettled([serverPromise, clientPromise]);
+    await wait(800);
+  } else {
+    void trackCheckoutStarted(mergedInput);
+    void sendServerCheckoutStart(mergedInput, hrefWithAttribution);
+    await wait(300);
+  }
+
+  window.location.assign(hrefWithAttribution);
+}
+
 export async function trackPurchaseCompleted({
   source,
   value = 9,
@@ -233,6 +478,13 @@ export async function trackPurchaseCompleted({
     source,
   };
   const base = eventIdBase ?? `purchase-${Date.now()}`;
+
+  const urgentSessionId = getUrgentFunnelSessionId();
+  const plan =
+    contentName.toLowerCase().includes("yearly") || value >= 50 ? "yearly" : "monthly";
+  if (urgentSessionId) {
+    trackUrgentToPremiumConverted({ session_id: urgentSessionId, plan });
+  }
 
   // Meta Pixel (preserved exactly as before)
   const fbq = (typeof window !== "undefined"

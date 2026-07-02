@@ -4,6 +4,11 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { sendMetaServerEvent } from "@/lib/meta-capi";
 import { stripeId } from "@/lib/stripe-id";
+import { isUrgentCheckoutSession } from "@/lib/stripe-prices";
+import {
+  fulfillSubscriptionCheckoutGuestEmail,
+  fulfillUrgentAnswerCheckout,
+} from "@/lib/urgent-answer";
 
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
@@ -27,6 +32,36 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        if (isUrgentCheckoutSession(session)) {
+          await fulfillUrgentAnswerCheckout(session);
+
+          const email =
+            session.customer_details?.email ?? session.customer_email ?? null;
+          const purchaseValue =
+            typeof session.amount_total === "number"
+              ? Math.round((session.amount_total / 100) * 100) / 100
+              : 24;
+          const sourcePath =
+            session.metadata?.source === "triage"
+              ? "/triage"
+              : session.metadata?.source === "check"
+                ? "/check"
+                : "/";
+
+          await Promise.allSettled([
+            sendMetaServerEvent({
+              eventName: "Purchase",
+              eventSourceUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}${sourcePath}`,
+              value: purchaseValue,
+              contentName: "FursBliss Urgent Symptom Answer",
+              email,
+              eventId: `${session.id}:purchase`,
+            }),
+          ]);
+          break;
+        }
+
         const customerId = stripeId(session.customer);
         const subscriptionId = stripeId(session.subscription);
         const plan = session.metadata?.plan;
@@ -60,7 +95,17 @@ export async function POST(request: Request) {
                   subscriptionEndsAt: null,
                 },
               });
+            } else {
+              await fulfillSubscriptionCheckoutGuestEmail(session, email);
             }
+          }
+        } else if (email) {
+          const existingUser = await prisma.user.findUnique({
+            where: { email },
+            select: { id: true },
+          });
+          if (!existingUser) {
+            await fulfillSubscriptionCheckoutGuestEmail(session, email);
           }
         }
 

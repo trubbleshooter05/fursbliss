@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { trackCheckoutAndRedirect, trackMetaCustomEvent } from "@/lib/meta-events";
+import { trackCheckoutAndRedirect, trackMetaCustomEvent, trackUrgentToPremiumViewed } from "@/lib/meta-events";
 
 const comparisonRows = [
   { feature: "Number of pets", free: "1 pet", premium: "Unlimited pets" },
@@ -72,7 +72,12 @@ export function PricingPageClient({
 
   useEffect(() => {
     void trackMetaCustomEvent("ViewedPricing");
-  }, []);
+    if (source === "urgent" || source === "triage") {
+      trackUrgentToPremiumViewed({
+        source: source === "urgent" ? "pricing-from-urgent" : "pricing-from-triage",
+      });
+    }
+  }, [source]);
 
   const premiumPricing = useMemo(() => {
     const checkoutParams = new URLSearchParams();

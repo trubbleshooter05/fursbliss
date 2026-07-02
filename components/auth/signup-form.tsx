@@ -19,7 +19,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { trackMetaEvent, trackPurchaseCompleted } from "@/lib/meta-events";
+import {
+  trackMetaEvent,
+  trackPurchaseCompleted,
+  trackUrgentCheckoutCompleted,
+  trackUrgentGuestClaimed,
+} from "@/lib/meta-events";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name."),
@@ -50,6 +55,7 @@ export function SignupForm() {
   const redirectParam = searchParams.get("redirect");
   const checkoutSessionId = searchParams.get("session_id");
   const checkoutSuccess = searchParams.get("checkout") === "success";
+  const checkoutProduct = searchParams.get("product");
   const redirectTarget =
     redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
       ? redirectParam
@@ -137,13 +143,20 @@ export function SignupForm() {
 
   useEffect(() => {
     if (!checkoutSuccess || checkoutPurchaseTracked) return;
-    void trackPurchaseCompleted({
-      source: "signup_post_checkout",
-      value: 9,
-      eventIdBase: checkoutSessionId ?? undefined,
-    });
+    if (checkoutProduct === "urgent_answer") {
+      void trackUrgentCheckoutCompleted({
+        source: "signup_post_checkout",
+        session_id: checkoutSessionId ?? undefined,
+      });
+    } else {
+      void trackPurchaseCompleted({
+        source: "signup_post_checkout",
+        value: 9,
+        eventIdBase: checkoutSessionId ?? undefined,
+      });
+    }
     setCheckoutPurchaseTracked(true);
-  }, [checkoutSuccess, checkoutPurchaseTracked, checkoutSessionId]);
+  }, [checkoutSuccess, checkoutPurchaseTracked, checkoutSessionId, checkoutProduct]);
 
   const onSubmit = async (values: FormValues) => {
     const response = await fetch("/api/auth/register", {
@@ -175,6 +188,10 @@ export function SignupForm() {
         eventId: typeof data?.metaEventId === "string" ? data.metaEventId : undefined,
       }
     );
+
+    if (checkoutSessionId && checkoutProduct === "urgent_answer") {
+      trackUrgentGuestClaimed({ session_id: checkoutSessionId });
+    }
 
     if (redirectTarget) {
       const signInResponse = await signIn("credentials", {
@@ -300,7 +317,9 @@ export function SignupForm() {
     <>
       {checkoutSuccess ? (
         <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-          Payment received. Create your account with the same email used at checkout to unlock Premium.
+          {checkoutProduct === "urgent_answer"
+            ? "Payment received. Create your account with the same email used at checkout to unlock your urgent symptom answer."
+            : "Payment received. Create your account with the same email used at checkout to unlock Premium."}
         </div>
       ) : null}
       <Form {...form}>

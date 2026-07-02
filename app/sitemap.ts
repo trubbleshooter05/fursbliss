@@ -29,8 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: "weekly" as const,
     priority: 0.5,
-  })),
-  ];
+  }));
 
   const primaryRoutes: MetadataRoute.Sitemap = [
     {

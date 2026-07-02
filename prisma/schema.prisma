@@ -50,6 +50,7 @@ model User {
   emailSequenceEnrollments EmailSequenceEnrollment[]
   emailLogs                EmailLog[]
   vetReports               VetReport[]
+  urgentAnswerEntitlements UrgentAnswerEntitlement[]
   petPhotos                PetPhoto[]
   healthAlerts             HealthAlert[]
 }
@@ -530,4 +531,23 @@ model PetPhoto {
 
   @@index([petId, category, takenAt])
   @@index([petId, takenAt])
+}
+
+model UrgentAnswerEntitlement {
+  id                String    @id @default(cuid())
+  checkoutSessionId String    @unique
+  email             String
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  stripeCustomerId  String?
+  status            String    @default("active")
+  consumedAt        DateTime?
+  claimToken        String    @unique @default(cuid())
+  source            String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([email])
+  @@index([userId])
+  @@index([status])
 }

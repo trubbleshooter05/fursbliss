@@ -8,10 +8,12 @@ FIXES FROM ORIGINAL:
 4. Better relevance filtering
 5. Outputs actual post URLs you can click and reply to
 
-USAGE:
-  python3 fb_scraper_v2.py --login     (first time — saves session)
-  python3 fb_scraper_v2.py             (scrape with browser visible)
-  python3 fb_scraper_v2.py --headless  (scrape in background)
+USAGE (use fb_login.sh / fb_scrape.sh — system python3 lacks playwright):
+  ./fb_login.sh                        (first time — saves session)
+  ./fb_scrape.sh                       (scrape with browser visible)
+  ./fb_scrape.sh --headless            (scrape in background)
+
+Or: ~/.hermes/hermes-agent/.venv/bin/python fb_scraper_v2.py --login
 """
 
 import csv
@@ -21,6 +23,8 @@ import time
 import argparse
 from datetime import datetime
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+
+from fb_keywords import is_relevant, is_excluded, matched_keywords
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 
@@ -40,6 +44,7 @@ MAX_POSTS_PER_GROUP = 10   # cap per group to avoid one group dominating
 GROUPS = [
     # Senior Dog Health & Support
     {"name": "Support Group for Owners of Sick/Senior Dogs", "id": "682454455106203"},
+    {"name": "iHeartSeniorDogs", "id": "iHeartSeniorDogs"},
     {"name": "Senior Dog Care Club", "id": "seniordogcareclub"},
     {"name": "Old Dogs New Tricks - Senior Dog Support", "id": "olddogsnewtricksseniordogsupport"},
     {"name": "Canine Cognitive Dysfunction (Doggy Dementia)", "id": "caninecognitivedysfunctiondoggydementia"},
@@ -62,50 +67,12 @@ GROUPS = [
     {"name": "Dog Owners Community", "id": "dogownerscommunity"},
 ]
 
-# ── KEYWORDS ──────────────────────────────────────────────────────────────────
-
-RELEVANCE_KEYWORDS = [
-    "health", "sick", "vet", "emergency", "worried", "symptoms", "not eating",
-    "limping", "lump", "tumor", "breathing", "coughing", "vomiting", "diarrhea",
-    "mobility", "arthritis", "pain", "medication", "supplement", "advice",
-    "help", "anyone else", "does anyone", "should i", "what should", "senior",
-    "older dog", "aging", "decline", "slowing down", "stiff", "tired",
-    "appetite", "lethargy", "lethargic", "blood", "seizure", "shaking",
-    "kidney", "liver", "heart", "cancer", "cognitive", "dementia", "confused",
-    "panting", "drinking more", "losing weight", "gained weight", "won't walk",
-    "can't get up", "incontinence", "accidents in house", "blind", "deaf",
-    "rapamycin", "loy-002", "longevity", "lifespan", "how long do",
-]
-
-GRIEF_EXCLUSIONS = [
-    "rip ", "passed away", "rainbow bridge", "put down", "goodbye",
-    "miss you", "grieving", "loss of my", "in memory", "memorial",
-    "crossed the bridge", "rest in peace", "fly high", "forever in my heart",
-    "had to let go", "said goodbye", "over the rainbow",
-]
-
-SPAM_EXCLUSIONS = [
-    "buy now", "click here", "discount", "promo code", "sale",
-    "giveaway", "follow me", "check my page", "dm me", "link in bio",
-    "order now", "free shipping", "use code",
-]
+# Keywords: see fb_keywords.py (shared with fb_feed_scraper + fb_daily_scan)
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 
 def sleep(lo=None, hi=None):
     time.sleep(random.uniform(lo or DELAY_MIN, hi or DELAY_MAX))
-
-def is_relevant(text):
-    if not text or len(text) < 30:
-        return False
-    tl = text.lower()
-    return any(k in tl for k in RELEVANCE_KEYWORDS)
-
-def is_excluded(text):
-    if not text:
-        return True
-    tl = text.lower()
-    return any(k in tl for k in GRIEF_EXCLUSIONS) or any(k in tl for k in SPAM_EXCLUSIONS)
 
 def dismiss_popups(page):
     selectors = [
@@ -261,7 +228,7 @@ def extract_posts(page, group_name):
 
 # ── GROUP SCRAPER ─────────────────────────────────────────────────────────────
 
-def scrape_group(page, group, writer, counter):
+def scrape_group(page, group, writer, counter, scroll_passes=None, max_posts_per_group=None):
     name = group["name"]
     gid = group["id"]
     url = f"https://www.facebook.com/groups/{gid}"
@@ -284,8 +251,11 @@ def scrape_group(page, group, writer, counter):
             print(f"     ⚠ Not a member — skipping")
             return
 
+        sp = scroll_passes if scroll_passes is not None else SCROLL_PASSES
+        mp = max_posts_per_group if max_posts_per_group is not None else MAX_POSTS_PER_GROUP
+
         # Scroll to load posts
-        scroll_and_load(page, SCROLL_PASSES)
+        scroll_and_load(page, sp)
 
         # Expand truncated posts
         expanded = expand_see_more(page)
@@ -298,19 +268,21 @@ def scrape_group(page, group, writer, counter):
 
         relevant_count = 0
         for post in posts:
-            if relevant_count >= MAX_POSTS_PER_GROUP:
+            if relevant_count >= mp:
                 break
 
             if is_excluded(post["text"]):
                 continue
 
             if is_relevant(post["text"]):
-                writer.writerow({
+                row = {
                     "group_name": name,
                     "post_url": post["url"],
                     "snippet": post["text"][:500].replace("\n", " "),
                     "scraped_at": datetime.now().isoformat(),
-                })
+                    "keywords": ", ".join(matched_keywords(post["text"])[:8]),
+                }
+                writer.writerow(row)
                 relevant_count += 1
                 counter[0] += 1
 
@@ -326,17 +298,23 @@ def scrape_group(page, group, writer, counter):
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 
-def run_scraper(headless=False):
+def run_scraper(headless=False, groups=None, output_file=None, scroll_passes=None, max_posts_per_group=None):
     print("=" * 60)
     print("FURSBLISS FACEBOOK SCRAPER v2")
     print("=" * 60)
-    print(f"Groups to scrape: {len(GROUPS)}")
-    print(f"Output: {OUTPUT_FILE}\n")
+    print(f"Groups to scrape: {len(groups or GROUPS)}")
+    groups = groups or GROUPS
+    out_path = output_file or OUTPUT_FILE
+    passes = scroll_passes if scroll_passes is not None else SCROLL_PASSES
+    max_per = max_posts_per_group if max_posts_per_group is not None else MAX_POSTS_PER_GROUP
+
+    print(f"Output: {out_path}\n")
 
     counter = [0]
+    opportunities = []
 
-    with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["group_name", "post_url", "snippet", "scraped_at"])
+    with open(out_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["group_name", "post_url", "snippet", "scraped_at", "keywords"])
         writer.writeheader()
 
         with sync_playwright() as p:
@@ -363,24 +341,32 @@ def run_scraper(headless=False):
             except Exception as e:
                 print(f"ERROR: Could not reach Facebook: {e}")
                 context.close()
-                return
+                return []
 
             if "login" in page.url or page.query_selector('[data-testid="royal_login_button"]'):
                 print("❌ Not logged in. Run: python3 fb_scraper_v2.py --login")
                 context.close()
-                return
+                return []
 
             print("✓ Logged in\n")
             print("─" * 60)
 
-            for i, group in enumerate(GROUPS, 1):
-                print(f"\n[{i}/{len(GROUPS)}]", end="")
-                scrape_group(page, group, writer, counter)
+            for i, group in enumerate(groups, 1):
+                print(f"\n[{i}/{len(groups)}]", end="")
+                scrape_group(page, group, writer, counter, scroll_passes=passes, max_posts_per_group=max_per)
 
             context.close()
 
+    import csv as _csv
+    opportunities = []
+    try:
+        with open(out_path, newline="", encoding="utf-8") as rf:
+            opportunities = list(_csv.DictReader(rf))
+    except OSError:
+        pass
+
     print("\n" + "=" * 60)
-    print(f"✅ DONE: {counter[0]} relevant posts → {OUTPUT_FILE}")
+    print(f"✅ DONE: {counter[0]} relevant posts → {out_path}")
     print("=" * 60)
 
     if counter[0] == 0:
@@ -395,6 +381,8 @@ def run_scraper(headless=False):
         print(f"  2. Click post URLs to read full context")
         print(f"  3. Write genuine, helpful replies (NO links, NO FursBliss mentions)")
         print(f"  4. Max 3-5 replies per day across all groups\n")
+
+    return opportunities
 
 
 def run_login():

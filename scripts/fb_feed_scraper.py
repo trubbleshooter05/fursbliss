@@ -23,6 +23,8 @@ import argparse
 from datetime import datetime
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
+from fb_keywords import is_relevant, is_excluded
+
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 
 GROUPS = [
@@ -37,13 +39,7 @@ GROUPS = [
     {"name": "Canine Health & Wellness", "url": "https://www.facebook.com/groups/caninehealthwellness"},
 ]
 
-# Keywords to filter posts (case-insensitive)
-RELEVANCE_KEYWORDS = [
-    "health", "sick", "vet", "emergency", "worried", "symptoms", "not eating",
-    "limping", "lump", "tumor", "breathing", "coughing", "vomiting", "diarrhea",
-    "mobility", "arthritis", "pain", "medication", "supplement", "dying", "quality of life",
-    "advice needed", "help", "anyone else", "does anyone", "should i", "what should",
-]
+# Keywords: see fb_keywords.py
 
 PROFILE_DIR = "./fb_profile"
 OUTPUT_FILE = "fursbliss_fb_feed.csv"
@@ -62,11 +58,6 @@ def scroll_page(page, passes=SCROLL_PASSES):
         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
         print(f"    Scrolling... ({i+1}/{passes})")
         time.sleep(3)
-
-def is_relevant(text):
-    """Check if post text contains any relevance keywords"""
-    text_lower = text.lower()
-    return any(keyword in text_lower for keyword in RELEVANCE_KEYWORDS)
 
 def extract_posts(page):
     """Extract posts from current page state"""
@@ -146,6 +137,9 @@ def scrape_group(page, group, writer, counter):
                 continue
             seen_urls.add(post['url'])
             
+            if is_excluded(post['text']):
+                continue
+
             if is_relevant(post['text']):
                 writer.writerow({
                     "group_name": name,

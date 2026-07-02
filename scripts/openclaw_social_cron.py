@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -37,8 +38,21 @@ class CampaignItem:
     destination_url: str
     scheduled_local: str
     image_url: str
+    campaign_id: str = ""
     status: str = "pending_human_approval"
 
+
+# Rotating image pool so daily auto-posts don't reuse the same og-default share
+# image every day. Hosted under public/images/social/ (see repo).
+IMAGE_POOL = [
+    "https://www.fursbliss.com/images/social/er-now-or-wait.png",
+    "https://www.fursbliss.com/images/social/red-flags-checklist.png",
+    "https://www.fursbliss.com/og-default.jpg",
+]
+
+# utm_source distinguishes automated Page/IG posts ("fb-page") from manual
+# community-group replies ("fb-senior-dog", tracked separately in GA4/Stripe).
+_DAILY_UTM = "utm_source=fb-page&utm_medium=social&utm_campaign=daily-content&source=daily-post"
 
 # Ready-to-post concepts/copy from docs/marketing/er-triage-social-calendar.md
 SOCIAL_CALENDAR = [
@@ -53,7 +67,8 @@ SOCIAL_CALENDAR = [
         ),
         "hashtags": "#DogParents #PetHealth #DogMom #DogDad #VetVisit #DogWellness #FursBliss",
         "cta_text": "Link in bio",
-        "destination_url": "https://www.fursbliss.com/er-triage-for-dogs",
+        "destination_url": f"https://www.fursbliss.com/check?{_DAILY_UTM}",
+        "image_url": "https://www.fursbliss.com/images/social/er-now-or-wait.png",
     },
     {
         "day_title": "Day 2 - Feature Spotlight",
@@ -63,7 +78,8 @@ SOCIAL_CALENDAR = [
         "caption": "Fast urgency guidance when you're not sure what to do next.",
         "hashtags": "#DogHealthTips #PetCare #SeniorDog #DogCommunity #PetOwner",
         "cta_text": "Try now",
-        "destination_url": "https://www.fursbliss.com/triage",
+        "destination_url": f"https://www.fursbliss.com/check?{_DAILY_UTM}",
+        "image_url": "https://www.fursbliss.com/images/social/red-flags-checklist.png",
     },
     {
         "day_title": "Day 3 - Vaccine Hub Reveal",
@@ -88,7 +104,8 @@ SOCIAL_CALENDAR = [
         ),
         "hashtags": "#VetPrep #DogOwners #PetParentLife #DogWellness",
         "cta_text": "See how it works",
-        "destination_url": "https://www.fursbliss.com/er-triage-for-dogs",
+        "destination_url": f"https://www.fursbliss.com/check?{_DAILY_UTM}",
+        "image_url": "https://www.fursbliss.com/images/social/er-now-or-wait.png",
     },
     {
         "day_title": "Day 5 - Story Sequence",
@@ -98,7 +115,8 @@ SOCIAL_CALENDAR = [
         "caption": "Story CTA sticker text: Try now",
         "hashtags": "#DogStories #PetTips #DogHealth",
         "cta_text": "Try now",
-        "destination_url": "https://www.fursbliss.com/triage",
+        "destination_url": f"https://www.fursbliss.com/check?{_DAILY_UTM}",
+        "image_url": "https://www.fursbliss.com/images/social/red-flags-checklist.png",
     },
     {
         "day_title": "Day 6 - Educational Short",
@@ -111,7 +129,8 @@ SOCIAL_CALENDAR = [
         ),
         "hashtags": "#PetEmergency #DogSafety #DogParents",
         "cta_text": "Save this post",
-        "destination_url": "https://www.fursbliss.com/er-triage-for-dogs",
+        "destination_url": f"https://www.fursbliss.com/check?{_DAILY_UTM}",
+        "image_url": "https://www.fursbliss.com/images/social/red-flags-checklist.png",
     },
     {
         "day_title": "Day 7 - Conversion Push",
@@ -255,8 +274,15 @@ def build_queue(
     default_time: str,
     default_image_url: str,
 ) -> List[CampaignItem]:
+    campaign_id = hashlib.md5(f"campaign-{start.isoformat()}".encode()).hexdigest()[:8]
     rows: List[CampaignItem] = []
     for i, base in enumerate(SOCIAL_CALENDAR, start=1):
+        # Prefer the day's own image_url (set in SOCIAL_CALENDAR); otherwise
+        # rotate through IMAGE_POOL so consecutive days don't repeat the same
+        # photo, falling back to --default-image-url if the pool is empty.
+        image_url = base.get("image_url") or (
+            IMAGE_POOL[(i - 1) % len(IMAGE_POOL)] if IMAGE_POOL else default_image_url
+        )
         rows.append(
             CampaignItem(
                 day_index=i,
@@ -269,7 +295,8 @@ def build_queue(
                 cta_text=base["cta_text"],
                 destination_url=base["destination_url"],
                 scheduled_local=schedule_for_day(start, i, default_time),
-                image_url=default_image_url,
+                image_url=image_url,
+                campaign_id=campaign_id,
             )
         )
     return rows

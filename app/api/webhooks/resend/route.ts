@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Webhook } from "svix";
 import { Prisma } from "@prisma/client";
 import {
   pauseEnrollmentById,
@@ -50,7 +51,26 @@ function normalizeEventAt(payload: Record<string, unknown>) {
 }
 
 export async function POST(request: Request) {
-  const payload = (await request.json()) as Record<string, unknown>;
+  const signingSecret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!signingSecret) {
+    console.error("RESEND_WEBHOOK_SECRET is not configured; rejecting webhook.");
+    return NextResponse.json({ message: "Webhook not configured" }, { status: 500 });
+  }
+
+  // Verify the Svix signature over the RAW body (Resend signs via Svix).
+  const rawBody = await request.text();
+  let payload: Record<string, unknown>;
+  try {
+    const wh = new Webhook(signingSecret);
+    payload = wh.verify(rawBody, {
+      "svix-id": request.headers.get("svix-id") ?? "",
+      "svix-timestamp": request.headers.get("svix-timestamp") ?? "",
+      "svix-signature": request.headers.get("svix-signature") ?? "",
+    }) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ message: "Invalid signature" }, { status: 400 });
+  }
+
   const eventType = normalizeEventType(payload);
   const messageId = normalizeMessageId(payload);
   const eventAt = normalizeEventAt(payload);

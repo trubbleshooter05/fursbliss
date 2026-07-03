@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 const requestSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(320),
@@ -63,6 +64,17 @@ export async function POST(request: Request) {
   const parsed = requestSchema.safeParse(payload);
   if (!parsed.success) {
     return NextResponse.json({ ok: false, message: "Invalid request" }, { status: 400 });
+  }
+
+  const limiter = rateLimit(request, "walks-left-report", {
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { ok: false, message: "Too many requests. Try again later." },
+      { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(limiter.resetAt)) } }
+    );
   }
 
   const isProduction = process.env.NODE_ENV === "production";

@@ -24,7 +24,7 @@ import argparse
 from datetime import datetime
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
-from fb_keywords import is_relevant, is_excluded, matched_keywords
+from fb_keywords import is_outreach_candidate, is_excluded, matched_keywords, classify_post
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 
@@ -274,13 +274,14 @@ def scrape_group(page, group, writer, counter, scroll_passes=None, max_posts_per
             if is_excluded(post["text"]):
                 continue
 
-            if is_relevant(post["text"]):
+            if is_outreach_candidate(post["text"]):
                 row = {
                     "group_name": name,
                     "post_url": post["url"],
                     "snippet": post["text"][:500].replace("\n", " "),
                     "scraped_at": datetime.now().isoformat(),
                     "keywords": ", ".join(matched_keywords(post["text"])[:8]),
+                    "post_type": classify_post(post["text"]),
                 }
                 writer.writerow(row)
                 relevant_count += 1
@@ -314,7 +315,7 @@ def run_scraper(headless=False, groups=None, output_file=None, scroll_passes=Non
     opportunities = []
 
     with open(out_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["group_name", "post_url", "snippet", "scraped_at", "keywords"])
+        writer = csv.DictWriter(f, fieldnames=["group_name", "post_url", "snippet", "scraped_at", "keywords", "post_type"])
         writer.writeheader()
 
         with sync_playwright() as p:

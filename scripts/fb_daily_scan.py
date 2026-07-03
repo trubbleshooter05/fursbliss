@@ -20,7 +20,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 load_dotenv(Path.home() / ".hermes" / ".env")
 
-from fb_keywords import COMMUNITY_LINK, draft_reply, link_allowed  # noqa: E402
+from fb_keywords import COMMUNITY_LINK, draft_reply, link_allowed, classify_post  # noqa: E402
 from fb_scraper_v2 import GROUPS, run_scraper  # noqa: E402
 
 POLICY_PATH = SCRIPT_DIR.parent / "fursbliss_growth" / "openclaw_automation_policy.json"
@@ -96,6 +96,7 @@ def save_report(path: Path, rows: list[dict], groups: list[dict], today: datetim
                 f"## {i}. {row.get('group_name', 'Unknown group')}",
                 "",
                 f"**URL:** {row.get('post_url', '')}",
+                f"**Type:** {row.get('post_type') or classify_post(row.get('snippet', ''))}",
                 f"**Keywords:** {row.get('keywords', '')}",
                 f"**Link OK:** {'yes' if link_allowed(row.get('snippet', '')) else 'no — support only'}",
                 "",

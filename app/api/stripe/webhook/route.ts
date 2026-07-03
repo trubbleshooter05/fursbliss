@@ -169,7 +169,16 @@ export async function POST(request: Request) {
         break;
     }
   } catch (error) {
+    // Only fulfillment DB writes can reach this catch. Every analytics call above
+    // (Meta/GA via sendMetaServerEvent) is wrapped in Promise.allSettled and never
+    // rejects, so awaiting them cannot throw. A caught error here therefore means a
+    // PAID session failed to fulfill — return 500 so Stripe retries the webhook
+    // instead of silently dropping the purchase.
     console.error(`Stripe webhook handler error (${event.type})`, error);
+    return NextResponse.json(
+      { message: "Webhook fulfillment failed; please retry." },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ received: true });

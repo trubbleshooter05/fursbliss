@@ -11,7 +11,7 @@ function addDays(base: Date, days: number) {
 }
 
 export async function enrollUserInWelcomeSequence(userId: string) {
-  const stepDays = [0, 1, 3, 5, 7, 10];
+  const stepDays = [0, 2, 4, 7, 10];
   const existing = await prisma.emailSequenceEnrollment.findFirst({
     where: {
       userId,
@@ -66,38 +66,11 @@ export async function enrollUserInWelcomeSequence(userId: string) {
       startedAt,
       nextSendAt: startedAt,
       steps: {
-        create: [
-          {
-            step: 0,
-            scheduledAt: startedAt,
-            status: EmailSequenceStepStatus.pending,
-          },
-          {
-            step: 1,
-            scheduledAt: addDays(startedAt, 1),
-            status: EmailSequenceStepStatus.pending,
-          },
-          {
-            step: 3,
-            scheduledAt: addDays(startedAt, 3),
-            status: EmailSequenceStepStatus.pending,
-          },
-          {
-            step: 5,
-            scheduledAt: addDays(startedAt, 5),
-            status: EmailSequenceStepStatus.pending,
-          },
-          {
-            step: 7,
-            scheduledAt: addDays(startedAt, 7),
-            status: EmailSequenceStepStatus.pending,
-          },
-          {
-            step: 10,
-            scheduledAt: addDays(startedAt, 10),
-            status: EmailSequenceStepStatus.pending,
-          },
-        ],
+        create: stepDays.map((step) => ({
+          step,
+          scheduledAt: addDays(startedAt, step),
+          status: EmailSequenceStepStatus.pending,
+        })),
       },
     },
     include: {

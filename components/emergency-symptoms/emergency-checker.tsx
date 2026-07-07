@@ -6,6 +6,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { UrgentAnswerCta } from "@/components/site/urgent-answer-cta";
+import { SymptomUrgentUpsell } from "@/components/site/symptom-urgent-upsell";
+import { SymptomAffiliatePicks } from "@/components/site/affiliate-links";
+import { computeSymptomSeverityScore, shouldShowUrgentUpsell } from "@/lib/symptom-severity";
 
 type MainSymptom =
   | "vomiting"
@@ -143,6 +146,11 @@ export function EmergencyChecker() {
   const [severity, setSeverity] = useState<Severity>("mild");
   const [red, setRed] = useState<RedFlags>(initialRed);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+
+  const severityScore = useMemo(
+    () => computeSymptomSeverityScore(severity, red),
+    [severity, red]
+  );
 
   const summary = useMemo(() => {
     const concernLine =
@@ -340,7 +348,12 @@ export function EmergencyChecker() {
             guideLabel={symptomGuideLinkLabel(main)}
             summary={summary}
           />
-          <UrgentAnswerCta source="check-result" variant="post-check" />
+          {shouldShowUrgentUpsell(severityScore) ? (
+            <SymptomUrgentUpsell source="check-severity" />
+          ) : (
+            <UrgentAnswerCta source="check-result" variant="post-check" />
+          )}
+          <SymptomAffiliatePicks />
           <button
             type="button"
             onClick={reset}

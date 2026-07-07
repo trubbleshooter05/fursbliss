@@ -19,6 +19,7 @@ import {
   trackUrgentToPremiumViewed,
 } from "@/lib/meta-events";
 import { UrgentAnswerCta } from "@/components/site/urgent-answer-cta";
+import { AffiliateNextSteps } from "@/components/site/affiliate-links";
 import { URGENT_ANSWER_PRICE_USD } from "@/lib/stripe-prices";
 
 type PetOption = {
@@ -881,6 +882,8 @@ export function ErTriageWorkbench({
           </Card>
         </div>
       ) : null}
+
+      {result?.detailed ? <AffiliateNextSteps /> : null}
 
       {result?.urgency ? (
         <Card className="rounded-2xl border-border bg-primary/5">

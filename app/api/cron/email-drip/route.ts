@@ -193,139 +193,77 @@ export async function GET(request: Request) {
       )}`;
 
       let template: ReturnType<typeof buildEmailTemplate> | null = null;
+      const urgentCheckoutUrl = `${appUrl}/api/stripe/checkout?product=urgent&source=email-day${dueStep.step}`;
+      const annualCheckoutUrl = `${appUrl}/api/stripe/checkout?plan=yearly&source=email-day10`;
 
       if (dueStep.step === 0) {
         template = buildEmailTemplate({
-          subject: `${dogName}'s longevity score is ready — here's what it means`,
+          subject: `The symptom most senior dog owners miss — ${dogName}'s health starts here`,
           greetingName: firstName,
           lines: [
-            `Welcome to FursBliss! ${dogName}'s Longevity Readiness Score is ${score}/100.`,
-            `Here's what that means for a ${breed} at age ${age}: ${scoreSummary(score, breed, age)}`,
-            `The best way to improve ${dogName}'s score is daily health tracking. It takes about 30 seconds.`,
+            `I'm Greg. My 10-year-old Aussiedoodle Luna started slowing down on walks — and I almost wrote it off as "just getting older."`,
+            `Turns out, subtle stiffness and hesitation on stairs can be early joint pain. Most owners miss it until it's harder to treat.`,
+            `${dogName} deserves the same watchful eye. FursBliss helps you spot patterns before they become emergencies.`,
           ],
-          ctaLabel: `Log ${dogName}'s First Health Check`,
+          ctaLabel: `Start tracking ${dogName}`,
           ctaUrl: `${appUrl}/dashboard`,
           unsubscribeUrl,
         });
-      } else if (dueStep.step === 1) {
-        if (trackingDays >= 1) {
-          template = buildEmailTemplate({
-            subject: "Day 1 done ✅ Here's what to watch for on Day 2",
-            greetingName: firstName,
-            lines: [
-              `Great start — you logged ${dogName}'s first health check.`,
-              `Quick Day 2 tip: watch energy levels. Is ${dogName} as active as usual or more tired than normal?`,
-            ],
-            ctaLabel: "Log Day 2",
-            ctaUrl: `${appUrl}/dashboard`,
-            unsubscribeUrl,
-          });
-        } else {
-          template = buildEmailTemplate({
-            subject: `${dogName} is waiting for you — log Day 1 (30 seconds)`,
-            greetingName: firstName,
-            lines: [
-              `A quick Day 1 check starts ${dogName}'s baseline.`,
-              "Once you begin tracking, we can give you smarter, more personalized guidance.",
-            ],
-            ctaLabel: `Log ${dogName}'s First Health Check`,
-            ctaUrl: `${appUrl}/dashboard`,
-            unsubscribeUrl,
-          });
-        }
-      } else if (dueStep.step === 3) {
-        if (trackingDays < 2) {
-          skipped += 1;
-          await markEmailSequenceStepSkipped(dueStep.id);
-          await updateEnrollmentNextSendAt(enrollment.id);
-          continue;
-        }
+      } else if (dueStep.step === 2) {
         template = buildEmailTemplate({
-          subject: `We spotted something in ${dogName}'s data`,
+          subject: "73% of dogs over 7 have arthritis. Most owners think it's just aging.",
           greetingName: firstName,
           lines: [
-            `With ${trackingDays} days of tracking, we're starting to see patterns in ${dogName}'s health data.`,
-            `Your tracking consistency is building ${dogName}'s baseline health picture — exactly what vets want to see.`,
-            `Keep going: at 7 days, you'll unlock your first personalized AI recommendation.`,
-            `Progress: ${trackingDays}/7 days tracked.`,
+            `For a ${age}-year-old ${breed} like ${dogName}, arthritis is more common than most people realize — about 73% of dogs over 7 show signs.`,
+            `The tricky part: dogs rarely limp dramatically at first. They sleep more, skip stairs, or seem "lazy."`,
+            `A 30-second daily log helps you catch the shift early — when small changes are still manageable.`,
           ],
-          ctaLabel: "Log Today's Check",
+          ctaLabel: `Log ${dogName}'s mobility today`,
           ctaUrl: `${appUrl}/dashboard`,
           unsubscribeUrl,
         });
-      } else if (dueStep.step === 5) {
-        if (trackingDays < 4) {
-          skipped += 1;
-          await markEmailSequenceStepSkipped(dueStep.id);
-          await updateEnrollmentNextSendAt(enrollment.id);
-          continue;
-        }
-        const risks = await prisma.breedProfile.findFirst({
-          where: { breed },
-          select: { commonHealthIssues: true },
-        });
-        const knownRiskCount = risks?.commonHealthIssues
-          ? risks.commonHealthIssues.split(",").filter((item) => item.trim().length > 0).length
-          : 3;
-
+      } else if (dueStep.step === 4) {
         template = buildEmailTemplate({
-          subject: `2 more days until ${dogName}'s first AI insight`,
+          subject: "Does your dog seem confused at night? This is why.",
           greetingName: firstName,
           lines: [
-            `You're almost there: ${trackingDays} days tracked.`,
-            `At 7 days, ${dogName} gets a personalized AI recommendation using breed, age, and tracked patterns.`,
-            `${dogName}'s breed (${breed}) has ${knownRiskCount} known health risks we'll keep watching.`,
-            `Progress: ${trackingDays}/7 days.`,
+            `Cognitive decline in senior dogs often shows up at night — pacing, staring at walls, forgetting house rules.`,
+            `It can look like anxiety, but it's often something vets can help with if you catch it early.`,
+            `When something feels off and you need a faster answer than "wait and see," our Urgent Answer gives a vet-informed triage write-up in under 2 hours.`,
           ],
-          ctaLabel: `Log Day ${Math.min(7, trackingDays + 1)}`,
-          ctaUrl: `${appUrl}/dashboard`,
+          ctaLabel: "Get an Urgent Answer — $24",
+          ctaUrl: urgentCheckoutUrl,
           unsubscribeUrl,
         });
       } else if (dueStep.step === 7) {
-        if (trackingDays >= 7) {
-          template = buildEmailTemplate({
-            subject: `${dogName}'s first AI recommendation is ready 🎉`,
-            greetingName: firstName,
-            lines: [
-              "You did it.",
-              `7 days of tracking are complete, and ${dogName}'s first personalized AI recommendation is waiting.`,
-            ],
-            ctaLabel: `See ${dogName}'s AI Recommendation`,
-            ctaUrl: `${appUrl}/insights`,
-            unsubscribeUrl,
-          });
-        } else {
-          template = buildEmailTemplate({
-            subject: `${Math.max(0, 7 - trackingDays)} days to go — keep tracking to unlock ${dogName}'s AI insight`,
-            greetingName: firstName,
-            lines: [
-              `You're close: ${trackingDays}/7 days tracked.`,
-              `Keep the streak going to unlock ${dogName}'s first AI insight.`,
-            ],
-            ctaLabel: "Log Today's Check",
-            ctaUrl: `${appUrl}/dashboard`,
-            unsubscribeUrl,
-          });
-        }
-      } else if (dueStep.step === 10) {
-        if (trackingDays < 7 || monthlyRecommendationsUsed < 1 || isPremium) {
-          skipped += 1;
-          await markEmailSequenceStepSkipped(dueStep.id);
-          await updateEnrollmentNextSendAt(enrollment.id);
-          continue;
-        }
-
         template = buildEmailTemplate({
-          subject: "You've seen what FursBliss can do — here's what Premium unlocks",
+          subject: "Dogs hide pain 10x better than humans. Here's how to catch it.",
           greetingName: firstName,
           lines: [
-            `Over the past ${trackingDays} days, you've tracked ${dogName}'s health and received your first AI insight.`,
-            `Premium includes unlimited AI recommendations (you've used ${monthlyRecommendationsUsed} of 3 free), weekly trend reports, vet-ready reports, LOY-002 readiness tracking, and breed-specific longevity insights for ${breed}.`,
-            "$9/month. Less than $0.30/day. Cancel anytime.",
-            "Not ready yet? Your 3 free AI insights reset next month.",
+            `Dogs evolved to mask pain — it's survival instinct. By the time ${dogName} whimpers or limps badly, discomfort may have been building for weeks.`,
+            `Watch for quiet signals: less tail wagging, avoiding favorite spots, eating slower, or panting without exercise.`,
+            `Daily tracking turns those whispers into a timeline your vet can actually use.`,
           ],
-          ctaLabel: `Upgrade ${dogName}'s Plan`,
-          ctaUrl: `${appUrl}/pricing?plan=premium&from=email-day10`,
+          ctaLabel: `Check in on ${dogName}`,
+          ctaUrl: `${appUrl}/check`,
+          unsubscribeUrl,
+        });
+      } else if (dueStep.step === 10) {
+        if (isPremium) {
+          skipped += 1;
+          await completeEnrollmentById(enrollment.id);
+          continue;
+        }
+        template = buildEmailTemplate({
+          subject: `Catching it at Stage 1 vs Stage 3 — ${dogName}'s window`,
+          greetingName: firstName,
+          lines: [
+            `The difference between catching a senior dog health issue at Stage 1 vs Stage 3 is often months of comfort — and thousands in vet bills.`,
+            `Premium ($9/month) keeps symptom history, trend alerts, and vet-ready reports in one place. Or save $29 vs monthly with our annual plan ($79/year).`,
+            `Not sure tonight? Urgent Answer ($24 one-time) gets you a vet-informed triage response in under 2 hours — no subscription.`,
+          ],
+          ctaLabel: "Try Premium — 7-day free trial",
+          ctaUrl: annualCheckoutUrl,
           unsubscribeUrl,
         });
       } else {

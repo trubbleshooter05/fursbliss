@@ -45,9 +45,13 @@ class CampaignItem:
 # Rotating image pool so daily auto-posts don't reuse the same og-default share
 # image every day. Hosted under public/images/social/ (see repo).
 IMAGE_POOL = [
+    "https://www.fursbliss.com/images/social/vaccine-log-essentials.png",
     "https://www.fursbliss.com/images/social/er-now-or-wait.png",
     "https://www.fursbliss.com/images/social/red-flags-checklist.png",
-    "https://www.fursbliss.com/og-default.jpg",
+    "https://www.fursbliss.com/images/social/weekly-senior-tracking.png",
+    "https://www.fursbliss.com/images/social/call-tonight-or-wait.png",
+    "https://www.fursbliss.com/images/social/sixty-second-symptom-check.png",
+    "https://www.fursbliss.com/images/social/weekend-watch-checklist.png",
 ]
 
 # utm_source distinguishes automated Page/IG posts ("fb-page") from manual

@@ -1,6 +1,7 @@
 "use client";
 
 import { buildCheckoutAttributionParams, getStoredAttribution } from "@/lib/attribution";
+import { cleanGaParams, shouldCollectAnalytics, type GaFunnelParams } from "@/lib/ga-tracking";
 import { URGENT_ANSWER_PRICE_USD } from "@/lib/stripe-prices";
 
 declare global {
@@ -208,6 +209,12 @@ export async function trackCheckoutStarted({
   contentName = "FursBliss Premium Monthly",
   eventIdBase,
 }: CheckoutTrackingInput) {
+  const planName =
+    contentName.toLowerCase().includes("yearly") || value >= 50
+      ? "yearly"
+      : contentName.toLowerCase().includes("urgent")
+        ? "urgent_answer"
+        : "monthly";
   const payload = {
     currency: "USD",
     value,
@@ -215,6 +222,29 @@ export async function trackCheckoutStarted({
     source,
   };
   const base = eventIdBase ?? `checkout-${Date.now()}`;
+  trackGa4Event(
+    "checkout_started",
+    {
+      source_page: currentSourcePage(),
+      plan_name: planName,
+      price: value,
+      currency: "USD",
+      user_status: currentUserStatus(),
+      destination_url: typeof window !== "undefined" ? window.location.href : "",
+      value,
+      transaction_id: base,
+      source,
+    },
+    { beacon: true, funnel: true }
+  );
+  sendGa4ServerBeacon("checkout_started", {
+    source_page: currentSourcePage(),
+    plan_name: planName,
+    price: value,
+    currency: "USD",
+    value,
+    source,
+  });
   const fbq = (typeof window !== "undefined"
     ? (window as Window & { fbq?: (...args: unknown[]) => void }).fbq
     : undefined);
@@ -279,20 +309,124 @@ function waitForGtag(maxMs = 2000): Promise<boolean> {
   });
 }
 
+function recordFunnelBeacon(eventName: string, params?: Record<string, unknown>) {
+  if (typeof navigator === "undefined") return;
+  const payload = JSON.stringify({
+    name: eventName,
+    params: params ?? {},
+    path: typeof window !== "undefined" ? window.location.pathname : undefined,
+  });
+  try {
+    if (typeof navigator.sendBeacon === "function") {
+      navigator.sendBeacon("/api/analytics/funnel", new Blob([payload], { type: "application/json" }));
+      return;
+    }
+    void fetch("/api/analytics/funnel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true,
+    });
+  } catch {
+    // no-op
+  }
+}
+
 function trackGa4Event(
   eventName: string,
   params?: Record<string, unknown>,
-  options?: { beacon?: boolean }
+  options?: { beacon?: boolean; funnel?: boolean }
 ) {
   if (typeof window === "undefined") return;
-  const payload = options?.beacon ? { ...params, transport_type: "beacon" } : params;
+  if (!shouldCollectAnalytics()) return;
+  const cleaned = cleanGaParams(params as GaFunnelParams | undefined);
+  const payload = options?.beacon ? { ...cleaned, transport_type: "beacon" } : cleaned;
   window.dataLayer = window.dataLayer || [];
   if (typeof window.gtag === "function") {
     window.gtag("event", eventName, payload);
-    return;
+  } else {
+    // gtag.js not loaded yet — queue so the tag picks it up once ready
+    window.dataLayer.push(["event", eventName, payload]);
   }
-  // gtag.js not loaded yet — queue so the tag picks it up once ready
-  window.dataLayer.push(["event", eventName, payload]);
+  if (options?.funnel !== false) {
+    recordFunnelBeacon(eventName, cleaned);
+  }
+}
+
+function currentSourcePage(): string {
+  if (typeof window === "undefined") return "";
+  return window.location.pathname + window.location.search;
+}
+
+function currentUserStatus(): string {
+  if (typeof document === "undefined") return "anonymous";
+  // Soft signal only — cookie presence of next-auth session token
+  if (document.cookie.includes("authjs.session-token") || document.cookie.includes("__Secure-authjs.session-token")) {
+    return "authenticated";
+  }
+  return "anonymous";
+}
+
+export function trackPricingViewed(extra?: GaFunnelParams) {
+  trackGa4Event(
+    "pricing_viewed",
+    {
+      source_page: currentSourcePage(),
+      user_status: currentUserStatus(),
+      currency: "USD",
+      ...extra,
+    },
+    { funnel: true }
+  );
+}
+
+export function trackSignupStarted(extra?: GaFunnelParams) {
+  trackGa4Event(
+    "signup_started",
+    {
+      source_page: currentSourcePage(),
+      user_status: currentUserStatus(),
+      ...extra,
+    },
+    { funnel: true }
+  );
+}
+
+export function trackSignupCompleted(extra?: GaFunnelParams) {
+  trackGa4Event(
+    "signup_completed",
+    {
+      source_page: currentSourcePage(),
+      user_status: "authenticated",
+      ...extra,
+    },
+    { funnel: true }
+  );
+}
+
+export function trackCtaClicked(extra: GaFunnelParams & { button_text: string; destination_url: string }) {
+  trackGa4Event(
+    "cta_clicked",
+    {
+      source_page: currentSourcePage(),
+      user_status: currentUserStatus(),
+      ...extra,
+    },
+    { funnel: true }
+  );
+}
+
+export function trackCheckoutAbandoned(extra?: GaFunnelParams) {
+  trackGa4Event(
+    "checkout_abandoned",
+    {
+      source_page: currentSourcePage(),
+      user_status: currentUserStatus(),
+      currency: "USD",
+      ...extra,
+    },
+    { funnel: true }
+  );
 }
 
 function getUrgentAttributionContext(source: string) {
@@ -397,33 +531,16 @@ export async function trackUrgentCheckoutCompleted({
     fbq("trackCustom", "UrgentCheckoutCompleted", payload, { eventID: `${base}:urgent-completed` });
   }
 
-  if (typeof window !== "undefined" && typeof window.gtag === "function") {
-    const dedupeKey = `ga4_urgent_purchase_fired_${base}`;
-    if (!sessionStorage.getItem(dedupeKey)) {
-      sessionStorage.setItem(dedupeKey, "1");
-      window.gtag("event", "purchase", {
-        transaction_id: base,
-        value,
-        currency: "USD",
-        items: [
-          {
-            item_id: "fursbliss-urgent-answer",
-            item_name: contentName,
-            price: value,
-            quantity: 1,
-          },
-        ],
-      });
-      trackGa4Event(
-        "urgent_checkout_completed",
-        {
-          ...getUrgentAttributionContext(source),
-          session_id: session_id ?? base,
-        },
-        { beacon: true }
-      );
-    }
-  }
+  // GA4 purchase / checkout_completed fire only from the Stripe webhook after
+  // verified payment — do not gtag or Measurement-Protocol from the success page.
+  trackGa4Event(
+    "urgent_checkout_completed",
+    {
+      ...getUrgentAttributionContext(source),
+      session_id: session_id ?? base,
+    },
+    { beacon: true, funnel: false }
+  );
 
   await Promise.allSettled([
     trackMetaEvent("Purchase", payload, { eventId: `${base}:urgent-purchase` }),
@@ -495,33 +612,8 @@ export async function trackPurchaseCompleted({
     fbq("trackCustom", "CompletedPurchase", payload, { eventID: `${base}:completed` });
   }
 
-  // GA4 purchase + subscription_started (deduplicated via sessionStorage)
-  if (typeof window !== "undefined" && typeof window.gtag === "function") {
-    const dedupeKey = `ga4_purchase_fired_${base}`;
-    if (!sessionStorage.getItem(dedupeKey)) {
-      sessionStorage.setItem(dedupeKey, "1");
-      window.gtag("event", "purchase", {
-        transaction_id: base,
-        value,
-        currency: "USD",
-        items: [
-          {
-            item_id: "fursbliss-premium",
-            item_name: contentName,
-            price: value,
-            quantity: 1,
-          },
-        ],
-      });
-      window.gtag("event", "subscription_started", {
-        transaction_id: base,
-        value,
-        currency: "USD",
-        source,
-        item_name: contentName,
-      });
-    }
-  }
+  // GA4 purchase / checkout_completed / subscription_started are server-only
+  // (Stripe webhook + FunnelEvent idempotency). Client success page = Meta only.
 
   await Promise.allSettled([
     trackMetaEvent("Purchase", payload, { eventId: `${base}:purchase` }),
@@ -540,6 +632,17 @@ export async function trackCheckoutAndRedirect(href: string, input: CheckoutTrac
   // Append first-touch attribution params so the checkout API can persist them to Stripe
   const attributionParams = buildCheckoutAttributionParams();
   const hrefWithAttribution = attributionParams ? `${href}${attributionParams}` : href;
+
+  trackCtaClicked({
+    button_text: input.contentName ?? "Start checkout",
+    destination_url: hrefWithAttribution,
+    plan_name:
+      (input.contentName ?? "").toLowerCase().includes("yearly") || (input.value ?? 9) >= 50
+        ? "yearly"
+        : "monthly",
+    price: input.value ?? 9,
+    currency: "USD",
+  });
 
   const isMobile = typeof navigator !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 

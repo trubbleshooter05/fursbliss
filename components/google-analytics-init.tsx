@@ -6,8 +6,8 @@ const GA_MEASUREMENT_ID =
 
 /**
  * Server component: injects GA4 scripts with afterInteractive.
- * beforeInteractive can fail to load GA in some browsers (Chrome incognito, etc.).
- * afterInteractive loads after hydration and is more reliable.
+ * send_page_view is false — GoogleAnalytics client owns page_view to avoid
+ * double-counting on first load (init config + SPA config).
  */
 export function GoogleAnalyticsInit() {
   return (
@@ -22,7 +22,10 @@ export function GoogleAnalyticsInit() {
           function gtag(){dataLayer.push(arguments);}
           window.gtag = gtag;
           gtag('js', new Date());
-          gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: true });
+          gtag('config', '${GA_MEASUREMENT_ID}', {
+            send_page_view: false,
+            anonymize_ip: true
+          });
         `}
       </Script>
     </>

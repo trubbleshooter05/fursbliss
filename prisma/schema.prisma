@@ -551,3 +551,23 @@ model UrgentAnswerEntitlement {
   @@index([userId])
   @@index([status])
 }
+
+model FunnelEvent {
+  id             String   @id @default(cuid())
+  name           String
+  path           String?
+  planName       String?
+  price          Float?
+  currency       String?
+  userStatus     String?
+  buttonText     String?
+  destinationUrl String?
+  transactionId  String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@unique([name, transactionId])
+  @@index([name, createdAt])
+  @@index([createdAt])
+}
+

@@ -15,7 +15,9 @@ function BannerInner() {
 
   const isSocial =
     utm === "tiktok" || utm === "instagram" || utm === "facebook" ||
-    utm === "x" || utm === "twitter" || ref === "social" ||
+    utm === "fb-page" || utm === "fb-senior-dog" ||
+    utm === "x" || utm === "twitter" || utm === "youtube" || utm === "reddit" ||
+    ref === "social" ||
     ref === "tiktok" || ref === "ig" || ref === "fb";
 
   if (!isSocial || dismissed) return null;
@@ -23,7 +25,9 @@ function BannerInner() {
   const label =
     utm === "tiktok" || ref === "tiktok" ? "TikTok" :
     utm === "instagram" || ref === "ig" ? "Instagram" :
-    utm === "facebook" || ref === "fb" ? "Facebook" :
+    utm === "facebook" || utm === "fb-page" || utm === "fb-senior-dog" || ref === "fb" ? "Facebook" :
+    utm === "youtube" ? "YouTube" :
+    utm === "reddit" ? "Reddit" :
     utm === "x" || utm === "twitter" ? "X" :
     "social";
 

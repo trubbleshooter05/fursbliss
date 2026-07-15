@@ -40,7 +40,11 @@ export async function GET(request: Request) {
   const defaultCancel =
     checkoutProduct === "urgent_answer" ? "/check" : "/pricing";
   const returnTo = sanitizePath(searchParams.get("returnTo"), defaultReturn);
-  const cancelTo = sanitizePath(searchParams.get("cancelTo"), defaultCancel);
+  let cancelTo = sanitizePath(searchParams.get("cancelTo"), defaultCancel);
+  // Mark abandonments so /pricing can fire checkout_abandoned (no business logic change)
+  if (!cancelTo.includes("checkout=")) {
+    cancelTo = appendQuery(cancelTo, "checkout", "cancelled");
+  }
 
   const utmSource = searchParams.get("utm_source") ?? "";
   const utmMedium = searchParams.get("utm_medium") ?? "";
@@ -155,6 +159,21 @@ export async function GET(request: Request) {
       },
       gaClientId || undefined
     );
+    void sendGa4ServerEvent(
+      "checkout_started",
+      {
+        source_page: source,
+        plan_name: "urgent_answer",
+        price: URGENT_ANSWER_PRICE_USD,
+        currency: "USD",
+        value: URGENT_ANSWER_PRICE_USD,
+        transaction_id: checkoutSession.id,
+        utm_source: utmSource,
+        utm_medium: utmMedium,
+        utm_campaign: utmCampaign,
+      },
+      gaClientId || undefined
+    );
 
     return NextResponse.redirect(checkoutSession.url, { status: 303 });
   }
@@ -222,6 +241,23 @@ export async function GET(request: Request) {
   if (!checkoutSession.url) {
     return NextResponse.json({ message: "Unable to create checkout session" }, { status: 500 });
   }
+
+  const priceValue = selectedPlan === "yearly" ? 59 : 9;
+  void sendGa4ServerEvent(
+    "checkout_started",
+    {
+      source_page: source,
+      plan_name: selectedPlan,
+      price: priceValue,
+      currency: "USD",
+      value: priceValue,
+      transaction_id: checkoutSession.id,
+      utm_source: utmSource,
+      utm_medium: utmMedium,
+      utm_campaign: utmCampaign,
+    },
+    gaClientId || undefined
+  );
 
   return NextResponse.redirect(checkoutSession.url, { status: 303 });
 }

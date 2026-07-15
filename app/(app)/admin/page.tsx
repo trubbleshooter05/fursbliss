@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExcludeAnalytics } from "@/components/admin/exclude-analytics";
 import {
   Table,
   TableBody,
@@ -83,10 +84,14 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
+      <ExcludeAnalytics />
       <div>
         <h1 className="text-3xl font-semibold text-slate-900">Admin</h1>
         <p className="text-muted-foreground">Overview of platform activity.</p>
         <div className="mt-3 flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/analytics">Analytics funnel</Link>
+          </Button>
           <Button asChild variant="outline">
             <Link href="/admin/ai-costs">Open AI Cost Dashboard</Link>
           </Button>

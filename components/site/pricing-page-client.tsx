@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { trackCheckoutAndRedirect, trackMetaCustomEvent, trackUrgentToPremiumViewed } from "@/lib/meta-events";
+import { trackCheckoutAbandoned, trackCheckoutAndRedirect, trackMetaCustomEvent, trackPricingViewed, trackUrgentToPremiumViewed } from "@/lib/meta-events";
 
 const comparisonRows = [
   { feature: "Number of pets", free: "1 pet", premium: "Unlimited pets" },
@@ -72,11 +72,32 @@ export function PricingPageClient({
 
   useEffect(() => {
     void trackMetaCustomEvent("ViewedPricing");
+    trackPricingViewed({
+      source_page: "/pricing",
+      plan_name: computedInitialPlan,
+      currency: "USD",
+    });
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("checkout") === "cancelled" || params.get("checkout") === "canceled") {
+        const key = "ga4_checkout_abandoned_fired";
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, "1");
+          trackCheckoutAbandoned({
+            source_page: "/pricing",
+            plan_name: computedInitialPlan,
+            currency: "USD",
+          });
+        }
+      }
+    }
     if (source === "urgent" || source === "triage") {
       trackUrgentToPremiumViewed({
         source: source === "urgent" ? "pricing-from-urgent" : "pricing-from-triage",
       });
     }
+    // Intentionally once per page load — not on billing toggle
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source]);
 
   const premiumPricing = useMemo(() => {

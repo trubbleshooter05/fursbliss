@@ -3,12 +3,38 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { sendMetaServerEvent } from "@/lib/meta-capi";
+import { sendGa4ServerEvent } from "@/lib/ga4-server";
+import { recordFunnelEventOnce } from "@/lib/funnel-event";
 import { stripeId } from "@/lib/stripe-id";
 import { isUrgentCheckoutSession } from "@/lib/stripe-prices";
 import {
   fulfillSubscriptionCheckoutGuestEmail,
   fulfillUrgentAnswerCheckout,
 } from "@/lib/urgent-answer";
+
+/** First write wins — Stripe retries must not re-send GA conversion events. */
+async function sendGa4ConversionOnce(input: {
+  eventName: string;
+  transactionId: string;
+  gaClientId?: string;
+  path?: string;
+  planName?: string;
+  price?: number;
+  currency?: string;
+  params: Record<string, string | number | boolean | undefined>;
+}) {
+  const first = await recordFunnelEventOnce({
+    name: input.eventName,
+    path: input.path ?? null,
+    planName: input.planName ?? null,
+    price: input.price ?? null,
+    currency: input.currency ?? "USD",
+    transactionId: input.transactionId,
+    metadata: input.params,
+  });
+  if (!first) return false;
+  return sendGa4ServerEvent(input.eventName, input.params, input.gaClientId);
+}
 
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
@@ -49,6 +75,15 @@ export async function POST(request: Request) {
                 ? "/check"
                 : "/";
 
+          const gaClientId = session.metadata?.ga_client_id || undefined;
+          const urgentGaParams = {
+            transaction_id: session.id,
+            value: purchaseValue,
+            currency: "USD" as const,
+            plan_name: "urgent_answer",
+            price: purchaseValue,
+            source_page: sourcePath,
+          };
           await Promise.allSettled([
             sendMetaServerEvent({
               eventName: "Purchase",
@@ -57,6 +92,26 @@ export async function POST(request: Request) {
               contentName: "FursBliss Urgent Symptom Answer",
               email,
               eventId: `${session.id}:purchase`,
+            }),
+            sendGa4ConversionOnce({
+              eventName: "purchase",
+              transactionId: session.id,
+              gaClientId,
+              path: sourcePath,
+              planName: "urgent_answer",
+              price: purchaseValue,
+              currency: "USD",
+              params: urgentGaParams,
+            }),
+            sendGa4ConversionOnce({
+              eventName: "checkout_completed",
+              transactionId: session.id,
+              gaClientId,
+              path: sourcePath,
+              planName: "urgent_answer",
+              price: purchaseValue,
+              currency: "USD",
+              params: urgentGaParams,
             }),
           ]);
           break;
@@ -123,6 +178,16 @@ export async function POST(request: Request) {
               : "/pricing";
         const eventSourceUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://www.fursbliss.com"}${sourcePath}`;
 
+        const gaClientId = session.metadata?.ga_client_id || undefined;
+        const planName = plan === "yearly" ? "yearly" : "monthly";
+        const subGaParams = {
+          transaction_id: session.id,
+          value: purchaseValue,
+          currency: "USD" as const,
+          plan_name: planName,
+          price: purchaseValue,
+          source_page: sourcePath,
+        };
         await Promise.allSettled([
           sendMetaServerEvent({
             eventName: "Purchase",
@@ -139,6 +204,66 @@ export async function POST(request: Request) {
             contentName: "FursBliss Premium",
             email,
             eventId: `${session.id}:completed`,
+          }),
+          sendGa4ConversionOnce({
+            eventName: "purchase",
+            transactionId: session.id,
+            gaClientId,
+            path: sourcePath,
+            planName,
+            price: purchaseValue,
+            currency: "USD",
+            params: subGaParams,
+          }),
+          sendGa4ConversionOnce({
+            eventName: "checkout_completed",
+            transactionId: session.id,
+            gaClientId,
+            path: sourcePath,
+            planName,
+            price: purchaseValue,
+            currency: "USD",
+            params: subGaParams,
+          }),
+          sendGa4ConversionOnce({
+            eventName: "subscription_started",
+            transactionId: session.id,
+            gaClientId,
+            path: sourcePath,
+            planName,
+            price: purchaseValue,
+            currency: "USD",
+            params: subGaParams,
+          }),
+        ]);
+        break;
+      }
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const gaClientId = session.metadata?.ga_client_id || undefined;
+        const planName = session.metadata?.plan || "unknown";
+        const purchaseValue =
+          typeof session.amount_total === "number"
+            ? Math.round((session.amount_total / 100) * 100) / 100
+            : undefined;
+        const abandonParams = {
+          transaction_id: session.id,
+          plan_name: planName,
+          price: purchaseValue,
+          currency: "USD" as const,
+          value: purchaseValue,
+          source_page: session.metadata?.source || "stripe",
+        };
+        await Promise.allSettled([
+          sendGa4ConversionOnce({
+            eventName: "checkout_abandoned",
+            transactionId: session.id,
+            gaClientId,
+            path: abandonParams.source_page,
+            planName,
+            price: purchaseValue,
+            currency: "USD",
+            params: abandonParams,
           }),
         ]);
         break;

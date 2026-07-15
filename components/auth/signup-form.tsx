@@ -22,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import {
   trackMetaEvent,
   trackPurchaseCompleted,
+  trackSignupCompleted,
+  trackSignupStarted,
   trackUrgentCheckoutCompleted,
   trackUrgentGuestClaimed,
 } from "@/lib/meta-events";
@@ -69,6 +71,10 @@ export function SignupForm() {
       referralCode: "",
     },
   });
+
+  useEffect(() => {
+    trackSignupStarted({ source_page: "/signup", button_text: "signup_form_view" });
+  }, []);
 
   useEffect(() => {
     const referral = searchParams.get("ref");
@@ -188,6 +194,11 @@ export function SignupForm() {
         eventId: typeof data?.metaEventId === "string" ? data.metaEventId : undefined,
       }
     );
+    trackSignupCompleted({
+      source_page: "/signup",
+      button_text: "Create account",
+      destination_url: redirectTarget || "/dashboard",
+    });
 
     if (checkoutSessionId && checkoutProduct === "urgent_answer") {
       trackUrgentGuestClaimed({ session_id: checkoutSessionId });
